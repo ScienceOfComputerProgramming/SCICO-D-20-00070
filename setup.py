@@ -7,12 +7,8 @@
 import subprocess
 from setuptools import setup, find_packages
 
-
-version = subprocess.run(['git', 'tag'], stdout=subprocess.PIPE)
-version = version.stdout.decode('utf-8')
-doc = open('gitissue/man/VERSION', 'w')
-doc.write(version)
-doc.close()
+with open('gitissue/man/VERSION', 'rb') as f:
+    version = f.read().decode('utf-8')
 
 with open('README.md', 'rb') as f:
     long_descr = f.read().decode('utf-8')
