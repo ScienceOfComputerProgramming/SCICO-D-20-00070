@@ -27,5 +27,5 @@ setup(
     long_description=long_descr,
     author='Nystrom Johann Edwards',
     author_email='nystrom.edwards@gmail.com',
-    url='https://gitlab.com/nystrome/source-issue-tracker',
+    url='https://gitlab.com/nystrome/git-issue',
 )
