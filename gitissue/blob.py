@@ -1,5 +1,9 @@
-from git import Blob, Repo
 import hashlib
+
+from git import Blob
+
+from gitissue import IssueRepo
+from gitissue import tools
 
 __all__ = ('IssueBlob',)
 
@@ -9,7 +13,7 @@ class IssueBlob(Blob):
     def __init__(self, contents, mode=None, path=None):
         self.contents = contents
         sha = hashlib.sha1(contents)
-        self.repo = Repo()
+        self.repo = IssueRepo()
         self.binsha = sha.digest()
         super(IssueBlob, self).__init__(self.repo, self.binsha)
 

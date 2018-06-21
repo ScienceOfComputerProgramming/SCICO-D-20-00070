@@ -1,1 +1,2 @@
-from .objects.issue import IssueBlob
+from .repo import IssueRepo
+from .blob import IssueBlob

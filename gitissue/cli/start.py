@@ -16,13 +16,13 @@ Created on 13 June 2018
 import argparse
 import sys
 
-from gitissue.tools.system import read_man_file
+from gitissue.tools import read_man_file
 
-from gitissue.status import status
-from gitissue.init import init
-from gitissue.log import log
+from gitissue.cli.status import status
+from gitissue.cli.init import init
+from gitissue.cli.log import log
 
-from git import Repo
+from gitissue import IssueRepo
 from git.exc import InvalidGitRepositoryError
 
 
@@ -33,7 +33,8 @@ def main():
     for reading the sub components of the sub arguments.
     """
     try:
-        repo = Repo()
+        repo = IssueRepo()
+        repo.cli = True
 
         parser = argparse.ArgumentParser(description='')
         parser.add_argument('-v', '--version', action='version',
@@ -63,6 +64,7 @@ def main():
             if not len(sys.argv) > 1:
                 parser.print_help()
             else:
+                args.repo = repo
                 args.func(args)
                 sys.exit(0)
     except InvalidGitRepositoryError:

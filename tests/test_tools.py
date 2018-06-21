@@ -1,9 +1,9 @@
 """
-This module tests the functionality of the tools.system module.
+This module tests the functionality of the tools module.
 """
 from unittest import TestCase
 from unittest.mock import patch
-from gitissue.tools import system
+from gitissue import tools
 from tests import mocks
 
 
@@ -12,7 +12,7 @@ class TestRunCommand(TestCase):
     @patch('subprocess.run', autospec=True)
     def test_run_command_simple_passes(self, mocked_run):
         mocked_run.return_value = mocks.SubprocessRun.Simple
-        self.assertEqual(system.run_command(
+        self.assertEqual(tools.run_command(
             'hello'), mocks.SubprocessRun.Simple.stdout.decode('utf-8'))
 
         mocked_run.assert_called()
@@ -21,7 +21,7 @@ class TestRunCommand(TestCase):
     @patch('subprocess.run', autospec=True)
     def test_run_git_command_passes(self, mocked_run):
         mocked_run.return_value = mocks.SubprocessRun.GitPass
-        self.assertEqual(system.run_command('git log'),
+        self.assertEqual(tools.run_command('git log'),
                          mocks.SubprocessRun.GitPass.stdout.decode('utf-8'))
 
         mocked_run.assert_called()
@@ -30,7 +30,7 @@ class TestRunCommand(TestCase):
     @patch('subprocess.run', autospec=True)
     def test_run_git_command_failed(self, mocked_run):
         mocked_run.return_value = mocks.SubprocessRun.GitFail
-        self.assertEqual(system.run_command('git log'),
+        self.assertEqual(tools.run_command('git log'),
                          mocks.SubprocessRun.GitFail.stdout.decode('utf-8'))
 
         mocked_run.assert_called()
@@ -40,12 +40,12 @@ class TestRunCommand(TestCase):
 class TestReadManualFiles(TestCase):
 
     def test_read_file_passed(self):
-        self.assertEqual(system.read_man_file(
+        self.assertEqual(tools.read_man_file(
             'SUPPORTED_REPOS'), 'gitlab\ngithub\njira')
 
     def test_read_file_fails(self):
         with self.assertRaises(FileNotFoundError) as context:
-            system.read_man_file('test_read')
+            tools.read_man_file('test_read')
         self.assertTrue('No such file or directory:' in str(context.exception))
 
 
@@ -53,36 +53,36 @@ class TestYesNoOption(TestCase):
 
     @patch('builtins.input', return_value='Y')
     def test_yes_option_capital(self, mocked_input):
-        self.assertTrue(system.yes_no_option('Hear is a value'))
+        self.assertTrue(tools.yes_no_option('Hear is a value'))
 
     @patch('builtins.input', return_value='y')
     def test_yes_option_common(self, mocked_input):
-        self.assertTrue(system.yes_no_option('Hear is a value'))
+        self.assertTrue(tools.yes_no_option('Hear is a value'))
 
     @patch('builtins.input', return_value='YY')
     def test_yes_option_double_capital(self, mocked_input):
-        self.assertFalse(system.yes_no_option('Hear is a value'))
+        self.assertFalse(tools.yes_no_option('Hear is a value'))
 
     @patch('builtins.input', return_value='YY')
     def test_yes_option_double_common(self, mocked_input):
-        self.assertFalse(system.yes_no_option('Hear is a value'))
+        self.assertFalse(tools.yes_no_option('Hear is a value'))
 
     @patch('builtins.input', return_value='N')
     def test_no_option_capital(self, mocked_input):
-        self.assertFalse(system.yes_no_option('Hear is a value'))
+        self.assertFalse(tools.yes_no_option('Hear is a value'))
 
     @patch('builtins.input', return_value='n')
     def test_no_option_common(self, mocked_input):
-        self.assertFalse(system.yes_no_option('Hear is a value'))
+        self.assertFalse(tools.yes_no_option('Hear is a value'))
 
     @patch('builtins.input', return_value='@')
     def test_symbol_option(self, mocked_input):
-        self.assertFalse(system.yes_no_option('Hear is a value'))
+        self.assertFalse(tools.yes_no_option('Hear is a value'))
 
     @patch('builtins.input', return_value='22')
     def test_double_number_option(self, mocked_input):
-        self.assertFalse(system.yes_no_option('Hear is a value'))
+        self.assertFalse(tools.yes_no_option('Hear is a value'))
 
     @patch('builtins.input', return_value='1')
     def test_single_number_option(self, mocked_input):
-        self.assertFalse(system.yes_no_option('Hear is a value'))
+        self.assertFalse(tools.yes_no_option('Hear is a value'))

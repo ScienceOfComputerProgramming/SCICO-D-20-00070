@@ -1,4 +1,4 @@
-from gitissue.tools.system import yes_no_option
+from gitissue.tools import yes_no_option
 
 
 def log(args):
