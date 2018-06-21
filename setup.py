@@ -15,7 +15,7 @@ with open('README.md', 'rb') as f:
 
 
 setup(
-    name='git-issue',
+    name='gitissue',
     packages=find_packages(),
     entry_points={
         'console_scripts': ['git-issue = gitissue.cli.start:main']

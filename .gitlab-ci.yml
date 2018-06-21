@@ -9,6 +9,7 @@ python_tests:
   image: python:3.6.5-alpine
   script:
     - pip install nose coverage
+    - pip install -r requirements.txt 
     - nosetests
     - coverage html
   artifacts:
