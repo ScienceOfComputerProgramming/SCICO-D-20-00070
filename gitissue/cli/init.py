@@ -1,26 +1,38 @@
+import sys
 from gitissue import tools
+from gitissue.errors import EmptyRepositoryError, NoCommitsError
 
 
 def init(args):
 
     if args.reset:
-        args.repo.reset()
+        try:
+            args.repo.reset()
+        except EmptyRepositoryError as error:
+            print(error)
 
     if not args.repo.is_init():
-        args.repo.setup
+        args.repo.setup()
 
         if tools.yes_no_option('Build issue repository from past commits'):
-            args.repo.build()
+            try:
+                print(' ')
+                print('Building repository from commits')
+                args.repo.build()
+                print(' ')
+            except NoCommitsError as error:
+                print(error)
+                print('Empty issue repository created')
+            except KeyboardInterrupt:
+                print(' ')
+                print('Setup issue repository process interupted')
+                print('Cleaning up')
+                args.repo.reset()
+                print('Done')
+                sys.exit(0)
+        else:
+            print('Empty issue repository created')
     else:
         print('Issue repository already setup')
-        # except KeyboardInterrupt:
-        #         # TODO raise error here
-        #         raise()
-        # print(' ')
-        # print('Setup issue repository process interupted')
-        # print('Cleaning up')
-        # self.reset()
-        # print('Done')
-        # sys.exit(0)
 
     return

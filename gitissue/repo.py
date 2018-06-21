@@ -7,6 +7,7 @@ from datetime import datetime
 from git import Repo
 
 from gitissue import tools
+from gitissue.errors import *
 
 __all__ = ('IssueRepo',)
 
@@ -56,10 +57,7 @@ class IssueRepo(Repo):
             import shutil
             shutil.rmtree(self.issue_dir)
         else:
-            pass
-            # TODO Throw an error here
-            # print('Issue repository empty\n\ttry running: git issue init')
-            # sys.exit(0)
+            raise EmptyRepositoryError()
 
     def setup(self):
         os.makedirs(self.issue_dir)
@@ -84,11 +82,14 @@ class IssueRepo(Repo):
             tools.print_progress_bar(
                 commits_scanned, num_commits, prefix=prefix, suffix=suffix)
 
-        # if the repo is not empty
-        if not self.bare:
+        # the repo has no heads therefore no commits
+        # TODO this may need changeing
+        if len(self.heads) > 0:
             # get all commits on the master branch
             all_commits = list(self.iter_commits('master'))
             num_commits = len(all_commits)
+
+            print(num_commits)
 
             for commit in all_commits:
                 commits_scanned += 1
@@ -102,7 +103,6 @@ class IssueRepo(Repo):
                 all_matches.extend(result)
 
         else:
-            # TODO throw repo bare error
-            pass
+            raise NoCommitsError
 
         return
