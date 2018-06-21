@@ -16,12 +16,14 @@ Created on 13 June 2018
 import argparse
 import sys
 
-from gitissue.tools.repo import get_git_directory
 from gitissue.tools.system import read_man_file
 
-from .status import main as status
-from .init import main as init
-from .log import main as log
+from gitissue.status import status
+from gitissue.init import init
+from gitissue.log import log
+
+from git import Repo
+from git.exc import InvalidGitRepositoryError
 
 
 def main():
@@ -30,34 +32,41 @@ def main():
     interpreting the command line arguments. The subparsers are responsible
     for reading the sub components of the sub arguments.
     """
-    parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-v', '--version', action='version',
-                        version=read_man_file('VERSION'))
+    try:
+        repo = Repo()
 
-    subparsers = parser.add_subparsers()
+        parser = argparse.ArgumentParser(description='')
+        parser.add_argument('-v', '--version', action='version',
+                            version=read_man_file('VERSION'))
 
-    # responsible for the init subcommand
-    init_parser = subparsers.add_parser('init')
-    init_parser.set_defaults(func=init)
+        subparsers = parser.add_subparsers()
 
-    # responsible for the status subcommand
-    status_parser = subparsers.add_parser('status')
-    status_parser.set_defaults(func=status)
+        # responsible for the init subcommand
+        init_parser = subparsers.add_parser('init')
+        init_parser.set_defaults(func=init)
 
-    # responsible for the log subcommand
-    log_parser = subparsers.add_parser('log')
-    log_parser.set_defaults(func=log)
+        # responsible for the status subcommand
+        status_parser = subparsers.add_parser('status')
+        status_parser.set_defaults(func=status)
 
-    # allow the cli to run if we are in a legal .git repo
-    if get_git_directory():
-        args = parser.parse_args()
+        # responsible for the log subcommand
+        log_parser = subparsers.add_parser('log')
+        log_parser.set_defaults(func=log)
 
-        # no args supplied
-        if not len(sys.argv) > 1:
-            parser.print_help()
-        else:
-            args.func(args)
-            sys.exit(0)
+        # allow the cli to run if we are in a legal .git repo
+        if repo.git_dir:
+            args = parser.parse_args()
+
+            # no args supplied
+            if not len(sys.argv) > 1:
+                parser.print_help()
+            else:
+                args.func(args)
+                sys.exit(0)
+    except InvalidGitRepositoryError:
+        print('fatal: not a git repository (or any parent up to mount point /)')
+        print('Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
+        sys.exit(0)
 
 
 if __name__ == '__main__':

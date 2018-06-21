@@ -6,9 +6,23 @@ interface.
 
 Created on 13 June 2018
 """
-
+import os
 import subprocess
 import pkg_resources
+from git import Repo
+
+
+def is_init():
+    """
+    A function that is used to detect if the git-issue folders
+    are initialised
+
+    Returns:
+        bool: true if folder exists, false otherwise
+    """
+    repo = Repo()
+    issue_dir = repo.git_dir + '/issue'
+    return os.path.exists(issue_dir)
 
 
 def yes_no_option(msg=''):
