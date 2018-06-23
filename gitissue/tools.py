@@ -73,4 +73,4 @@ def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, lengt
     print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end='\r')
     # Print New Line on Complete
     if iteration == total:
-        print()
+        print(' ')
