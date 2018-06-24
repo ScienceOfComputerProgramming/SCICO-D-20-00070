@@ -15,7 +15,7 @@ Created on 13 June 2018
 """
 
 
-def main(args):
+def status(args):
     """Shows the user information related to their issue status.
     """
     return

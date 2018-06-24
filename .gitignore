@@ -28,3 +28,4 @@ docs/*.rst
 
 ## ignore cache files
 *.pyc
+test.py

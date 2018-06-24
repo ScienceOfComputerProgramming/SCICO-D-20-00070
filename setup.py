@@ -15,7 +15,7 @@ with open('README.md', 'rb') as f:
 
 
 setup(
-    name='git-issue',
+    name='gitissue',
     packages=find_packages(),
     entry_points={
         'console_scripts': ['git-issue = gitissue.cli.start:main']
@@ -27,5 +27,5 @@ setup(
     long_description=long_descr,
     author='Nystrom Johann Edwards',
     author_email='nystrom.edwards@gmail.com',
-    url='https://gitlab.com/nystrome/source-issue-tracker',
+    url='https://gitlab.com/nystrome/git-issue',
 )
