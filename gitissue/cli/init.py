@@ -14,7 +14,7 @@ def init(args):
     if not args.repo.is_init():
         args.repo.setup()
 
-        if tools.yes_no_option('Build issue repository from past commits'):
+        if args.yes or tools.yes_no_option('Build issue repository from past commits'):
             try:
                 print(' ')
                 print('Building repository from commits')
