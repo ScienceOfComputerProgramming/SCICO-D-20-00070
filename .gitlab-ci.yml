@@ -8,6 +8,7 @@ python_tests:
   stage: tests
   image: python:3.6.5-alpine
   script:
+    - apk --no-cache add git
     - pip install nose coverage
     - nosetests
     - coverage html
