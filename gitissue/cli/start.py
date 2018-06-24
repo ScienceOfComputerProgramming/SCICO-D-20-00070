@@ -47,6 +47,8 @@ def main():
         init_parser.set_defaults(func=init)
         init_parser.add_argument('-r', '--reset', action='store_true',
                                  help='resets the issue repo and allows rebuild from commits')
+        init_parser.add_argument('-y', '--yes', action='store_true',
+                                 help='answers yes to: Build issue repository from past commits?')
 
         # responsible for the status subcommand
         status_parser = subparsers.add_parser('status')

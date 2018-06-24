@@ -121,5 +121,5 @@ class TestPrintProgressBar(TestCase):
 
     def test_100_percent(self):
         tools.print_progress_bar(2, 2)
-        expected_output = '\r |██████████████████████████████████████████████████| 100.0% \r \n'
+        expected_output = '\r |██████████████████████████████████████████████████| 100.0% \r\n'
         self.assertEqual(sys.stdout.getvalue(), expected_output)

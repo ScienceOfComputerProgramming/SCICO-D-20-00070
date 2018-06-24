@@ -3,16 +3,19 @@ import re
 import sys
 
 from datetime import datetime
+from collections import Counter
 
 from git import Repo
 
 from gitissue import tools
+from gitissue import IssueTree
 from gitissue.errors import *
+from gitissue.regex import MULTILINE_HASH_PYTHON_COMMENT
 
 __all__ = ('IssueRepo',)
 
 
-def find_pattern_in_tree(commit_tree, pattern):
+def find_issues_in_commit_tree(commit_tree, parent=None):
     matches = []
     if commit_tree.type != 'submodule':
         for item in commit_tree:
@@ -20,16 +23,17 @@ def find_pattern_in_tree(commit_tree, pattern):
                 # read the data contained in that file
                 try:
                     object_contents = item.data_stream.read().decode('utf-8')
-                    matched_issues = pattern.findall(object_contents)
-
+                    matched_issues = re.findall(
+                        MULTILINE_HASH_PYTHON_COMMENT, object_contents)
+                    result = {'filepath': str(item.path),
+                              'issues': matched_issues}
                     # if a string match for issue found
                     if matched_issues is not None:
-                        matches.extend(matched_issues)
+                        matches.append(result)
                 except UnicodeDecodeError:
                     pass
             else:
-                matches.extend(find_pattern_in_tree(
-                    item, pattern))
+                matches.append(find_issues_in_commit_tree(item, item.path))
     return matches
 
 
@@ -71,8 +75,6 @@ class IssueRepo(Repo):
 
         # TODO change the patterns here if needed
         # initialize to the current repo
-        pattern = r'(^\s*#.*$)'
-        pattern = re.compile(pattern, re.MULTILINE)
         all_matches = []
 
         def print_commit_progress(now, start):
@@ -88,9 +90,6 @@ class IssueRepo(Repo):
             # get all commits on the master branch
             all_commits = list(self.iter_commits('master'))
             num_commits = len(all_commits)
-
-            print(num_commits)
-
             for commit in all_commits:
                 commits_scanned += 1
 
@@ -99,10 +98,15 @@ class IssueRepo(Repo):
                     print_commit_progress(datetime.now(), start)
 
                 # finds all the issues in the commit
-                result = find_pattern_in_tree(commit.tree, pattern)
-                all_matches.extend(result)
+                result = find_issues_in_commit_tree(commit.tree)
+
+                # of the issues found find the number of occurances
+                # of the same pattern
+                # result = Counter(result)
+                all_matches.append(result)
+                IssueTree.create(self, result)
 
         else:
             raise NoCommitsError
-
+        print(all_matches)
         return
