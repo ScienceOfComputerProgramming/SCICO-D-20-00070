@@ -10,3 +10,8 @@ class EmptyRepositoryError(FileNotFoundError):
 class NoCommitsError(FileNotFoundError):
     def __init__(self):
         super().__init__('The repository has no commits.')
+
+
+class RepoObjectExistsError(FileExistsError):
+    def __init__(self):
+        super().__init__('The repository has no commits.')
