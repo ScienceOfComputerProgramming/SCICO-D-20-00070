@@ -2,7 +2,7 @@ import hashlib
 
 from git import util
 from git import Object
-from git.util import join_path
+from git.util import hex_to_bin
 
 from gitissue import Issue
 from gitissue.functions import serialize, deserialize, object_exists
@@ -18,8 +18,10 @@ class IssueTree(Object):
 
     type = "issuetree"
 
-    def __init__(self, repo, binsha, issues=None):
-        super(IssueTree, self).__init__(repo, binsha)
+    def __init__(self, repo, sha, issues=None):
+        if len(sha) > 20:
+            sha = hex_to_bin(sha)
+        super(IssueTree, self).__init__(repo, sha)
         if not object_exists(self) and issues is not None:
             self.data = [{'number': i.data['number'],
                           'hexsha': i.hexsha} for i in issues]

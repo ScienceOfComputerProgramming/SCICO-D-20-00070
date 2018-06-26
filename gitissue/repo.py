@@ -8,7 +8,7 @@ from collections import Counter
 from git import Repo
 
 from gitissue import tools
-from gitissue import IssueTree
+from gitissue import IssueTree, IssueCommit
 from gitissue.errors import EmptyRepositoryError, NoCommitsError
 from gitissue.regex import MULTILINE_HASH_PYTHON_COMMENT
 
@@ -103,8 +103,8 @@ class IssueRepo(Repo):
                     print_commit_progress(datetime.now(), start)
 
                 result = find_issues_in_commit_tree(commit.tree)
-                IssueTree.create(self, result)
-
+                itree = IssueTree.create(self, result)
+                IssueCommit.create(self, commit, itree)
         else:
             raise NoCommitsError
         return
