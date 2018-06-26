@@ -9,7 +9,7 @@ from git import Repo
 
 from gitissue import tools
 from gitissue import IssueTree
-from gitissue.errors import *
+from gitissue.errors import EmptyRepositoryError, NoCommitsError
 from gitissue.regex import MULTILINE_HASH_PYTHON_COMMENT
 
 __all__ = ('IssueRepo',)
@@ -20,20 +20,30 @@ def find_issues_in_commit_tree(commit_tree, parent=None):
     if commit_tree.type != 'submodule':
         for item in commit_tree:
             if item.type == 'blob':
-                # read the data contained in that file
+
                 try:
+                    # read the data contained in that file
                     object_contents = item.data_stream.read().decode('utf-8')
+
+                    # search for matches
                     matched_issues = re.findall(
-                        MULTILINE_HASH_PYTHON_COMMENT, object_contents)
-                    result = {'filepath': str(item.path),
-                              'issues': matched_issues}
+                        MULTILINE_HASH_PYTHON_COMMENT,
+                        object_contents)
+
                     # if a string match for issue found
                     if matched_issues is not None:
+
+                        # create a dictionary with the results
+                        # and add full dict to list
+                        result = {'filepath': str(item.path),
+                                  'issues': matched_issues}
                         matches.append(result)
                 except UnicodeDecodeError:
                     pass
             else:
-                matches.append(find_issues_in_commit_tree(item, item.path))
+                # extend the list with the values to create
+                # one flat list of matches
+                matches.extend(find_issues_in_commit_tree(item))
     return matches
 
 
@@ -61,21 +71,15 @@ class IssueRepo(Repo):
             import shutil
             shutil.rmtree(self.issue_dir)
         else:
-            raise EmptyRepositoryError()
+            raise EmptyRepositoryError
 
     def setup(self):
         os.makedirs(self.issue_dir)
         os.makedirs(self.issue_objects_dir)
 
     def build(self):
-        # from collections import Counter
-
         start = datetime.now()
         commits_scanned = 0
-
-        # TODO change the patterns here if needed
-        # initialize to the current repo
-        all_matches = []
 
         def print_commit_progress(now, start):
             duration = now - start
@@ -84,29 +88,23 @@ class IssueRepo(Repo):
             tools.print_progress_bar(
                 commits_scanned, num_commits, prefix=prefix, suffix=suffix)
 
-        # the repo has no heads therefore no commits
-        # TODO this may need changeing
         if len(self.heads) > 0:
             # get all commits on the master branch
+            # TODO: figure out if it is needed to find in other branches
+            # like a development branch!
             all_commits = list(self.iter_commits('master'))
             num_commits = len(all_commits)
-            for commit in all_commits:
+
+            # reversed to start at the first commit
+            for commit in reversed(all_commits):
                 commits_scanned += 1
 
-                # prints the progress
                 if self.cli:
                     print_commit_progress(datetime.now(), start)
 
-                # finds all the issues in the commit
                 result = find_issues_in_commit_tree(commit.tree)
-
-                # of the issues found find the number of occurances
-                # of the same pattern
-                # result = Counter(result)
-                all_matches.append(result)
                 IssueTree.create(self, result)
 
         else:
             raise NoCommitsError
-        print(all_matches)
         return

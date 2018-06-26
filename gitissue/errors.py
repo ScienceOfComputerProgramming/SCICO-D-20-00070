@@ -1,7 +1,3 @@
-
-__all__ = ('EmptyRepositoryError', 'NoCommitsError')
-
-
 class EmptyRepositoryError(FileNotFoundError):
     def __init__(self):
         super().__init__('The issue repository is empty.')
