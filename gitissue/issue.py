@@ -2,6 +2,7 @@ import hashlib
 import os
 
 from git import Object
+from git.util import hex_to_bin
 
 from gitissue.functions import serialize, deserialize, object_exists
 from gitissue.errors import RepoObjectExistsError
@@ -35,8 +36,10 @@ class Issue(Object):
 
     type = 'issue'
 
-    def __init__(self, repo, binsha, data=None):
-        super(Issue, self).__init__(repo, binsha)
+    def __init__(self, repo, sha, data=None):
+        if len(sha) > 20:
+            sha = hex_to_bin(sha)
+        super(Issue, self).__init__(repo, sha)
         if not object_exists(self) and data is not None:
             self.number = get_new_issue_no(repo)
             data['number'] = self.number
@@ -51,7 +54,10 @@ class Issue(Object):
             self.contents = self.data['contents']
 
     def __lt__(self, other):
-        return str(self.hexsha) < str(other.hexsha)
+        return self.number < other.number
+
+    def __str__(self):
+        return 'Issue#' + self.number + ' ' + self.hexsha
 
     @classmethod
     def create(cls, repo, data):

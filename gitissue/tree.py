@@ -5,7 +5,7 @@ from git import Object
 from git.util import join_path
 
 from gitissue import Issue
-from gitissue.functions import serialize
+from gitissue.functions import serialize, deserialize, object_exists
 from gitissue.errors import RepoObjectExistsError
 
 __all__ = ("IssueTree")
@@ -14,14 +14,22 @@ __all__ = ("IssueTree")
 class IssueTree(Object):
     """IssueTree objects represent an ordered list of Issues.
     """
+    __slots__ = ('data', 'issues', 'size')
 
     type = "issuetree"
 
-    def __init__(self, issues, repo, binsha):
+    def __init__(self, repo, binsha, issues=None):
         super(IssueTree, self).__init__(repo, binsha)
-        if issues is not None:
-            self.data = str(issues)
+        if not object_exists(self) and issues is not None:
+            self.data = [{'number': i.data['number'],
+                          'hexsha': i.hexsha} for i in issues]
             self.issues = issues
+            serialize(self)
+        else:
+            deserialize(self)
+            self.issues = []
+            for issue in self.data:
+                self.issues.append(Issue(repo, issue['hexsha']))
 
     @classmethod
     def create_issues_from_data(cls, repo, data):
@@ -39,9 +47,5 @@ class IssueTree(Object):
         issues.sort()
         sha = hashlib.sha1(str(issues).encode())
         binsha = sha.digest()
-        new_tree = cls(issues, repo, binsha)
-        try:
-            serialize(new_tree)
-        except RepoObjectExistsError:
-            pass
+        new_tree = cls(repo, binsha, issues)
         return new_tree

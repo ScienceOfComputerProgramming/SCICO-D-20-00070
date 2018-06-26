@@ -43,18 +43,10 @@ def serialize(obj):
 
 
 def deserialize(obj):
-    if obj.type == 'issue':
-        return deserialize_issue(obj)
-    else:
-        raise NotImplementedError
-
-
-def deserialize_issue(obj):
     folder, filename = get_location(obj)
     f = open(filename, 'rb')
     contents = zlib.decompress(f.read()).decode()
     f.close()
     contents = json.loads(contents)
     obj.data = contents
-
     return obj
