@@ -10,41 +10,9 @@ from git import Repo
 from gitissue import tools
 from gitissue import IssueTree, IssueCommit
 from gitissue.errors import EmptyRepositoryError, NoCommitsError
-from gitissue.regex import MULTILINE_HASH_PYTHON_COMMENT
+from gitissue.commit import find_issues_in_commit_tree
 
 __all__ = ('IssueRepo',)
-
-
-def find_issues_in_commit_tree(commit_tree):
-    matches = []
-    if commit_tree.type != 'submodule':
-        for item in commit_tree:
-            if item.type == 'blob':
-
-                try:
-                    # read the data contained in that file
-                    object_contents = item.data_stream.read().decode('utf-8')
-
-                    # search for matches
-                    matched_issues = re.findall(
-                        MULTILINE_HASH_PYTHON_COMMENT,
-                        object_contents)
-
-                    # if a string match for issue found
-                    if matched_issues is not None:
-
-                        # create a dictionary with the results
-                        # and add full dict to list
-                        result = {'filepath': str(item.path),
-                                  'issues': matched_issues}
-                        matches.append(result)
-                except UnicodeDecodeError:
-                    pass
-            else:
-                # extend the list with the values to create
-                # one flat list of matches
-                matches.extend(find_issues_in_commit_tree(item))
-    return matches
 
 
 class IssueRepo(Repo):
