@@ -32,7 +32,7 @@ class IssueCommit(Object):
             serialize(self)
         else:
             deserialize(self)
-            self.issuetree = IssueTree(repo, self.data['issuetree_sha'])
+            self.issuetree = IssueTree(repo, self.data['issuetree_hexsha'])
 
     @classmethod
     def create(cls, repo, commit, issuetree):

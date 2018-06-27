@@ -15,7 +15,7 @@ from gitissue.regex import MULTILINE_HASH_PYTHON_COMMENT
 __all__ = ('IssueRepo',)
 
 
-def find_issues_in_commit_tree(commit_tree, parent=None):
+def find_issues_in_commit_tree(commit_tree):
     matches = []
     if commit_tree.type != 'submodule':
         for item in commit_tree:
