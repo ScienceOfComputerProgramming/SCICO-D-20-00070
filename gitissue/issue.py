@@ -56,8 +56,14 @@ class Issue(Object):
     def __lt__(self, other):
         return self.number < other.number
 
+    def __eq__(self, other):
+        return self.binsha == other.binsha
+
+    def __gt__(self, other):
+        return self.number > other.number
+
     def __str__(self):
-        return 'Issue#' + self.number + ' ' + self.hexsha
+        return 'Issue#' + str(self.number) + ' ' + str(self.hexsha)
 
     @classmethod
     def create(cls, repo, data):

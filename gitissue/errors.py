@@ -10,4 +10,9 @@ class NoCommitsError(FileNotFoundError):
 
 class RepoObjectExistsError(FileExistsError):
     def __init__(self):
-        super().__init__('The repository already exists.')
+        super().__init__('The repository object already exists.')
+
+
+class RepoObjectDoesNotExistError(FileNotFoundError):
+    def __init__(self):
+        super().__init__('The repository object does not exist.')

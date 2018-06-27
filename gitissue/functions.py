@@ -3,7 +3,7 @@ import zlib
 import json
 
 from stat import S_IREAD
-from gitissue.errors import RepoObjectExistsError
+from gitissue.errors import RepoObjectExistsError, RepoObjectDoesNotExistError
 
 
 def get_location(obj):
@@ -26,10 +26,9 @@ def serialize(obj):
 
     data_to_write = json.dumps(obj.data)
 
-    # make the file, write compressed data, make read only
-
     if os.path.exists(filename):
         raise RepoObjectExistsError
+    # make the file, write compressed data, make read only
 
     f = open(filename, 'wb')
     f.write(zlib.compress(data_to_write.encode()))
@@ -44,9 +43,14 @@ def serialize(obj):
 
 def deserialize(obj):
     folder, filename = get_location(obj)
+    if not os.path.exists(filename):
+        raise RepoObjectDoesNotExistError
     f = open(filename, 'rb')
     contents = zlib.decompress(f.read()).decode()
     f.close()
     contents = json.loads(contents)
     obj.data = contents
+    # get the size of the file on the system
+    stats = os.stat(filename)
+    obj.size = stats.st_size
     return obj
