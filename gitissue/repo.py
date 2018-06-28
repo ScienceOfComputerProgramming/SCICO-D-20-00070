@@ -11,8 +11,11 @@ from gitissue import tools
 from gitissue import IssueTree, IssueCommit
 from gitissue.errors import EmptyRepositoryError, NoCommitsError
 from gitissue.commit import find_issues_in_commit_tree
+from gitissue.regex import MULTILINE_HASH_PYTHON_COMMENT
 
 __all__ = ('IssueRepo',)
+
+patterns = [MULTILINE_HASH_PYTHON_COMMENT, ]
 
 
 class IssueRepo(Repo):
@@ -31,8 +34,7 @@ class IssueRepo(Repo):
         Returns:
             :bool: true if folder exists, false otherwise
         """
-        repo = IssueRepo()
-        return os.path.exists(repo.issue_dir)
+        return os.path.exists(self.issue_dir)
 
     def reset(self):
         if self.is_init():
@@ -70,7 +72,7 @@ class IssueRepo(Repo):
                 if self.cli:
                     print_commit_progress(datetime.now(), start)
 
-                result = find_issues_in_commit_tree(commit.tree)
+                result = find_issues_in_commit_tree(commit.tree, patterns)
                 itree = IssueTree.create(self, result)
                 IssueCommit.create(self, commit, itree)
         else:
