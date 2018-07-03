@@ -23,23 +23,23 @@ def find_issues_in_commit_tree(commit_tree, patterns):
                 try:
                     # read the data contained in that file
                     object_contents = item.data_stream.read().decode('utf-8')
+                except (UnicodeDecodeError, AttributeError):
+                    continue
 
-                    # search for matches
-                    matched_issues = []
-                    for pattern in patterns:
-                        matched_issues.extend(
-                            re.findall(pattern, object_contents))
+                # search for matches
+                matched_issues = []
+                for pattern in patterns:
+                    matched_issues.extend(
+                        re.findall(pattern, object_contents))
 
-                    # if a string match for issue found
-                    if matched_issues is not None:
+                # if a string match for issue found
+                if matched_issues is not None:
 
-                        # create a dictionary with the results
-                        # and add full dict to list
-                        result = {'filepath': str(item.path),
-                                  'issues': matched_issues}
-                        matches.append(result)
-                except UnicodeDecodeError:
-                    pass
+                    # create a dictionary with the results
+                    # and add full dict to list
+                    result = {'filepath': str(item.path),
+                              'issues': matched_issues}
+                    matches.append(result)
             else:
                 # extend the list with the values to create
                 # one flat list of matches
