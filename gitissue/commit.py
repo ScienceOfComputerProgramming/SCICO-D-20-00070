@@ -14,7 +14,7 @@ from gitissue.regex import MULTILINE_HASH_PYTHON_COMMENT
 __all__ = ("IssueCommit")
 
 
-def find_issues_in_commit_tree(commit_tree):
+def find_issues_in_commit_tree(commit_tree, patterns):
     matches = []
     if commit_tree.type != 'submodule':
         for item in commit_tree:
@@ -25,9 +25,10 @@ def find_issues_in_commit_tree(commit_tree):
                     object_contents = item.data_stream.read().decode('utf-8')
 
                     # search for matches
-                    matched_issues = re.findall(
-                        MULTILINE_HASH_PYTHON_COMMENT,
-                        object_contents)
+                    matched_issues = []
+                    for pattern in patterns:
+                        matched_issues.extend(
+                            re.findall(pattern, object_contents))
 
                     # if a string match for issue found
                     if matched_issues is not None:
@@ -42,7 +43,7 @@ def find_issues_in_commit_tree(commit_tree):
             else:
                 # extend the list with the values to create
                 # one flat list of matches
-                matches.extend(find_issues_in_commit_tree(item))
+                matches.extend(find_issues_in_commit_tree(item, patterns))
     return matches
 
 
