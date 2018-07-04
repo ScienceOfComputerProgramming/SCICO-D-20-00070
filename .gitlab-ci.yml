@@ -26,7 +26,7 @@ python_docs:
   image: python:3.6.5-alpine
   script:
     - apk --no-cache add make
-    - pip install sphinx sphinx_rtd_theme
+    - pip install sphinx sphinx_rtd_theme gitpython
     - cd docs
     - make html
   artifacts:
