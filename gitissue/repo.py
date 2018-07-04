@@ -1,45 +1,37 @@
+# -*- coding: utf-8 -*-
+"""Module that contains the definition of the issue repo.
+
+:@author: Nystrom Edwards
+:Created: 21 June 2018
+"""
 import os
 import re
-import sys
 
 from datetime import datetime
-from collections import Counter
 
 from git import Repo
 
-from gitissue import tools
-from gitissue import IssueTree
-from gitissue.errors import *
+from gitissue import tools, IssueTree, IssueCommit
+from gitissue.errors import EmptyRepositoryError, NoCommitsError
+from gitissue.commit import find_issues_in_commit_tree
 from gitissue.regex import MULTILINE_HASH_PYTHON_COMMENT
 
 __all__ = ('IssueRepo',)
 
-
-def find_issues_in_commit_tree(commit_tree, parent=None):
-    matches = []
-    if commit_tree.type != 'submodule':
-        for item in commit_tree:
-            if item.type == 'blob':
-                # read the data contained in that file
-                try:
-                    object_contents = item.data_stream.read().decode('utf-8')
-                    matched_issues = re.findall(
-                        MULTILINE_HASH_PYTHON_COMMENT, object_contents)
-                    result = {'filepath': str(item.path),
-                              'issues': matched_issues}
-                    # if a string match for issue found
-                    if matched_issues is not None:
-                        matches.append(result)
-                except UnicodeDecodeError:
-                    pass
-            else:
-                matches.append(find_issues_in_commit_tree(item, item.path))
-    return matches
+patterns = [MULTILINE_HASH_PYTHON_COMMENT, ]
 
 
 class IssueRepo(Repo):
+    """IssueRepo objects represent the git and issue repository.
+    """
 
     def __init__(self):
+        """Initialize a newly instanced IssueRepo
+        *inherited from GitPython Repo*
+        :note:
+            Add the issue and objects directory to the definition
+            of the repository
+        """
         super(IssueRepo, self).__init__()
         self.issue_dir = self.git_dir + '/issue'
         self.issue_objects_dir = self.issue_dir + '/objects'
@@ -47,66 +39,84 @@ class IssueRepo(Repo):
 
     def is_init(self):
         """
-        A function that is used to detect if the git-issue folders
-        are initialised
+        Detect if the git-issue folders are initialised
 
         Returns:
             :bool: true if folder exists, false otherwise
         """
-        repo = IssueRepo()
-        return os.path.exists(repo.issue_dir)
+        return os.path.exists(self.issue_dir)
 
     def reset(self):
+        """
+        Resets the git-issue folders 
+
+        Raises:
+            :EmptyRepositoryError: if repo is not initialized
+        """
         if self.is_init():
             import shutil
             shutil.rmtree(self.issue_dir)
         else:
-            raise EmptyRepositoryError()
+            raise EmptyRepositoryError
 
     def setup(self):
+        """
+        Creates the git-issue folders 
+        """
         os.makedirs(self.issue_dir)
         os.makedirs(self.issue_objects_dir)
 
     def build(self):
-        # from collections import Counter
+        """
+        Builds the git-issue repository from past commits on the
+        master branch
 
+        Raises:
+            :NoCommitsError: if the git repository has no commits
+
+        Optionally:
+            :Shows Progress in Shell: if repo is used with command line interface
+        """
         start = datetime.now()
         commits_scanned = 0
 
-        # TODO change the patterns here if needed
-        # initialize to the current repo
-        all_matches = []
-
         def print_commit_progress(now, start):
+            """
+            Prints the progress of the building of the repository from past commits
+
+            Args:
+                :(datetime) now: The current system time
+                :(datetime) start: The system time when the process started
+
+            Shows:
+                :Commit status: The current commit iteration
+                :Progress bar: Progress of the operation
+                :Precentage: The percentage of the operation complete
+                :Duration: How long the operation has been running
+
+            """
             duration = now - start
             prefix = '%s/%s commits: ' % (commits_scanned, str(num_commits))
             suffix = ' Duration: %s' % str(duration)
             tools.print_progress_bar(
                 commits_scanned, num_commits, prefix=prefix, suffix=suffix)
 
-        # the repo has no heads therefore no commits
-        # TODO this may need changeing
         if len(self.heads) > 0:
             # get all commits on the master branch
+            # TODO: figure out if it is needed to find in other branches
+            # like a development branch!
             all_commits = list(self.iter_commits('master'))
             num_commits = len(all_commits)
-            for commit in all_commits:
+
+            # reversed to start at the first commit
+            for commit in reversed(all_commits):
                 commits_scanned += 1
 
-                # prints the progress
                 if self.cli:
                     print_commit_progress(datetime.now(), start)
 
-                # finds all the issues in the commit
-                result = find_issues_in_commit_tree(commit.tree)
-
-                # of the issues found find the number of occurances
-                # of the same pattern
-                # result = Counter(result)
-                all_matches.append(result)
-                IssueTree.create(self, result)
-
+                result = find_issues_in_commit_tree(commit.tree, patterns)
+                itree = IssueTree.create(self, result)
+                IssueCommit.create(self, commit, itree)
         else:
             raise NoCommitsError
-        print(all_matches)
-        return

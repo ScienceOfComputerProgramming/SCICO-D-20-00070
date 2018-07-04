@@ -1,6 +1,10 @@
+# -*- coding: utf-8 -*-
+"""Module that contains the erros that may be raised
+when using the library.
 
-__all__ = ('EmptyRepositoryError', 'NoCommitsError')
-
+:@author: Nystrom Edwards
+:Created: 21 June 2018
+"""
 
 class EmptyRepositoryError(FileNotFoundError):
     def __init__(self):
@@ -14,4 +18,9 @@ class NoCommitsError(FileNotFoundError):
 
 class RepoObjectExistsError(FileExistsError):
     def __init__(self):
-        super().__init__('The repository has no commits.')
+        super().__init__('The repository object already exists.')
+
+
+class RepoObjectDoesNotExistError(FileNotFoundError):
+    def __init__(self):
+        super().__init__('The repository object does not exist.')

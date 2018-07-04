@@ -1,422 +1,115 @@
+# -*- coding: utf-8 -*-
+"""Module that contains the definition of the issue commit.
+
+:@author: Nystrom Edwards
+:Created: 24 June 2018
 """
-This module is adapted from commit.py part of GitPython and is released under
-the BSD License: http://www.opensource.org/licenses/bsd-license.php
-"""
-
-from gitdb import IStream
-from git.util import (
-    hex_to_bin,
-    Actor,
-    Iterable,
-    Stats,
-    finalize_process
-)
-from git.diff import Diffable
-
-from git import Tree
-from git import Commit
-from git.util import (
-    Traversable,
-    Serializable,
-    parse_date,
-    altz_to_utctz_str,
-    parse_actor_and_date,
-    from_timestamp,
-)
-from git.compat import text_type
-
-from time import (
-    time,
-    daylight,
-    altzone,
-    timezone,
-    localtime
-)
-import os
-from io import BytesIO
-
-__all__ = ('IssueCommit', )
 
 
-class IssueCommit(Commit, Iterable, Diffable, Traversable, Serializable):
+import hashlib
+import re
 
-    """Wraps a gitissue Issue Commit object.
+from git import util, Object, Commit
+from git.util import hex_to_bin
 
+from gitissue import IssueTree
+from gitissue.functions import serialize, deserialize, object_exists
+from gitissue.regex import MULTILINE_HASH_PYTHON_COMMENT
+
+__all__ = ("IssueCommit")
+
+
+def find_issues_in_commit_tree(commit_tree, patterns):
     """
+    Recursively traverse the tree of files specified in a commit object and
+    search for patterns that identify an issue.
 
-    # ENVIRONMENT VARIABLES
-    # read when creating new commits
-    env_author_date = "GIT_AUTHOR_DATE"
-    env_committer_date = "GIT_COMMITTER_DATE"
+    Args:
+        :(Tree) commit_tree: The tree object of a git commit
+        :(list) patterns: list of regex patterns to match
 
-    # CONFIGURATION KEYS
-    conf_encoding = 'i18n.commitencoding'
+    Returns:
+        :(list) matches: a list of dictionarys containing the filepath and issue text
+    """
+    matches = []
+    if commit_tree.type != 'submodule':
+        for item in commit_tree:
+            if item.type == 'blob':
 
-    # INVARIANTS
-    default_encoding = "UTF-8"
-
-    # object configuration
-    type = "issuecommit"
-    __slots__ = ("tree", "commit", "parents")
-    _id_attribute_ = "hexsha"
-
-    def __init__(self, repo, binsha, commit=None, tree=None, parents=None):
-        """Instantiate a new Issue Commit. All keyword arguments taking None as default will
-        be implicitly set on first query.
-
-        :param binsha: 20 byte sha1
-        :param parents: tuple( Commit, ... )
-            is a tuple of commit ids or actual Commits
-        :param commit: Commit
-            Commit object
-        :param tree: Tree
-            Tree object
-        :param author: Actor
-            is the author string ( will be implicitly converted into an Actor object )
-        :param authored_date: int_seconds_since_epoch
-            is the authored DateTime - use time.gmtime() to convert it into a
-            different format
-        :param author_tz_offset: int_seconds_west_of_utc
-            is the timezone that the authored_date is in
-        :param committer: Actor
-            is the committer string
-        :param committed_date: int_seconds_since_epoch
-            is the committed DateTime - use time.gmtime() to convert it into a
-            different format
-        :param committer_tz_offset: int_seconds_west_of_utc
-            is the timezone that the committed_date is in
-        :param message: string
-            is the commit message
-        :param encoding: string
-            encoding of the message, defaults to UTF-8
-        :param parents:
-            List or tuple of Commit objects which are our parent(s) in the commit
-            dependency graph
-        :return: gitissue.IssueCommit
-
-        :note:
-            Timezone information is in the same format and in the same sign
-            as what time.altzone returns. The sign is inverted compared to git's
-            UTC timezone."""
-        super(IssueCommit, self).__init__(repo, binsha)
-        if tree is not None:
-            assert isinstance(
-                tree, Tree), "Tree needs to be a Tree instance, was %s" % type(tree)
-        if commit is not None:
-            assert isinstance(
-                commit, Commit), "Commit needs to be a Commit instance, was %s" % type(commit)
-        if tree is not None:
-            self.tree = tree
-        if commit is not None:
-            self.commit = commit
-        if parents is not None:
-            self.parents = parents
-
-    @classmethod
-    def iter_items(cls, repo, rev, paths='', **kwargs):
-        """Find all commits matching the given criteria.
-
-        :param repo: is the Repo
-        :param rev: revision specifier, see git-rev-parse for viable options
-        :param paths:
-            is an optional path or list of paths, if set only Commits that include the path
-            or paths will be considered
-        :param kwargs:
-            optional keyword arguments to git rev-list where
-            ``max_count`` is the maximum number of commits to fetch
-            ``skip`` is the number of commits to skip
-            ``since`` all commits since i.e. '1970-01-01'
-        :return: iterator yielding Commit items"""
-        if 'pretty' in kwargs:
-            raise ValueError(
-                "--pretty cannot be used as parsing expects single sha's only")
-        # END handle pretty
-
-        # use -- in any case, to prevent possibility of ambiguous arguments
-        # see https://github.com/gitpython-developers/GitPython/issues/264
-        args = ['--']
-        if paths:
-            args.extend((paths, ))
-        # END if paths
-
-        proc = repo.git.rev_list(rev, args, as_process=True, **kwargs)
-        return cls._iter_from_process_or_stream(repo, proc)
-
-    def iter_parents(self, paths='', **kwargs):
-        """Iterate _all_ parents of this commit.
-
-        :param paths:
-            Optional path or list of paths limiting the Commits to those that
-            contain at least one of the paths
-        :param kwargs: All arguments allowed by git-rev-list
-        :return: Iterator yielding Commit objects which are parents of self """
-        # skip ourselves
-        skip = kwargs.get("skip", 1)
-        if skip == 0:   # skip ourselves
-            skip = 1
-        kwargs['skip'] = skip
-
-        return self.iter_items(self.repo, self, paths, **kwargs)
-
-    @classmethod
-    def create_from_tree(cls, repo, tree, message, parent_commits=None, head=False, author=None, committer=None,
-                         author_date=None, commit_date=None):
-        """Commit the given tree, creating a commit object.
-
-        :param repo: Repo object the commit should be part of
-        :param tree: Tree object or hex or bin sha
-            the tree of the new commit
-        :param message: Commit message. It may be an empty string if no message is provided.
-            It will be converted to a string in any case.
-        :param parent_commits:
-            Optional Commit objects to use as parents for the new commit.
-            If empty list, the commit will have no parents at all and become
-            a root commit.
-            If None , the current head commit will be the parent of the
-            new commit object
-        :param head:
-            If True, the HEAD will be advanced to the new commit automatically.
-            Else the HEAD will remain pointing on the previous commit. This could
-            lead to undesired results when diffing files.
-        :param author: The name of the author, optional. If unset, the repository
-            configuration is used to obtain this value.
-        :param committer: The name of the committer, optional. If unset, the
-            repository configuration is used to obtain this value.
-        :param author_date: The timestamp for the author field
-        :param commit_date: The timestamp for the committer field
-
-        :return: Commit object representing the new commit
-
-        :note:
-            Additional information about the committer and Author are taken from the
-            environment or from the git configuration, see git-commit-tree for
-            more information"""
-        if parent_commits is None:
-            try:
-                parent_commits = [repo.head.commit]
-            except ValueError:
-                # empty repositories have no head commit
-                parent_commits = []
-            # END handle parent commits
-        else:
-            for p in parent_commits:
-                if not isinstance(p, cls):
-                    raise ValueError(
-                        "Parent commit '%r' must be of type %s" % (p, cls))
-            # end check parent commit types
-        # END if parent commits are unset
-
-        # retrieve all additional information, create a commit object, and
-        # serialize it
-        # Generally:
-        # * Environment variables override configuration values
-        # * Sensible defaults are set according to the git documentation
-
-        # COMMITER AND AUTHOR INFO
-        cr = repo.config_reader()
-        env = os.environ
-
-        committer = committer or Actor.committer(cr)
-        author = author or Actor.author(cr)
-
-        # PARSE THE DATES
-        unix_time = int(time())
-        is_dst = daylight and localtime().tm_isdst > 0
-        offset = altzone if is_dst else timezone
-
-        author_date_str = env.get(cls.env_author_date, '')
-        if author_date:
-            author_time, author_offset = parse_date(author_date)
-        elif author_date_str:
-            author_time, author_offset = parse_date(author_date_str)
-        else:
-            author_time, author_offset = unix_time, offset
-        # END set author time
-
-        committer_date_str = env.get(cls.env_committer_date, '')
-        if commit_date:
-            committer_time, committer_offset = parse_date(commit_date)
-        elif committer_date_str:
-            committer_time, committer_offset = parse_date(committer_date_str)
-        else:
-            committer_time, committer_offset = unix_time, offset
-        # END set committer time
-
-        # assume utf8 encoding
-        enc_section, enc_option = cls.conf_encoding.split('.')
-        conf_encoding = cr.get_value(
-            enc_section, enc_option, cls.default_encoding)
-
-        # if the tree is no object, make sure we create one - otherwise
-        # the created commit object is invalid
-        if isinstance(tree, str):
-            tree = repo.tree(tree)
-        # END tree conversion
-
-        # CREATE NEW COMMIT
-        new_commit = cls(repo, cls.NULL_BIN_SHA, tree,
-                         author, author_time, author_offset,
-                         committer, committer_time, committer_offset,
-                         message, parent_commits, conf_encoding)
-
-        stream = BytesIO()
-        new_commit._serialize(stream)
-        streamlen = stream.tell()
-        stream.seek(0)
-
-        istream = repo.odb.store(IStream(cls.type, streamlen, stream))
-        new_commit.binsha = istream.binsha
-
-        if head:
-            # need late import here, importing git at the very beginning throws
-            # as well ...
-            import git.refs
-            try:
-                repo.head.set_commit(new_commit, logmsg=message)
-            except ValueError:
-                # head is not yet set to the ref our HEAD points to
-                # Happens on first commit
-                master = git.refs.Head.create(
-                    repo, repo.head.ref, new_commit, logmsg="commit (initial): %s" % message)
-                repo.head.set_reference(
-                    master, logmsg='commit: Switching to %s' % master)
-            # END handle empty repositories
-        # END advance head handling
-
-        return new_commit
-
-    # { Serializable Implementation
-
-    def __serialize(self, stream):
-        write = stream.write
-        write(("tree %s\n" % self.tree).encode('ascii'))
-        for p in self.parents:
-            write(("parent %s\n" % p).encode('ascii'))
-
-        a = self.author
-        aname = a.name
-        c = self.committer
-        fmt = "%s %s <%s> %s %s\n"
-        write((fmt % ("author", aname, a.email,
-                      self.authored_date,
-                      altz_to_utctz_str(self.author_tz_offset))).encode(self.encoding))
-
-        # encode committer
-        aname = c.name
-        write((fmt % ("committer", aname, c.email,
-                      self.committed_date,
-                      altz_to_utctz_str(self.committer_tz_offset))).encode(self.encoding))
-
-        if self.encoding != self.default_encoding:
-            write(("encoding %s\n" % self.encoding).encode('ascii'))
-
-        try:
-            if self.__getattribute__('gpgsig') is not None:
-                write(b"gpgsig")
-                for sigline in self.gpgsig.rstrip("\n").split("\n"):
-                    write((" " + sigline + "\n").encode('ascii'))
-        except AttributeError:
-            pass
-
-        write(b"\n")
-
-        # write plain bytes, be sure its encoded according to our encoding
-        if isinstance(self.message, text_type):
-            write(self.message.encode(self.encoding))
-        else:
-            write(self.message)
-        # END handle encoding
-        return self
-
-    def _deserialize(self, stream):
-        """:param from_rev_list: if true, the stream format is coming from the rev-list command
-        Otherwise it is assumed to be a plain data stream from our object"""
-        readline = stream.readline
-        self.tree = Tree(self.repo, hex_to_bin(
-            readline().split()[1]), Tree.tree_id << 12, '')
-
-        self.parents = []
-        next_line = None
-        while True:
-            parent_line = readline()
-            if not parent_line.startswith(b'parent'):
-                next_line = parent_line
-                break
-            # END abort reading parents
-            self.parents.append(type(self)(self.repo, hex_to_bin(
-                parent_line.split()[-1].decode('ascii'))))
-        # END for each parent line
-        self.parents = tuple(self.parents)
-
-        # we don't know actual author encoding before we have parsed it, so keep the lines around
-        author_line = next_line
-        committer_line = readline()
-
-        # we might run into one or more mergetag blocks, skip those for now
-        next_line = readline()
-        while next_line.startswith(b'mergetag '):
-            next_line = readline()
-            while next_line.startswith(b' '):
-                next_line = readline()
-        # end skip mergetags
-
-        # now we can have the encoding line, or an empty line followed by the optional
-        # message.
-        self.encoding = self.default_encoding
-        self.gpgsig = None
-
-        # read headers
-        enc = next_line
-        buf = enc.strip()
-        while buf:
-            if buf[0:10] == b"encoding ":
-                self.encoding = buf[buf.find(' ') + 1:].decode('ascii')
-            elif buf[0:7] == b"gpgsig ":
-                sig = buf[buf.find(b' ') + 1:] + b"\n"
-                is_next_header = False
-                while True:
-                    sigbuf = readline()
-                    if not sigbuf:
-                        break
-                    if sigbuf[0:1] != b" ":
-                        buf = sigbuf.strip()
-                        is_next_header = True
-                        break
-                    sig += sigbuf[1:]
-                # end read all signature
-                self.gpgsig = sig.rstrip(b"\n").decode('ascii')
-                if is_next_header:
+                try:
+                    # read the data contained in that file
+                    object_contents = item.data_stream.read().decode('utf-8')
+                except (UnicodeDecodeError, AttributeError):
                     continue
-            buf = readline().strip()
-        # decode the authors name
 
-        try:
-            self.author, self.authored_date, self.author_tz_offset = \
-                parse_actor_and_date(
-                    author_line.decode(self.encoding, 'replace'))
-        except UnicodeDecodeError:
-            log.error("Failed to decode author line '%s' using encoding %s", author_line, self.encoding,
-                      exc_info=True)
+                # search for matches
+                matched_issues = []
+                for pattern in patterns:
+                    matched_issues.extend(
+                        re.findall(pattern, object_contents))
 
-        try:
-            self.committer, self.committed_date, self.committer_tz_offset = \
-                parse_actor_and_date(
-                    committer_line.decode(self.encoding, 'replace'))
-        except UnicodeDecodeError:
-            log.error("Failed to decode committer line '%s' using encoding %s", committer_line, self.encoding,
-                      exc_info=True)
-        # END handle author's encoding
+                # if a string match for issue found
+                if matched_issues is not None:
 
-        # a stream from our data simply gives us the plain message
-        # The end of our message stream is marked with a newline that we strip
-        self.message = stream.read()
-        try:
-            self.message = self.message.decode(self.encoding, 'replace')
-        except UnicodeDecodeError:
-            log.error("Failed to decode message '%s' using encoding %s",
-                      self.message, self.encoding, exc_info=True)
-        # END exception handling
+                    # create a dictionary with the results
+                    # and add full dict to list
+                    result = {'filepath': str(item.path),
+                              'issues': matched_issues}
+                    matches.append(result)
+            else:
+                # extend the list with the values to create
+                # one flat list of matches
+                matches.extend(find_issues_in_commit_tree(item, patterns))
+    return matches
 
-        return self
 
-    # } END serializable implementation
+class IssueCommit(Object):
+    """IssueCommit objects represent a git commit object linked to an
+    IssueTree.
+    :note:
+        When creating a tree if the object already exists the
+        existing object is returned
+    """
+    __slots__ = ('data', 'commit', 'size', 'issuetree')
+
+    type = "issuecommit"
+
+    def __init__(self, repo, sha, issuetree=None):
+        """Initialize a newly instanced IssueCommiy
+
+        Args:
+            :(Repo) repo: is the Repo we are located in
+            :(bytes/str) sha: 20 byte binary sha1 or 40 character hexidecimal sha1
+            :(IssueTree) issuetree:
+                the issue tree that contains all the issue contents for this commit
+        :note:
+            The object may be deserialised from the file system when instatiated 
+            or serialized to the file system when the object is created from a factory
+        """
+        if len(sha) > 20:
+            sha = hex_to_bin(sha)
+        super(IssueCommit, self).__init__(repo, sha)
+        self.commit = Commit(repo, sha)
+        if not object_exists(self) and issuetree is not None:
+            self.data = {'commit_hexsha': self.commit.hexsha,
+                         'issuetree_hexsha': issuetree.hexsha
+                         }
+            self.issuetree = issuetree
+            serialize(self)
+        else:
+            deserialize(self)
+            self.issuetree = IssueTree(repo, self.data['issuetree_hexsha'])
+
+    @classmethod
+    def create(cls, repo, commit, issuetree):
+        """Factory method that creates an IssueCommit with its issuetree
+        or return the IssueCommit from the FileSystem
+
+        Args:
+            :(Repo) repo: is the Repo we are located in
+            :(Commit) commit: is the git commit that we are linking to
+            :(IssueTree) issuetree:
+                the issue tree that contains all the issue contents for this commit
+        """
+        new_commit = cls(repo, commit.binsha, issuetree)
+        return new_commit
