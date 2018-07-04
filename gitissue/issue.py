@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""Module that contains the definition of the issue object.
+
+:@author: Nystrom Edwards
+:Created: 23 June 2018
+"""
 import hashlib
 import os
 
@@ -5,12 +11,16 @@ from git import Object
 from git.util import hex_to_bin
 
 from gitissue.functions import serialize, deserialize, object_exists
-from gitissue.errors import RepoObjectExistsError
 
 __all__ = ('Issue',)
 
 
 def get_new_issue_no(repo):
+    """ Gets a new issue number for the current repository
+
+        Args:
+            :(Repo) repo: is the Repo we are located in
+    """
     number_file = repo.issue_dir + '/NUMBER'
 
     if not os.path.exists(number_file):
@@ -37,6 +47,12 @@ class Issue(Object):
     type = 'issue'
 
     def __init__(self, repo, sha, data=None):
+        """Issue objects represent the issue created by a user and all
+        of its metadata
+        :note:
+            When creating a issue if the object already exists the
+            existing object is returned
+        """
         if len(sha) > 20:
             sha = hex_to_bin(sha)
         super(Issue, self).__init__(repo, sha)
@@ -67,6 +83,13 @@ class Issue(Object):
 
     @classmethod
     def create(cls, repo, data):
+        """Factory method that creates an IssueTree with its issues
+        or return the IssueTree From the FileSystem
+
+        Args:
+            :(Repo) repo: is the Repo we are located in
+            :(dict{}) data: a dictionary with issue contents
+        """
         sha = hashlib.sha1(str(data).encode())
         binsha = sha.digest()
         new_issue = cls(repo, binsha, data)
