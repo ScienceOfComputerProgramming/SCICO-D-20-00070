@@ -77,4 +77,3 @@ class IssueRepo(Repo):
                 IssueCommit.create(self, commit, itree)
         else:
             raise NoCommitsError
-        return
