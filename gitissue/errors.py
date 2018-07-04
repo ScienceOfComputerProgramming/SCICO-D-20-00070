@@ -1,7 +1,3 @@
-
-__all__ = ('EmptyRepositoryError', 'NoCommitsError')
-
-
 class EmptyRepositoryError(FileNotFoundError):
     def __init__(self):
         super().__init__('The issue repository is empty.')
@@ -14,4 +10,9 @@ class NoCommitsError(FileNotFoundError):
 
 class RepoObjectExistsError(FileExistsError):
     def __init__(self):
-        super().__init__('The repository has no commits.')
+        super().__init__('The repository object already exists.')
+
+
+class RepoObjectDoesNotExistError(FileNotFoundError):
+    def __init__(self):
+        super().__init__('The repository object does not exist.')
