@@ -6,13 +6,45 @@
 """
 import hashlib
 import os
+import re
 
 from git import Object
 from git.util import hex_to_bin
 
 from gitissue.functions import serialize, deserialize, object_exists
+from gitissue.regex import *
 
 __all__ = ('Issue',)
+
+
+def find_issue_data_in_comment(comment):
+    data = {}
+    number = re.findall(ISSUE_NUMBER, comment)
+    if len(number) > 0:
+        data['number'] = number[0]
+        title = re.findall(ISSUE_TITLE, comment)
+        if len(title) > 0:
+            data['title'] = title[0]
+        description = re.findall(ISSUE_DESCRIPTION, comment)
+        if len(description) > 0:
+            data['description'] = description[0]
+        assignees = re.findall(ISSUE_ASSIGNEES, comment)
+        if len(assignees) > 0:
+            data['assignees'] = assignees[0]
+        due_date = re.findall(ISSUE_DUE_DATE, comment)
+        if len(due_date) > 0:
+            data['due_date'] = due_date[0]
+        label = re.findall(ISSUE_LABEL, comment)
+        if len(label) > 0:
+            data['label'] = label[0]
+        weight = re.findall(ISSUE_WEIGHT, comment)
+        if len(weight) > 0:
+            data['weight'] = weight[0]
+        priority = re.findall(ISSUE_PRIORITY, comment)
+        if len(priority) > 0:
+            data['priority'] = priority[0]
+
+    return data
 
 
 def get_new_issue_no(repo):
@@ -42,7 +74,8 @@ def get_new_issue_no(repo):
 
 class Issue(Object):
 
-    __slots__ = ('data', 'filepath', 'contents', 'number', 'size')
+    __slots__ = ('data', 'number', 'title', 'description', 'assignees',
+                 'due_date', 'label', 'weight', 'priority', 'title', 'size', 'filepath', 'contents', )
 
     type = 'issue'
 
@@ -57,17 +90,47 @@ class Issue(Object):
             sha = hex_to_bin(sha)
         super(Issue, self).__init__(repo, sha)
         if not object_exists(self) and data is not None:
-            self.number = get_new_issue_no(repo)
-            data['number'] = self.number
+            # self.number = get_new_issue_no(repo)
             self.data = data
-            self.filepath = data['filepath']
-            self.contents = data['contents']
+            if 'number' in data:
+                self.number = data['number']
+            if 'title' in data:
+                self.title = data['title']
+            if 'description' in data:
+                self.description = data['description']
+            if 'assignees' in data:
+                self.assignees = data['assignees']
+            if 'due_date' in data:
+                self.due_date = data['due_date']
+            if 'label' in data:
+                self.label = data['label']
+            if 'weight' in data:
+                self.weight = data['weight']
+            if 'priority' in data:
+                self.priority = data['priority']
+            if 'filepath' in data:
+                self.filepath = data['filepath']
             serialize(self)
         else:
             deserialize(self)
-            self.number = self.data['number']
-            self.filepath = self.data['filepath']
-            self.contents = self.data['contents']
+            if 'number' in self.data:
+                self.number = self.data['number']
+            if 'title' in self.data:
+                self.title = self.data['title']
+            if 'description' in self.data:
+                self.description = self.data['description']
+            if 'assignees' in self.data:
+                self.assignees = self.data['assignees']
+            if 'due_date' in self.data:
+                self.due_date = self.data['due_date']
+            if 'label' in self.data:
+                self.label = self.data['label']
+            if 'weight' in self.data:
+                self.weight = self.data['weight']
+            if 'priority' in self.data:
+                self.priority = self.data['priority']
+            if 'filepath' in self.data:
+                self.filepath = self.data['filepath']
 
     def __lt__(self, other):
         return self.number < other.number

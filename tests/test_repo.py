@@ -95,8 +95,8 @@ class TestBuildIssueRepo(TestCase):
         # check issues created properly
         self.assertEqual(first_commit.commit, val[1])
         self.assertEqual(second_commit.commit, val[0])
-        self.assertGreater(len(first_commit.issuetree.issues), 0)
-        self.assertGreater(len(second_commit.issuetree.issues), 0)
+        self.assertEqual(len(first_commit.issuetree.issues), 0)
+        self.assertEqual(len(second_commit.issuetree.issues), 0)
 
     @patch('gitissue.repo.IssueRepo.iter_commits')
     @patch('gitissue.tools.print_progress_bar')
