@@ -26,8 +26,41 @@ It is structured as a Python command line applications.
 
 ## Usage
 
+To use the application you can create your issues anywhere in your source code and it will become a trackable versioned object within you git environment. Add operations you do with git will run git-issue in the background and automate this issue tracking for you.
 
+The recommended comment style to use is as follows:
 
+#### Java or C style
+
+    /*
+    * @issue #2
+    * @title The title of your issue
+    * @description:
+    *   A description of you issue as you
+    *   want it to be ``markdown`` supported
+    * @issue_assigned to nystrome, kevin, daniels
+    * @due date 12 oct 2018
+    * @label in-development
+    * @weight 4
+    * @priority high
+    *
+    */
+
+#### Python Style
+
+    """
+    @issue #2
+    @title The title of your issue
+    @description:
+      A description of you issue as you
+      want it to be ``markdown`` supported
+    @issue_assigned to nystrome, kevin, daniels
+    @due date 12 oct 2018
+    @label in-development
+    @weight 4
+    @priority high
+    
+    """
 
 ## Behavior
 

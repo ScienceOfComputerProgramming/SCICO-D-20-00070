@@ -7,60 +7,14 @@
 
 
 import hashlib
-import re
 
 from git import util, Object, Commit
 from git.util import hex_to_bin
 
 from gitissue import IssueTree
 from gitissue.functions import serialize, deserialize, object_exists
-from gitissue.regex import MULTILINE_HASH_PYTHON_COMMENT
 
 __all__ = ("IssueCommit")
-
-
-def find_issues_in_commit_tree(commit_tree, patterns):
-    """
-    Recursively traverse the tree of files specified in a commit object and
-    search for patterns that identify an issue.
-
-    Args:
-        :(Tree) commit_tree: The tree object of a git commit
-        :(list) patterns: list of regex patterns to match
-
-    Returns:
-        :(list) matches: a list of dictionarys containing the filepath and issue text
-    """
-    matches = []
-    if commit_tree.type != 'submodule':
-        for item in commit_tree:
-            if item.type == 'blob':
-
-                try:
-                    # read the data contained in that file
-                    object_contents = item.data_stream.read().decode('utf-8')
-                except (UnicodeDecodeError, AttributeError):
-                    continue
-
-                # search for matches
-                matched_issues = []
-                for pattern in patterns:
-                    matched_issues.extend(
-                        re.findall(pattern, object_contents))
-
-                # if a string match for issue found
-                if matched_issues is not None:
-
-                    # create a dictionary with the results
-                    # and add full dict to list
-                    result = {'filepath': str(item.path),
-                              'issues': matched_issues}
-                    matches.append(result)
-            else:
-                # extend the list with the values to create
-                # one flat list of matches
-                matches.extend(find_issues_in_commit_tree(item, patterns))
-    return matches
 
 
 class IssueCommit(Object):

@@ -5,14 +5,65 @@
 :Created: 24 June 2018
 """
 import hashlib
+import re
 
 from git import util, Object
 from git.util import hex_to_bin
 
 from gitissue import Issue
+from gitissue.issue import find_issue_data_in_comment
 from gitissue.functions import serialize, deserialize, object_exists
 
+
 __all__ = ("IssueTree")
+
+
+def find_issues_in_tree(repo, commit_tree, patterns):
+    """
+    Recursively traverse the tree of files specified in a commit object's tree and
+    search for patterns that identify an issue.
+
+    Args:
+        :(CommitTree) commit_tree: The tree object of a git commit
+        :(list) patterns: list of regex patterns to match
+
+    Returns:
+        :(list(Issues)) issues: a list of issues
+    """
+    issues = []
+    if commit_tree.type != 'submodule':
+        for file_object in commit_tree:
+            if file_object.type == 'blob':
+
+                try:
+                    # read the data contained in that file
+                    object_contents = file_object.data_stream.read().decode('utf-8')
+                except (UnicodeDecodeError, AttributeError):
+                    continue
+
+                # search for comment blocks in file
+                comments = []
+                for pattern in patterns:
+                    comments.extend(
+                        re.findall(pattern, object_contents))
+
+                # if a comment block is found in the file
+                if comments is not None:
+
+                    # search for issues embedded within the comments
+
+                    for comment in comments:
+                        issue_data = find_issue_data_in_comment(comment)
+                        if issue_data:
+                            issue_data['filepath'] = file_object.path
+                            issue = Issue.create(repo, issue_data)
+                            issues.append(issue)
+            else:
+                # extend the list with the values to create
+                # one flat list of matches
+                issues.extend(find_issues_in_tree(
+                    repo, file_object, patterns))
+    return issues
 
 
 class IssueTree(Object):
@@ -52,33 +103,15 @@ class IssueTree(Object):
                 self.issues.append(Issue(repo, issue['hexsha']))
 
     @classmethod
-    def create_issues_from_data(cls, repo, data):
-        """Create issues from data found in regex matches
-
-        Args:
-            :(Repo) repo: is the Repo we are located in
-            :(list(dict{})) data: a list of issues in a file which contains a list of dictionaries with
-                     issue contents
-        """
-        issues = []
-        for item in data:
-            for issue in item['issues']:
-                result = {'filepath': item['filepath'],
-                          'contents': issue}
-                issues.append(Issue.create(repo, result))
-        return issues
-
-    @classmethod
-    def create(cls, repo, data):
+    def create(cls, repo, issues):
         """Factory method that creates an IssueTree with its issues
         or return the IssueTree From the FileSystem
 
         Args:
             :(Repo) repo: is the Repo we are located in
-            :(list(dict{})) data: a list of issues in a file which contains a list of dictionaries with
-                     issue contents
+            :(list(Issues)) issues: a list of issues that are associated 
+            to this commit tree
         """
-        issues = IssueTree.create_issues_from_data(repo, data)
         issues.sort()
         sha = hashlib.sha1(str(issues).encode())
         binsha = sha.digest()

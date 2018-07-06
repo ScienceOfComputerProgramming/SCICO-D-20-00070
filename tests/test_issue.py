@@ -50,9 +50,11 @@ class TestGetNewIssueNumber(TestCase):
 
 class TestIssue(TestCase):
 
-    data = {'filepath': '.gitignore',
+    data = {'number': '1',
+            'filepath': '.gitignore',
             'contents': '# Adding a new thing\nAuthor: someone on the team'}
-    data1 = {'filepath': '.gitignore',
+    data1 = {'number': '2',
+             'filepath': '.gitignore',
              'contents': '# something different'}
     repo = None
     issue = None
@@ -69,7 +71,7 @@ class TestIssue(TestCase):
     def test1_create_issue(self):
         issue = Issue.create(self.repo, TestIssue.data.copy())
         self.assertTrue(issue.size > 0)
-        self.assertNotEqual(TestIssue.data, issue.data)
+        self.assertEqual(TestIssue.data, issue.data)
         self.assertIn(TestIssue.data['filepath'], issue.data['filepath'])
         self.assertIn(TestIssue.data['contents'], issue.data['contents'])
         TestIssue.issue = issue
@@ -91,7 +93,7 @@ class TestIssue(TestCase):
     def test5_create_separate_issues_from_similar_content(self):
         issue = Issue.create(self.repo, TestIssue.data1.copy())
         self.assertTrue(issue.size > 0)
-        self.assertNotEqual(TestIssue.data1, issue.data)
+        self.assertEqual(TestIssue.data1, issue.data)
         self.assertIn(TestIssue.data1['filepath'], issue.data['filepath'])
         self.assertIn(TestIssue.data1['contents'], issue.data['contents'])
         self.assertNotEqual(TestIssue.issue, issue)
