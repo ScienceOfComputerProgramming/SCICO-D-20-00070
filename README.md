@@ -26,7 +26,7 @@ It is structured as a Python command line applications.
 
 ## Usage
 
-To use the application you can create your issues anywhere in your source code and it will become a trackable versioned object within you git environment. Add operations you do with git will run git-issue in the background and automate this issue tracking for you.
+To use the application you can create your issues anywhere in your source code as block comments in a particular format and it will become a trackable versioned object within your git environment. Operations done with git will run git-issue in the background in order to automate issue tracking for you.
 
 The recommended comment style to use is as follows:
 

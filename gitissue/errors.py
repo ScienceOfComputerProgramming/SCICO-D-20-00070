@@ -6,6 +6,7 @@ when using the library.
 :Created: 21 June 2018
 """
 
+
 class EmptyRepositoryError(FileNotFoundError):
     def __init__(self):
         super().__init__('The issue repository is empty.')
@@ -24,3 +25,8 @@ class RepoObjectExistsError(FileExistsError):
 class RepoObjectDoesNotExistError(FileNotFoundError):
     def __init__(self):
         super().__init__('The repository object does not exist.')
+
+
+class NoIssueHistoryError(FileNotFoundError):
+    def __init__(self):
+        super().__init__('The repository does not contain any issues.')

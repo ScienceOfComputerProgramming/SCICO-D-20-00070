@@ -5,79 +5,68 @@
 :Created: 23 June 2018
 """
 import hashlib
-import os
 import re
 
 from git import Object
 from git.util import hex_to_bin
 
 from gitissue.functions import serialize, deserialize, object_exists
-from gitissue.regex import *
+from gitissue.regex import ISSUE
 
-__all__ = ('Issue',)
+__all__ = ('Issue', 'find_issue_data_in_comment', )
 
 
 def find_issue_data_in_comment(comment):
+    """Finds the relevant issue data in block comments
+    made by the user in source code. Only if an issue
+    number is specified and is alphanumeric does the 
+    function continue to extract other issue data.
+
+    Args:
+        :(str) comment: raw string representation of \
+        the block comment
+
+    Returns:
+        :(dict) data: contains all the relevant issue data
+    """
     data = {}
-    number = re.findall(ISSUE_NUMBER, comment)
-    if len(number) > 0:
+    number = re.findall(ISSUE.NUMBER, comment)
+    if len(number) > 0 and number[0].isalnum():
         data['number'] = number[0]
-        title = re.findall(ISSUE_TITLE, comment)
+        title = re.findall(ISSUE.TITLE, comment)
         if len(title) > 0:
             data['title'] = title[0]
-        description = re.findall(ISSUE_DESCRIPTION, comment)
+        description = re.findall(ISSUE.DESCRIPTION, comment)
         if len(description) > 0:
             data['description'] = description[0]
-        assignees = re.findall(ISSUE_ASSIGNEES, comment)
+        assignees = re.findall(ISSUE.ASSIGNEES, comment)
         if len(assignees) > 0:
             data['assignees'] = assignees[0]
-        due_date = re.findall(ISSUE_DUE_DATE, comment)
+        due_date = re.findall(ISSUE.DUE_DATE, comment)
         if len(due_date) > 0:
             data['due_date'] = due_date[0]
-        label = re.findall(ISSUE_LABEL, comment)
+        label = re.findall(ISSUE.LABEL, comment)
         if len(label) > 0:
             data['label'] = label[0]
-        weight = re.findall(ISSUE_WEIGHT, comment)
+        weight = re.findall(ISSUE.WEIGHT, comment)
         if len(weight) > 0:
             data['weight'] = weight[0]
-        priority = re.findall(ISSUE_PRIORITY, comment)
+        priority = re.findall(ISSUE.PRIORITY, comment)
         if len(priority) > 0:
             data['priority'] = priority[0]
 
     return data
 
 
-def get_new_issue_no(repo):
-    """ Gets a new issue number for the current repository
-
-        Args:
-            :(Repo) repo: is the Repo we are located in
-    """
-    number_file = repo.issue_dir + '/NUMBER'
-
-    if not os.path.exists(number_file):
-        f = open(number_file, 'w')
-        f.write('0')
-        f.close()
-
-    f = open(number_file, 'r')
-    last_number = int(f.read())
-    f.close()
-
-    new_number = last_number + 1
-    f = open(number_file, 'w')
-    f.write(str(new_number))
-    f.close()
-
-    return new_number
-
-
 class Issue(Object):
 
     __slots__ = ('data', 'number', 'title', 'description', 'assignees',
-                 'due_date', 'label', 'weight', 'priority', 'title', 'size', 'filepath', 'contents', )
+                 'due_date', 'label', 'weight', 'priority', 'title',
+                 'size', 'filepath', 'status')
 
     type = 'issue'
+    """ The base type of this issue repository object
+    """
 
     def __init__(self, repo, sha, data=None):
         """Issue objects represent the issue created by a user and all
@@ -90,8 +79,10 @@ class Issue(Object):
             sha = hex_to_bin(sha)
         super(Issue, self).__init__(repo, sha)
         if not object_exists(self) and data is not None:
-            # self.number = get_new_issue_no(repo)
             self.data = data
+            """Dictionary containing issue data that is easily
+            serializable/deserializable
+            """
             if 'number' in data:
                 self.number = data['number']
             if 'title' in data:

@@ -36,20 +36,10 @@ class TestCreateIssueCommit(TestCase):
         icommit = IssueCommit.create(
             self.repo, self.gitcommit, self.issue_tree)
         self.assertEqual(self.gitcommit.hexsha, icommit.hexsha)
+        self.assertEqual(self.gitcommit.binsha, icommit.binsha)
         self.assertEqual(len(icommit.issuetree.issues), 6)
-        self.assertEqual(self.gitcommit.hexsha, icommit.commit.hexsha)
+        self.assertEqual(icommit.open_issues, 6)
 
-    def test2_get_issue_commit_hexsha(self):
-        icommit = IssueCommit(self.repo, self.gitcommit.hexsha)
-        self.assertEqual(self.gitcommit.hexsha, icommit.hexsha)
-        self.assertEqual(len(icommit.issuetree.issues), 6)
-        self.assertEqual(self.gitcommit.hexsha, icommit.commit.hexsha)
-
-    def test3_get_issue_commit_binsha(self):
-        icommit = IssueCommit(self.repo, self.gitcommit.binsha)
-        self.assertEqual(self.gitcommit.hexsha, icommit.hexsha)
-        self.assertEqual(len(icommit.issuetree.issues), 6)
-        self.assertEqual(self.gitcommit.hexsha, icommit.commit.hexsha)
 
     @classmethod
     def tearDownClass(cls):
