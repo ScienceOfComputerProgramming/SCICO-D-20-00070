@@ -14,19 +14,22 @@ from git.util import hex_to_bin
 from gitissue import IssueTree
 from gitissue.functions import serialize, deserialize, object_exists
 
-__all__ = ("IssueCommit")
+__all__ = ('IssueCommit',)
 
 
 class IssueCommit(Object):
     """IssueCommit objects represent a git commit object linked to an
     IssueTree.
+
     :note:
         When creating a tree if the object already exists the
         existing object is returned
     """
     __slots__ = ('data', 'commit', 'size', 'issuetree')
 
-    type = "issuecommit"
+    type = 'issuecommit'
+    """ The base type of this issue repository object
+    """
 
     def __init__(self, repo, sha, issuetree=None):
         """Initialize a newly instanced IssueCommiy
@@ -36,6 +39,7 @@ class IssueCommit(Object):
             :(bytes/str) sha: 20 byte binary sha1 or 40 character hexidecimal sha1
             :(IssueTree) issuetree:
                 the issue tree that contains all the issue contents for this commit
+
         :note:
             The object may be deserialised from the file system when instatiated 
             or serialized to the file system when the object is created from a factory
@@ -44,15 +48,33 @@ class IssueCommit(Object):
             sha = hex_to_bin(sha)
         super(IssueCommit, self).__init__(repo, sha)
         self.commit = Commit(repo, sha)
+        """ The git commit object that this issue commit is referencing
+        see `GitPython.Commit <https://gitpython.readthedocs.io/en/stable/reference.html#module-git.objects.commit/>`_.
+        """
         if not object_exists(self) and issuetree is not None:
-            self.data = {'commit_hexsha': self.commit.hexsha,
-                         'issuetree_hexsha': issuetree.hexsha
+            self.data = {'commit': self.commit.hexsha,
+                         'itree': issuetree.hexsha
                          }
+            """Dictionary containing issue commit data that is easily
+            serializable/deserializable
+
+                :data['commit']: the sha value of the git commit
+                :data['itree']: the sha value of the issue tree
+            """
             self.issuetree = issuetree
+            """The :py:class:`IssueTree` that is attached to this issue commit
+            """
             serialize(self)
         else:
             deserialize(self)
-            self.issuetree = IssueTree(repo, self.data['issuetree_hexsha'])
+            self.issuetree = IssueTree(repo, self.data['itree'])
+
+    @property
+    def open_issues(self):
+        """The number of issues that are open in this particular commit
+        as the length of the issues in the issue tree
+        """
+        return len(self.issuetree.issues)
 
     @classmethod
     def create(cls, repo, commit, issuetree):

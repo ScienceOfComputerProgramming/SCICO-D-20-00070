@@ -79,6 +79,7 @@ class TestFindIssuesInTree(TestCase):
         blob = Mock()
         blob.path = 'README'
         blob.type = 'blob'
+        blob.mime_type = 'text'
         blob.data_stream = Mock()
         blob.data_stream.read = Mock(return_value=contents)
         mock_list.append(blob)
@@ -101,6 +102,7 @@ class TestFindIssuesInTree(TestCase):
         blob = Mock()
         blob.path = 'README'
         blob.type = 'blob'
+        blob.mime_type = 'text'
         blob.data_stream = Mock()
         blob.data_stream.read = Mock(return_value=contents)
         mock_list.append(blob)
@@ -124,6 +126,7 @@ class TestFindIssuesInTree(TestCase):
             contents = contents.encode()
             blob = Mock()
             blob.type = 'blob'
+            blob.mime_type = 'text'
             blob.data_stream = Mock()
             blob.data_stream.read = Mock(return_value=contents)
             mock_list.append(blob)
@@ -151,6 +154,7 @@ class TestFindIssuesInTree(TestCase):
         contents = b'The project consists of contents'
         blob = Mock()
         blob.type = 'blob'
+        blob.mime_type = 'text'
         blob.path = 'README'
         blob.data_stream = Mock()
         blob.data_stream.read = Mock(return_value=contents)
@@ -167,6 +171,7 @@ class TestFindIssuesInTree(TestCase):
             contents = contents.encode()
             blob = Mock()
             blob.type = 'blob'
+            blob.mime_type = 'text'
             blob.data_stream = Mock()
             blob.data_stream.read = Mock(return_value=contents)
             tree_list.append(blob)
@@ -197,6 +202,7 @@ class TestFindIssuesInTree(TestCase):
         blob = Mock()
         blob.path = 'README'
         blob.type = 'blob'
+        blob.mime_type = 'text'
         blob.data_stream = Mock()
         blob.data_stream.read = Mock(return_value=contents)
         mock_list.append(blob)
@@ -207,6 +213,29 @@ class TestFindIssuesInTree(TestCase):
         # run the function with the mocked object
         issues = find_issues_in_tree(self.repo, tree, self.patterns)
         self.assertEqual(len(issues), 2)
+
+    def test_tree_contains_one_non_text_file(self):
+        # The magicmock helps to create an iterable object
+        tree = MagicMock()
+        tree.type = 'tree'
+
+        # Builds blobs in iterable objects as a list
+        mock_list = []
+        contents = b'# @issue_no: 1 \nvalue that has some contents\n# @issue 2\n here as well'
+        blob = Mock()
+        blob.path = 'README'
+        blob.type = 'blob'
+        blob.mime_type = 'application/json'
+        blob.data_stream = Mock()
+        blob.data_stream.read = Mock(return_value=contents)
+        mock_list.append(blob)
+
+        # iterable objects set here
+        tree.__iter__.return_value = mock_list
+
+        # run the function with the mocked object
+        issues = find_issues_in_tree(self.repo, tree, self.patterns)
+        self.assertEqual(len(issues), 0)
 
     def test_tree_contains_multiple_issues_multiple_files(self):
         # The magicmock helps to create an iterable object
@@ -222,6 +251,7 @@ class TestFindIssuesInTree(TestCase):
             contents = contents.encode()
             blob = Mock()
             blob.type = 'blob'
+            blob.mime_type = 'text'
             blob.data_stream = Mock()
             blob.data_stream.read = Mock(return_value=contents)
             mock_list.append(blob)
@@ -246,6 +276,7 @@ class TestFindIssuesInTree(TestCase):
         contents = b'#@issue 9 The project \ndoggy# @issue 20 consists of contents\n contents #here'
         blob = Mock()
         blob.type = 'blob'
+        blob.mime_type = 'text'
         blob.path = 'README'
         blob.data_stream = Mock()
         blob.data_stream.read = Mock(return_value=contents)
@@ -262,6 +293,7 @@ class TestFindIssuesInTree(TestCase):
             contents = contents.encode()
             blob = Mock()
             blob.type = 'blob'
+            blob.mime_type = 'text'
             blob.data_stream = Mock()
             blob.data_stream.read = Mock(return_value=contents)
             tree_list.append(blob)

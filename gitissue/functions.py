@@ -3,6 +3,7 @@
 the file system.
 
 :@author: Nystrom Edwards
+
 :Created: 24 June 2018
 """
 
@@ -11,7 +12,7 @@ import zlib
 import json
 
 from stat import S_IREAD
-from gitissue.errors import RepoObjectExistsError, RepoObjectDoesNotExistError
+from gitissue.errors import RepoObjectExistsError, RepoObjectDoesNotExistError, NoIssueHistoryError
 
 
 def get_location(obj):
@@ -20,8 +21,9 @@ def get_location(obj):
         :(object) obj: The repositiory object (IssueCommit, IssueTree, Issues)
 
     Returns:
-        :(str,str)(folder, filename): the location of the file and folder
+        :(str,str)(folder, filename): the location of the file and folder \
         of any repository object (IssueCommit, IssueTree, Issues)
+
     """
     # get the first two items in the sha for a folder
     folder = obj.repo.issue_objects_dir + '/' + str(obj.hexsha)[:2]
@@ -30,16 +32,37 @@ def get_location(obj):
     return folder, filename
 
 
+def get_type_from_sha(repo, sha):
+    """Get object type from the raw sha of any issue object
+
+    Args:
+        :(Repo) repo: The repositiory where the sha exists
+        :(str) sha: representing the sha of the object
+    """
+    folder = repo.issue_objects_dir + '/' + sha[:2]
+    filename = folder + '/' + sha[2:]
+
+    if not os.path.exists(filename):
+        raise RepoObjectDoesNotExistError
+
+    f = open(filename, 'rb')
+    contents = zlib.decompress(f.read()).decode()
+    obj_type = contents.split(' ', 1)[0]
+    f.close()
+    return obj_type
+
+
 def object_exists(obj):
     """
     Args:
         :(object) obj: The repositiory object (IssueCommit, IssueTree, Issues)
 
     Returns:
-        :bool: True if the repository object (IssueCommit, IssueTree, Issues)
+        :bool: True if the repository object (IssueCommit, IssueTree, Issues) \
         exits
     """
-    folder, filename = get_location(obj)
+    location = get_location(obj)
+    filename = location[1]
     return os.path.exists(filename)
 
 
@@ -63,6 +86,8 @@ def serialize(obj):
         os.makedirs(folder)
 
     data_to_write = json.dumps(obj.data)
+    # Add object type to serialize
+    data_to_write = obj.type + ' ' + data_to_write
 
     if os.path.exists(filename):
         raise RepoObjectExistsError
@@ -94,15 +119,83 @@ def deserialize(obj):
     Raises:
         :RepoObjectDoesNotExistError: in the event the object does not exist
     """
-    folder, filename = get_location(obj)
+    location = get_location(obj)
+    filename = location[1]
     if not os.path.exists(filename):
         raise RepoObjectDoesNotExistError
     f = open(filename, 'rb')
     contents = zlib.decompress(f.read()).decode()
     f.close()
+
+    # remove the object type on deserialize
+    contents = contents.split(' ', 1)[1]
     contents = json.loads(contents)
     obj.data = contents
     # get the size of the file on the system
     stats = os.stat(filename)
     obj.size = stats.st_size
     return obj
+
+
+def save_issue_history(itree):
+    """Takes an issue tree and saves all its tracked issues 
+    to a file containing the history of all issues ever created
+    that were tracked. *Skips operation if tree empty*
+
+    Args:
+        :(IssueTree) itree: The tree to use to save new issues to full history file.
+    """
+    if itree.issues:
+        history = itree.repo.issue_dir + '/HISTORY'
+
+        # if first time create empty file
+        if not os.path.exists(history):
+            contents = []
+        else:
+            f = open(history, 'rb')
+            contents = zlib.decompress(f.read()).decode()
+            f.close()
+            contents = json.loads(contents)
+
+        new_contents = []
+        for issue in itree.issues:
+            new_issue = {}
+            new_issue['number'] = issue.number
+            new_issue['sha'] = issue.hexsha
+            new_contents.append(new_issue)
+        contents.extend(new_contents)
+
+        # remove duplicate numbers and sort by number
+        contents = list({v['number']: v for v in contents}.values())
+        contents = sorted(contents, key=lambda v: v['number'])
+
+        data_to_write = json.dumps(contents)
+        f = open(history, 'wb')
+        f.write(zlib.compress(data_to_write.encode()))
+        f.close()
+
+
+def get_issue_history(repo):
+    """Returns all tracked issues from a file containing 
+    the history of all issues ever created that were tracked.
+
+    Args:
+        :(Repo) repo: The repo where the issue history is located
+
+    Returns:
+        :(list(dict)) contents: the number and sha of the issue
+
+    Raises:
+        :NoIssueHistoryError: *If no issues created*
+    """
+    history = repo.issue_dir + '/HISTORY'
+
+    # if first time create empty file
+    if not os.path.exists(history):
+        raise NoIssueHistoryError
+    else:
+        f = open(history, 'rb')
+        contents = zlib.decompress(f.read()).decode()
+        f.close()
+        contents = json.loads(contents)
+        return contents

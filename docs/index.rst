@@ -13,8 +13,6 @@ Contents:
    
    modules.rst
 
-.. automodule:: cli
-
 
 
 
