@@ -45,7 +45,7 @@ def tracker(args):
         if issues:
             page_issues(issues)
         else:
-            print('No closed issues found')
+            print('No issues found')
     except NoIssueHistoryError as error:
         error = 'git issue error fatal: ' + str(error)
         print(error)

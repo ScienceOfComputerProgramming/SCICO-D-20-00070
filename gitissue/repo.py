@@ -14,14 +14,14 @@ from git import Repo
 from gitissue import IssueTree, IssueCommit, Issue
 from gitissue.errors import EmptyRepositoryError, NoCommitsError
 from gitissue.tree import find_issues_in_tree
-from gitissue.regex import PYTHON_MULTILINE_HASH, PYTHON_MULTILINE_DOCSTRING
+from gitissue.regex import PYTHON_MULTILINE_DOCSTRING
 from gitissue.functions import get_issue_history
 from gitissue.cli.functions import print_progress_bar
 
 __all__ = ('IssueRepo', 'get_all_issues',
            'get_open_issues', 'get_closed_issues')
 
-patterns = [PYTHON_MULTILINE_HASH, PYTHON_MULTILINE_DOCSTRING]
+patterns = [PYTHON_MULTILINE_DOCSTRING, ]
 
 
 def get_all_issues(repo, branch=None):

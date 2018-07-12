@@ -132,6 +132,9 @@ class Issue(Object):
     def __gt__(self, other):
         return self.number > other.number
 
+    def __hash__(self):
+        return int(self.hexsha, 17)
+
     def __str__(self):
         return 'Issue#' + str(self.number) + ' ' + str(self.hexsha)
 

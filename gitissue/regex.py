@@ -6,8 +6,7 @@ in source code.
 :Created: 24 June 2018
 """
 
-PYTHON_MULTILINE_HASH = r'#((?:.*(?:[\r\n]\s*#)*.*)|(?:#.*)|(?:#.*$))'
-PYTHON_MULTILINE_DOCSTRING = r'(?:[\'\"]){3}(.*(?:.|[\r\n])*?)(?:[\'\"]){3}'
+PYTHON_MULTILINE_DOCSTRING = r'\s(?:[\'\"]){3}(.*(?:.|[\r\n])*?)(?:[\'\"]){3}'
 
 
 class ISSUE:

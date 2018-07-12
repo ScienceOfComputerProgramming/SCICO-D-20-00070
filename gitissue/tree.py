@@ -132,6 +132,7 @@ class IssueTree(Object):
             associated to this commit tree
         """
         if issues:
+            issues = list(set(issues))
             issues.sort()
             sha = hashlib.sha1(str(issues).encode())
             binsha = sha.digest()
