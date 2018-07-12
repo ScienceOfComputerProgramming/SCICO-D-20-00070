@@ -9,7 +9,7 @@ PAPER         =
 BUILDDIR      = _build
 
 SOURCEDIR     = ../gitissue
-EXCLUDEDIRS    = $(SOURCEDIR)/man/*
+EXCLUDEDIRS    =  $(SOURCEDIR)/man/* $(SOURCEDIR)/hooks/*
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4

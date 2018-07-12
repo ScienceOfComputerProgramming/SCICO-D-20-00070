@@ -6,6 +6,9 @@
 """
 import os
 import re
+import stat
+import pkg_resources
+from shutil import copyfile
 
 from datetime import datetime
 
@@ -135,10 +138,19 @@ class IssueRepo(Repo):
 
     def setup(self):
         """
-        Creates the git-issue folders 
+        Creates the git-issue folders and installs the necesary
+        git hooks in the .git/hooks/ folder
         """
         os.makedirs(self.issue_dir)
         os.makedirs(self.issue_objects_dir)
+        git_hooks_dir = self.git_dir + '/hooks/'
+
+        post_commit_hook = pkg_resources.resource_filename(
+            'gitissue.hooks', 'post-commit')
+        post_commit_git_hook = git_hooks_dir + 'post-commit'
+        copyfile(post_commit_hook, post_commit_git_hook)
+        st = os.stat(post_commit_git_hook)
+        os.chmod(post_commit_git_hook, st.st_mode | stat.S_IEXEC)
 
     def iter_issue_commits(self, rev=None, paths='', **kwargs):
         """A list of IssueCommit objects representing the history of a given ref/commit

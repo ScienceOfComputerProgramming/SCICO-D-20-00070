@@ -1,0 +1,26 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+"""Script that contains the operation to be done
+ after a commit is made. This script builds the 
+ issues from the commit made and stores it in our
+ issue repository
+
+:@author: Nystrom Edwards
+:Created: 12 July 2018
+"""
+from gitissue import IssueRepo, IssueTree, IssueCommit
+from gitissue.tree import find_issues_in_tree
+from gitissue.regex import PYTHON_MULTILINE_DOCSTRING
+import subprocess
+
+patterns = [PYTHON_MULTILINE_DOCSTRING, ]
+
+repo = IssueRepo()
+commit = repo.head.commit
+issues = find_issues_in_tree(repo, commit.tree, patterns)
+itree = IssueTree.create(repo, issues)
+IssueCommit.create(repo, commit, itree)
+if len(issues) > 0:
+    print(str(len(issues)) + ' Open Issues')
+else:
+    print('No Open Issues')
