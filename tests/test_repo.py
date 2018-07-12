@@ -50,7 +50,8 @@ class TestIssueRepo(TestCase):
         repo = IssueRepo()
         repo.issue_dir = 'here'
         repo.issue_objects_dir = 'here/objects'
-        repo.setup()
+        os.makedirs('here')
+        os.makedirs('here/objects')
         self.assertTrue(os.path.exists('here'))
         self.assertTrue(os.path.exists('here/objects'))
 
@@ -65,7 +66,8 @@ class TestBuildIssueRepo(TestCase):
         self.repo = IssueRepo()
         self.repo.issue_dir = 'here'
         self.repo.issue_objects_dir = 'here/objects'
-        self.repo.setup()
+        os.makedirs('here')
+        os.makedirs('here/objects')
 
     @patch('gitissue.repo.IssueRepo.heads', new_callable=PropertyMock)
     def test_build_from_empty_repo(self, heads):
@@ -126,7 +128,8 @@ class TestBuildIterIssueCommits(TestCase):
         cls.repo = IssueRepo()
         cls.repo.issue_dir = 'here'
         cls.repo.issue_objects_dir = 'here/objects'
-        cls.repo.setup()
+        os.makedirs('here')
+        os.makedirs('here/objects')
         data = [{'number': '1', 'description': 'the contents of the file'},
                 {'number': '2', 'description': 'the contents of the file'},
                 {'number': '3', 'description': 'the contents of the file'},
@@ -209,7 +212,8 @@ class TestIssueStatus(TestCase):
         self.repo = IssueRepo()
         self.repo.issue_dir = 'here'
         self.repo.issue_objects_dir = 'here/objects'
-        self.repo.setup()
+        os.makedirs('here')
+        os.makedirs('here/objects')
 
     @patch('gitissue.repo.IssueRepo.iter_commits')
     def test_return_two_known_issue_commits(self, iter_commits):
