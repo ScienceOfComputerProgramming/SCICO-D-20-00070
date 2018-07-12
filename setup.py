@@ -13,10 +13,14 @@ with open('gitissue/man/VERSION', 'rb') as f:
 with open('README.md', 'rb') as f:
     long_descr = f.read().decode('utf-8')
 
+with open('requirements.txt', 'rb') as f:
+    requirements = f.read().decode('utf-8').split('\n')
+
 
 setup(
     name='gitissue',
     packages=find_packages(),
+    install_requires=requirements,
     entry_points={
         'console_scripts': ['git-issue = gitissue.cli.start:main']
     },

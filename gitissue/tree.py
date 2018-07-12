@@ -36,6 +36,33 @@ def find_issues_in_tree(repo, commit_tree, patterns):
         for file_object in commit_tree:
             if file_object.type == 'blob':
 
+                """
+                @issue 2
+                @title Grab comments from different type of files
+                @description
+                    Each source code file will have different ways in which 
+                    block comments are made. e.g java and haskell block 
+                    comments are different. Therefore the application must 
+                    be able to handle using different regexes for different 
+                    mime_types. It can possibly be inserted here
+                    
+                    File formats to be supported:
+
+                    * Java
+                    * C
+                    * C++
+                    * C#
+                    * php
+                    * python
+                    * html
+                    * css
+                    * javascript
+                    * MATLAB
+                    * SQL
+                    * Haskell
+                    * plain text files
+                """
+
                 # skip files that are not text
                 if 'text' not in file_object.mime_type:
                     continue

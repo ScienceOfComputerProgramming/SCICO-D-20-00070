@@ -32,6 +32,11 @@ def init(args):
         except EmptyRepositoryError as error:
             print(error)
 
+    """
+    @issue 1
+    @title Create Post Commit Scripts for Caching Changes to Issues
+    """
+
     if not args.repo.is_init():
         args.repo.setup()
 

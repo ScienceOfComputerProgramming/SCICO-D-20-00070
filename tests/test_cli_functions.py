@@ -8,12 +8,11 @@ from unittest.mock import patch
 from gitissue.cli.functions import read_man_file, print_progress_bar, yes_no_option
 
 
-
 class TestReadManualFiles(TestCase):
 
     def test_read_file_passed(self):
-        self.assertEqual(read_man_file(
-            'SUPPORTED_REPOS'), 'gitlab\ngithub\njira')
+        result = read_man_file('VERSION').replace('\n', '')
+        self.assertTrue(isinstance(result, str))
 
     def test_read_file_fails(self):
         with self.assertRaises(FileNotFoundError) as context:
