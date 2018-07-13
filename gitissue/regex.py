@@ -6,7 +6,21 @@ in source code.
 :Created: 24 June 2018
 """
 
-PYTHON_MULTILINE_DOCSTRING = r'\s(?:[\'\"]){3}(.*(?:.|[\r\n])*?)(?:[\'\"]){3}'
+CSTYLE = r'/\*((?:.|[\r\n])*?)\*/'
+PYTHON = r'(?:=\s*(?:[\'\"]){3}(?:.*(?:.|[\r\n])*?)(?:[\'\"]){3})|(?:[\'\"]){3}(.*(?:.|[\r\n])*?)(?:[\'\"]){3}'
+C = CSTYLE
+CPP = CSTYLE
+JAVA = CSTYLE
+CSHARP = CSTYLE
+PHP = CSTYLE
+CSS = CSTYLE
+JAVASCRIPT = CSTYLE
+SQL = CSTYLE
+SCALA = CSTYLE
+HTML = r'<!--((?:(?:.|[\r\n])*?))-->'
+MATLAB = r'%{((?:.|[\r\n])*?)%}'
+HASKELL = r'{-((?:.|[\r\n])*?)-}'
+RUBY = r'=begin((?:(?:.|[\r\n])*?))[\r\n]{1}=end'
 
 
 class ISSUE:

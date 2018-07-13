@@ -10,10 +10,10 @@
 """
 from gitissue import IssueRepo, IssueTree, IssueCommit
 from gitissue.tree import find_issues_in_tree
-from gitissue.regex import PYTHON_MULTILINE_DOCSTRING
+from gitissue.regex import PYTHON
 import subprocess
 
-patterns = [PYTHON_MULTILINE_DOCSTRING, ]
+patterns = [PYTHON, ]
 
 repo = IssueRepo()
 commit = repo.head.commit
