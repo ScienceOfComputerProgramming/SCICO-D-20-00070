@@ -82,6 +82,7 @@ class Issue(Object):
             """Dictionary containing issue data that is easily
             serializable/deserializable
             """
+            data['hexsha'] = self.hexsha
             self.id = data['id']
             self.title = data['title']
             if 'description' in data:

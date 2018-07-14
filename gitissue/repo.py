@@ -279,22 +279,40 @@ class IssueRepo(Repo):
                         history[issue.id]['created_date'] = icommit.commit.authored_datetime
                         history[issue.id]['last_author'] = icommit.commit.author.name
                         history[issue.id]['last_authored_date'] = icommit.commit.authored_datetime
-                        history[issue.id]['revisions'] = 1
+                        history[issue.id]['revisions'] = []
+                        history[issue.id]['revisions'].append(issue.hexsha)
                         history[issue.id]['participants'] = set()
                         history[issue.id]['participants'].add(
                             icommit.commit.author.name)
                         history[issue.id]['in_branches'] = set()
                         history[issue.id]['in_branches'].update(in_branches)
+                        history[issue.id]['open_in'] = set()
+                        if 'description' in history[issue.id]:
+                            history[issue.id]['description'] += f'\n -added by:{icommit.commit.author.name}'
                     # update the history information
                     else:
                         history[issue.id]['creator'] = icommit.commit.author.name
                         history[issue.id]['created_date'] = icommit.commit.authored_datetime
-                        history[issue.id]['revisions'] += 1
                         history[issue.id]['participants'] = set()
                         history[issue.id]['participants'].add(
                             icommit.commit.author.name)
                         history[issue.id]['in_branches'].update(in_branches)
+                        # a revision is added to the list
+                        if issue.hexsha == history[issue.id]['revisions'][-1]:
+                            history[issue.id]['revisions'][-1]
 
+            # fills the open branch set with branch status
+            for head in self.heads:
+                icommit = IssueCommit(self, head.commit.binsha)
+                for issue in icommit.issuetree.issues:
+                    history[issue.id]['open_in'].add(head.name)
+
+            # sets the issue status
+            for issue in history.values():
+                if issue['open_in']:
+                    issue['status'] = 'Open'
+                else:
+                    issue['status'] = 'Closed'
         else:
             raise NoCommitsError
 
