@@ -12,13 +12,15 @@ from gitissue.issue import find_issue_data_in_comment
 
 class TestIssue(TestCase):
 
-    data = {'number': '1',
+    data = {'id': '1',
+            'title': 'new issue here',
             'filepath': '.gitignore',
             'contents': '# Adding a new thing\nAuthor: someone on the team'}
-    data1 = {'number': '2',
+    data1 = {'id': '2',
+             'title': 'new issue here2',
              'filepath': '.gitignore',
              'contents': '# something different'}
-    data3 = {'number': '2',
+    data3 = {'id': '2',
              'title': 'The title of your issue',
              'description': 'A description of you issue as you\n'
              + 'want it to be ``markdown`` supported',
@@ -83,7 +85,7 @@ class TestIssue(TestCase):
 
     def test90_create_issue_full_metadata(self):
         issue = Issue.create(self.repo, TestIssue.data3.copy())
-        self.assertTrue(hasattr(issue, 'number'))
+        self.assertTrue(hasattr(issue, 'id'))
         self.assertTrue(hasattr(issue, 'title'))
         self.assertTrue(hasattr(issue, 'description'))
         self.assertTrue(hasattr(issue, 'assignees'))
@@ -96,7 +98,7 @@ class TestIssue(TestCase):
 
     def test91_get_issue_full_metadata(self):
         issue = Issue(self.repo, TestIssue.issue.hexsha)
-        self.assertTrue(hasattr(issue, 'number'))
+        self.assertTrue(hasattr(issue, 'id'))
         self.assertTrue(hasattr(issue, 'title'))
         self.assertTrue(hasattr(issue, 'description'))
         self.assertTrue(hasattr(issue, 'assignees'))
@@ -114,56 +116,55 @@ class TestIssue(TestCase):
 
 class TestFindIssueInComment(TestCase):
 
-    def test_no_issue_data_if_number_not_specified(self):
+    def test_no_issue_data_if_id_not_specified(self):
         comment = """
         @description here is a description of the item
         """
         data = find_issue_data_in_comment(comment)
         self.assertEqual(data, {})
 
-    def test_find_number_only(self):
+    def test_find_id_only(self):
         comment = """
         @issue 2
         """
         data = find_issue_data_in_comment(comment)
-        self.assertIn('number', data)
-        self.assertEqual(data['number'], '2')
+        self.assertIn('id', data)
+        self.assertEqual(data['id'], '2')
 
-    def test_find_number_and_title(self):
+    def test_find_id_and_title(self):
         comment = """
-        @issue 2
-        @title something new
+        @issue something new
         """
         data = find_issue_data_in_comment(comment)
-        self.assertIn('number', data)
-        self.assertEqual(data['number'], '2')
+        self.assertIn('id', data)
+        self.assertEqual(data['id'], 'something-new')
         self.assertIn('title', data)
         self.assertEqual(data['title'], 'something new')
 
-    def test_find_number_and_description_inline(self):
+    def test_find_id_and_description_inline(self):
         comment = """
         @issue 2
         @description something will be found
         """
         data = find_issue_data_in_comment(comment)
-        self.assertIn('number', data)
-        self.assertEqual(data['number'], '2')
+        self.assertIn('id', data)
+        self.assertEqual(data['id'], '2')
         self.assertIn('description', data)
         self.assertIn('something will be found', data['description'])
 
-    def test_find_number_and_description_newline(self):
+    def test_find_id_and_description_newline(self):
         comment = """
         @issue 2
         @description 
                 something will be found
         """
         data = find_issue_data_in_comment(comment)
-        self.assertIn('number', data)
-        self.assertEqual(data['number'], '2')
+        self.assertIn('id', data)
+        self.assertEqual(data['id'], '2')
         self.assertIn('description', data)
         self.assertIn('something will be found', data['description'])
 
-    def test_find_number_and_description_between_metadata(self):
+    def test_find_id_and_description_between_metadata(self):
         comment = """
         @issue 2
         @description 
@@ -171,70 +172,69 @@ class TestFindIssueInComment(TestCase):
         @due_date today
         """
         data = find_issue_data_in_comment(comment)
-        self.assertIn('number', data)
-        self.assertEqual(data['number'], '2')
+        self.assertIn('id', data)
+        self.assertEqual(data['id'], '2')
         self.assertIn('description', data)
         self.assertIn('something will be found', data['description'])
 
-    def test_find_number_and_assignees(self):
+    def test_find_id_and_assignees(self):
         comment = """
         @issue 2
         @assignees mark, peter, paul
         """
         data = find_issue_data_in_comment(comment)
-        self.assertIn('number', data)
-        self.assertEqual(data['number'], '2')
+        self.assertIn('id', data)
+        self.assertEqual(data['id'], '2')
         self.assertIn('assignees', data)
         self.assertEqual(data['assignees'], 'mark, peter, paul')
 
-    def test_find_number_and_due_date(self):
+    def test_find_id_and_due_date(self):
         comment = """
         @issue 2
         @due_date 10 dec 2018
         """
         data = find_issue_data_in_comment(comment)
-        self.assertIn('number', data)
-        self.assertEqual(data['number'], '2')
+        self.assertIn('id', data)
+        self.assertEqual(data['id'], '2')
         self.assertIn('due_date', data)
         self.assertEqual(data['due_date'], '10 dec 2018')
 
-    def test_find_number_and_label(self):
+    def test_find_id_and_label(self):
         comment = """
         @issue 2
         @label in-development, main-feature
         """
         data = find_issue_data_in_comment(comment)
-        self.assertIn('number', data)
-        self.assertEqual(data['number'], '2')
+        self.assertIn('id', data)
+        self.assertEqual(data['id'], '2')
         self.assertIn('label', data)
         self.assertEqual(data['label'], 'in-development, main-feature')
 
-    def test_find_number_and_weight(self):
+    def test_find_id_and_weight(self):
         comment = """
         @issue 2
         @weight 7
         """
         data = find_issue_data_in_comment(comment)
-        self.assertIn('number', data)
-        self.assertEqual(data['number'], '2')
+        self.assertIn('id', data)
+        self.assertEqual(data['id'], '2')
         self.assertIn('weight', data)
         self.assertEqual(data['weight'], '7')
 
-    def test_find_number_and_priority(self):
+    def test_find_id_and_priority(self):
         comment = """
         @issue 2
         @priority mid-high
         """
         data = find_issue_data_in_comment(comment)
-        self.assertIn('number', data)
-        self.assertEqual(data['number'], '2')
+        self.assertIn('id', data)
+        self.assertEqual(data['id'], '2')
         self.assertIn('priority', data)
         self.assertEqual(data['priority'], 'mid-high')
 
     def test_find_all_metadata(self):
         comment = """
-        @issue #2
-        @title The title of your issue
+        @issue The title of your issue
         @description:
             A description of you issue as you
             want it to be ``markdown`` supported
@@ -245,8 +245,8 @@ class TestFindIssueInComment(TestCase):
         @priority high
         """
         data = find_issue_data_in_comment(comment)
-        self.assertIn('number', data)
-        self.assertEqual(data['number'], '2')
+        self.assertIn('id', data)
+        self.assertEqual(data['id'], 'the-title-of-your-issue')
         self.assertIn('title', data)
         self.assertEqual(data['title'], 'The title of your issue')
         self.assertIn('description', data)

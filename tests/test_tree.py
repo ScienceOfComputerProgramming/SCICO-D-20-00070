@@ -18,12 +18,12 @@ class TestCreateIssueTree(TestCase):
         os.makedirs('here')
         os.makedirs('here/objects')
 
-        data = [{'number': '1', 'description': 'the contents of the file'},
-                {'number': '2', 'description': 'the contents of the file'},
-                {'number': '3', 'description': 'the contents of the file'},
-                {'number': '4', 'description': 'the contents of the file'},
-                {'number': '5', 'description': 'the contents of the file'},
-                {'number': '6', 'description': 'the contents of the file'}]
+        data = [{'id': '1', 'title': 'the contents of the file'},
+                {'id': '2', 'title': 'the contents of the file'},
+                {'id': '3', 'title': 'the contents of the file'},
+                {'id': '4', 'title': 'the contents of the file'},
+                {'id': '5', 'title': 'the contents of the file'},
+                {'id': '6', 'title': 'the contents of the file'}]
         cls.repo = IssueRepo()
         cls.repo.issue_dir = 'here'
         cls.repo.issue_objects_dir = 'here/objects'

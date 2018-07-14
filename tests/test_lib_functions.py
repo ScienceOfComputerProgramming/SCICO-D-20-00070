@@ -121,7 +121,7 @@ class TestGetTypeFromSha(TestCase):
         os.makedirs('here')
         os.makedirs('here/a')
 
-        data = {'number': '3', 'title': 'clean up this mess',
+        data = {'id': '3', 'title': 'clean up this mess',
                 'filepath': 'here'}
 
         cls.repo = IssueRepo()
@@ -169,7 +169,7 @@ class TestIssueHistory(TestCase):
 
         cls.issues = []
         for i in range(6):
-            d = {'number': str(i), 'title': 'clean up this mess',
+            d = {'id': str(i), 'title': 'clean up this mess',
                  'filepath': 'here'}
             cls.issues.append(Issue.create(cls.repo, d))
 
@@ -220,7 +220,7 @@ class TestIssueHistory(TestCase):
         self.assertTrue(os.path.exists(self.repo.issue_dir + '/HISTORY'))
         contents = get_issue_history(self.repo)
 
-        new_data = {'number': '17', 'filepath': '.gitignore'}
+        new_data = {'id': '17', 'title': 'newfile', 'filepath': '.gitignore'}
         new_issue = Issue.create(self.repo, new_data)
         itree.issues.append(new_issue)
         save_issue_history(itree)

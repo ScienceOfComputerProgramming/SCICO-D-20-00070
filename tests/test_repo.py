@@ -130,16 +130,16 @@ class TestBuildIterIssueCommits(TestCase):
         cls.repo.issue_objects_dir = 'here/objects'
         os.makedirs('here')
         os.makedirs('here/objects')
-        data = [{'number': '1', 'description': 'the contents of the file'},
-                {'number': '2', 'description': 'the contents of the file'},
-                {'number': '3', 'description': 'the contents of the file'},
-                {'number': '4', 'description': 'the contents of the file'},
-                {'number': '5', 'description': 'the contents of the file'},
-                {'number': '6', 'description': 'the contents of the file'}]
+        data = [{'id': '1', 'title': 'the contents of the file'},
+                {'id': '2', 'title': 'the contents of the file'},
+                {'id': '3', 'title': 'the contents of the file'},
+                {'id': '4', 'title': 'the contents of the file'},
+                {'id': '5', 'title': 'the contents of the file'},
+                {'id': '6', 'title': 'the contents of the file'}]
 
-        new_data = [{'number': '1', 'description': 'the contents of the file'},
-                    {'number': '2', 'description': 'the contents of the file'},
-                    {'number': '9', 'description': 'the contents of the file'}, ]
+        new_data = [{'id': '1', 'title': 'the contents of the file'},
+                    {'id': '2', 'title': 'the contents of the file'},
+                    {'id': '9', 'title': 'the contents of the file'}, ]
         cls.issues = []
         cls.new_issues = []
         for d in data:
@@ -224,7 +224,7 @@ class TestIssueStatus(TestCase):
                Commit(self.repo, hex_to_bin(first))]
         iter_commits.return_value = val
 
-        data = {'number': '1', 'filepath': 'README.md'}
+        data = {'id': '1', 'title': 'hello world', 'filepath': 'README.md'}
         issue = Issue.create(self.repo, data)
         itree = IssueTree.create(self.repo, [issue])
         IssueCommit.create(self.repo, val[1], itree)
