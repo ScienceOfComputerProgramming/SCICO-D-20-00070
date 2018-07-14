@@ -175,10 +175,33 @@ class IssueRepo(Repo):
         for commit in commits:
             yield IssueCommit(self, commit.binsha)
 
+    def print_commit_progress(self, now, start, current, total):
+        """
+        Prints the progress of the iterating commits
+
+        Args:
+            :(datetime) now: The current system time
+            :(datetime) start: The system time when the process started
+            :(int) current: the current issue processed
+            :(int) total: total number of issues to be processes
+
+        Shows:
+            :Commit status: The current commit iteration
+            :Progress bar: Progress of the operation
+            :Precentage: The percentage of the operation complete
+            :Duration: How long the operation has been running
+
+        """
+        if self.cli:
+            duration = now - start
+            prefix = '%d/%d commits: ' % (current, total)
+            suffix = ' Duration: %s' % str(duration)
+            print_progress_bar(
+                current, total, prefix=prefix, suffix=suffix)
+
     def build(self):
         """
-        Builds the git-issue repository from past commits on the
-        master branch
+        Builds the issue repository from past commits on all branches
 
         Raises:
             :NoCommitsError: if the git repository has no commits
@@ -189,43 +212,106 @@ class IssueRepo(Repo):
         start = datetime.now()
         commits_scanned = 0
 
-        def print_commit_progress(now, start):
-            """
-            Prints the progress of the building of the repository from past commits
-
-            Args:
-                :(datetime) now: The current system time
-                :(datetime) start: The system time when the process started
-
-            Shows:
-                :Commit status: The current commit iteration
-                :Progress bar: Progress of the operation
-                :Precentage: The percentage of the operation complete
-                :Duration: How long the operation has been running
-
-            """
-            duration = now - start
-            prefix = '%s/%s commits: ' % (commits_scanned, str(num_commits))
-            suffix = ' Duration: %s' % str(duration)
-            print_progress_bar(
-                commits_scanned, num_commits, prefix=prefix, suffix=suffix)
-
         if len(self.heads) > 0:
             # get all commits on the all branches
-            # TODO: figure out if it is needed to find in other branches
-            # like a development branch!
-            all_commits = list(self.iter_commits('--all'))
+            all_commits = list(self.iter_commits('--branches'))
             num_commits = len(all_commits)
 
             # reversed to start at the first commit
             for commit in reversed(all_commits):
                 commits_scanned += 1
 
-                if self.cli:
-                    print_commit_progress(datetime.now(), start)
+                self.print_commit_progress(
+                    datetime.now(), start, commits_scanned, num_commits)
 
                 issues = find_issues_in_tree(self, commit.tree, patterns)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
         else:
             raise NoCommitsError
+
+    """
+    @issue generate complex history from commits
+    @description
+        Try to generate the complex history between
+        commits in a way that can be inferred from the
+        source control
+    """
+
+    def build_history(self, rev=None, paths='', **kwargs):
+        """
+        Builds the issue history from past commits on path specified
+        or all branches
+
+        Raises:
+            :NoCommitsError: if the git repository has no commits
+            :GitCommandError: if the rev supplied is not valid
+
+        Optionally:
+            :Shows Progress in Shell: if repo is used with command line interface
+        """
+        start = datetime.now()
+        commits_scanned = 0
+
+        if len(self.heads) > 0:
+            history = {}
+
+            # get all commits on the all branches
+            if rev is not None:
+                icommits = list(self.iter_issue_commits(rev, paths, **kwargs))
+            else:
+                icommits = list(self.iter_issue_commits('--branches'))
+            num_commits = len(icommits)
+
+            for icommit in icommits:
+                commits_scanned += 1
+
+                self.print_commit_progress(
+                    datetime.now(), start, commits_scanned, num_commits)
+
+                for issue in icommit.issuetree.issues:
+                    in_branches = self.find_present_branches(
+                        icommit.commit.hexsha)
+                    # issue first appearance in history
+                    if issue.id not in history:
+                        history[issue.id] = issue.data
+                        history[issue.id]['creator'] = icommit.commit.author.name
+                        history[issue.id]['created_date'] = icommit.commit.authored_datetime
+                        history[issue.id]['last_author'] = icommit.commit.author.name
+                        history[issue.id]['last_authored_date'] = icommit.commit.authored_datetime
+                        history[issue.id]['revisions'] = 1
+                        history[issue.id]['participants'] = set()
+                        history[issue.id]['participants'].add(
+                            icommit.commit.author.name)
+                        history[issue.id]['in_branches'] = set()
+                        history[issue.id]['in_branches'].update(in_branches)
+                    # update the history information
+                    else:
+                        history[issue.id]['creator'] = icommit.commit.author.name
+                        history[issue.id]['created_date'] = icommit.commit.authored_datetime
+                        history[issue.id]['revisions'] += 1
+                        history[issue.id]['participants'] = set()
+                        history[issue.id]['participants'].add(
+                            icommit.commit.author.name)
+                        history[issue.id]['in_branches'].update(in_branches)
+
+        else:
+            raise NoCommitsError
+
+        return history
+
+    def find_present_branches(self, commit_sha):
+        """
+        A function that helps find the branches that this commit is
+        present in which can be used to define where issues are present
+
+        Args:
+            :(str) commit_sha: The commit hexsha to look for
+        """
+        branches_present = self.git.execute(
+            ['git', 'branch', '--contains', commit_sha])
+        branches_present = branches_present.replace(
+            '*', '').replace(' ', '')
+        branches_present = branches_present
+        branches_present = branches_present.split('\n')
+        return branches_present

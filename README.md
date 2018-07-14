@@ -33,8 +33,7 @@ The recommended comment style to use is as follows:
 #### Java or C style
 
     /*
-    * @issue #2
-    * @title The title of your issue
+    * @issue Eg: The title of your issue
     * @description:
     *   A description of you issue as you
     *   want it to be ``markdown`` supported
@@ -49,8 +48,7 @@ The recommended comment style to use is as follows:
 #### Python Style
 
     """
-    @issue #2
-    @title The title of your issue
+    @issue Eg: The title of your issue
     @description:
       A description of you issue as you
       want it to be ``markdown`` supported
