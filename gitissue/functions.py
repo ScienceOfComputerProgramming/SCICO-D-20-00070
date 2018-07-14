@@ -160,14 +160,14 @@ def save_issue_history(itree):
         new_contents = []
         for issue in itree.issues:
             new_issue = {}
-            new_issue['number'] = issue.number
+            new_issue['id'] = issue.id
             new_issue['sha'] = issue.hexsha
             new_contents.append(new_issue)
         contents.extend(new_contents)
 
-        # remove duplicate numbers and sort by number
-        contents = list({v['number']: v for v in contents}.values())
-        contents = sorted(contents, key=lambda v: v['number'])
+        # remove duplicate ids and sort by id
+        contents = list({v['id']: v for v in contents}.values())
+        contents = sorted(contents, key=lambda v: v['id'])
 
         data_to_write = json.dumps(contents)
         f = open(history, 'wb')
@@ -183,7 +183,7 @@ def get_issue_history(repo):
         :(Repo) repo: The repo where the issue history is located
 
     Returns:
-        :(list(dict)) contents: the number and sha of the issue
+        :(list(dict)) contents: the id and sha of the issue
 
     Raises:
         :NoIssueHistoryError: *If no issues created*

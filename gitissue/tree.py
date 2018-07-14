@@ -45,7 +45,7 @@ def find_issues_in_tree(repo, commit_tree, patterns):
                     comments are different. Therefore the application must 
                     be able to handle using different regexes for different 
                     mime_types. It can possibly be inserted here
-                    
+
                     File formats to be supported:
 
                     * Java
@@ -128,7 +128,7 @@ class IssueTree(Object):
             sha = hex_to_bin(sha)
         super(IssueTree, self).__init__(repo, sha)
         if not object_exists(self) and issues is not None:
-            self.data = [{'number': i.data['number'],
+            self.data = [{'id': i.data['id'],
                           'hexsha': i.hexsha} for i in issues]
             """List of dictionaries containing issue data that is easily
             serializable/deserializable

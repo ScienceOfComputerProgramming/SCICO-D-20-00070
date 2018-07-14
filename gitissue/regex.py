@@ -24,8 +24,7 @@ RUBY = r'=begin((?:(?:.|[\r\n])*?))[\r\n]{1}=end'
 
 
 class ISSUE:
-    NUMBER = r'@[Ii]ssue[ _-]*(?:id|number|no)* *[-=:;> ]*[#]*([^\s]+)'
-    TITLE = r'@(?:[Ii]ssue[ _-]*)*[Tt]itle *[-=:;> ]*(.*)'
+    TITLE = r'@(?:[Ii]ssue[ _-]*)+(?:[Tt]itle)* *[=:;>]*(.*)'
     DESCRIPTION = r'@(?:[Ii]ssue[ _-]*)*[Dd]escription* *[-=:;> ]*(.*(?:.|[\r\n])*?)(?:\n[\s]*@|$)'
     ASSIGNEES = r'@(?:[Ii]ssue[ _-]*)*[Aa]ssign(?:ed|ees|ee)*(?:[ _-]to)* *[-=:;> ]* (.*)'
     DUE_DATE = r'@(?:[Ii]ssue[ _-]*)*[Dd]ue[ _-]*(?:[Dd]ate)* *[-=:;> ]* (.*)'

@@ -9,6 +9,7 @@ import re
 
 from git import Object
 from git.util import hex_to_bin
+from slugify import slugify
 
 from gitissue.functions import serialize, deserialize, object_exists
 from gitissue.regex import ISSUE
@@ -19,8 +20,8 @@ __all__ = ('Issue', 'find_issue_data_in_comment', )
 def find_issue_data_in_comment(comment):
     """Finds the relevant issue data in block comments
     made by the user in source code. Only if an issue
-    number is specified and is alphanumeric does the 
-    function continue to extract other issue data.
+    is specified does the function continue to extract
+    other issue data.
 
     Args:
         :(str) comment: raw string representation of \
@@ -30,12 +31,10 @@ def find_issue_data_in_comment(comment):
         :(dict) data: contains all the relevant issue data
     """
     data = {}
-    number = re.findall(ISSUE.NUMBER, comment)
-    if len(number) > 0 and number[0].isalnum():
-        data['number'] = number[0]
-        title = re.findall(ISSUE.TITLE, comment)
-        if len(title) > 0:
-            data['title'] = title[0]
+    title = re.findall(ISSUE.TITLE, comment)
+    if len(title) > 0:
+        data['id'] = slugify(title[0])
+        data['title'] = title[0]
         description = re.findall(ISSUE.DESCRIPTION, comment)
         if len(description) > 0:
             data['description'] = description[0]
@@ -60,9 +59,9 @@ def find_issue_data_in_comment(comment):
 
 class Issue(Object):
 
-    __slots__ = ('data', 'number', 'title', 'description', 'assignees',
+    __slots__ = ('data', 'title', 'description', 'assignees',
                  'due_date', 'label', 'weight', 'priority', 'title',
-                 'size', 'filepath', 'status')
+                 'size', 'filepath', 'status', 'id')
 
     type = 'issue'
     """ The base type of this issue repository object
@@ -83,10 +82,8 @@ class Issue(Object):
             """Dictionary containing issue data that is easily
             serializable/deserializable
             """
-            if 'number' in data:
-                self.number = data['number']
-            if 'title' in data:
-                self.title = data['title']
+            self.id = data['id']
+            self.title = data['title']
             if 'description' in data:
                 self.description = data['description']
             if 'assignees' in data:
@@ -104,8 +101,8 @@ class Issue(Object):
             serialize(self)
         else:
             deserialize(self)
-            if 'number' in self.data:
-                self.number = self.data['number']
+            if 'id' in self.data:
+                self.id = self.data['id']
             if 'title' in self.data:
                 self.title = self.data['title']
             if 'description' in self.data:
@@ -124,19 +121,19 @@ class Issue(Object):
                 self.filepath = self.data['filepath']
 
     def __lt__(self, other):
-        return self.number < other.number
+        return self.id < other.id
 
     def __eq__(self, other):
         return self.binsha == other.binsha
 
     def __gt__(self, other):
-        return self.number > other.number
+        return self.id > other.id
 
     def __hash__(self):
         return int(self.hexsha, 17)
 
     def __str__(self):
-        return 'Issue#' + str(self.number) + ' ' + str(self.hexsha)
+        return 'Issue#' + str(self.id) + ' ' + str(self.hexsha)
 
     @classmethod
     def create(cls, repo, data):

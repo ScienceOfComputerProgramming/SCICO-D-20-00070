@@ -135,7 +135,7 @@ def build_issue_tree(itree):
             title = issue.title
         else:
             title = colored('No title', 'red')
-        output = output + issue.number + '\t' + \
+        output = output + issue.id + '\t' + \
             issue.hexsha + '\t' + \
             title + '\t' + issue.filepath + '\n'
     return output
@@ -172,8 +172,8 @@ def build_issue(issue):
         :(str): string representation of issue
     """
     output = ''
-    if hasattr(issue, 'number'):
-        output = output + colored('Issue: ' + issue.number, 'yellow')
+    if hasattr(issue, 'id'):
+        output = output + colored('Issue: ' + issue.id, 'yellow')
     if hasattr(issue, 'status'):
         output = output + '\n'
         if issue.status == 'Open':
