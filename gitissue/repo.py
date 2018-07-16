@@ -21,80 +21,9 @@ from gitissue.regex import PYTHON
 from gitissue.functions import get_issue_history
 from gitissue.cli.functions import print_progress_bar
 
-__all__ = ('IssueRepo', 'get_all_issues',
-           'get_open_issues', 'get_closed_issues')
+__all__ = ('IssueRepo', )
 
 patterns = [PYTHON, ]
-
-
-def get_all_issues(repo, branch=None):
-    """Finds all the issues in the repo in comparison to open
-    issues on the specified branch. 
-
-    Args:
-        :(Repo) repo: the issue repository
-        :(str) branch: the head of the branch to search \
-        *head of current branch if None*
-
-    Returns:
-        :list(Issue) issues: list of all issues specified \
-        by branch
-    """
-    issues = []
-    history = get_issue_history(repo)
-    for issue in history:
-        issues.append(Issue(repo, issue['sha']))
-    issues.sort()
-    open_issues = get_open_issues(repo, branch)
-    for issue in issues:
-        if issue in open_issues:
-            issue.status = 'Open'
-        else:
-            issue.status = 'Closed'
-    return issues
-
-
-def get_open_issues(repo, branch=None):
-    """Finds all the open issues in the repo that are on a 
-    specified branch. 
-
-    Args:
-        :(Repo) repo: the issue repository
-        :(str) branch: the head of the branch to search \
-        *head of current branch if None*
-
-    Returns:
-        :list(Issue) issues: list of all open issues specified \
-        by branch
-    """
-    if branch is not None:
-        head_sha = repo.heads[branch].commit.hexsha
-    else:
-        head_sha = repo.head.commit.hexsha
-    head_icommit = IssueCommit(repo, head_sha)
-    open_issues = head_icommit.issuetree.issues
-    for issue in open_issues:
-        issue.status = 'Open'
-    return open_issues
-
-
-def get_closed_issues(repo, branch=None):
-    """Finds all the closed issues in the repo in comparison to open
-    issues on the specified branch. 
-
-    Args:
-        :(Repo) repo: the issue repository
-        :(str) branch: the head of the branch to search \
-        *head of current branch if None*
-
-    Returns:
-        :list(Issue) issues: list of all closed issues specified \
-        by branch
-    """
-    all_issues = get_all_issues(repo, branch)
-    open_issues = get_open_issues(repo, branch)
-    closed_issues = [x for x in all_issues if x not in open_issues]
-    return closed_issues
 
 
 class IssueRepo(Repo):
@@ -272,24 +201,27 @@ class IssueRepo(Repo):
                 for issue in icommit.issuetree.issues:
                     in_branches = self.find_present_branches(
                         icommit.commit.hexsha)
-                    # issue first appearance in history
+                    # issue first appearance in history build the general
+                    # indexes needed to record complex information
                     if issue.id not in history:
                         history[issue.id] = issue.data
                         history[issue.id]['creator'] = icommit.commit.author.name
                         history[issue.id]['created_date'] = icommit.commit.authored_datetime
                         history[issue.id]['last_author'] = icommit.commit.author.name
                         history[issue.id]['last_authored_date'] = icommit.commit.authored_datetime
-                        history[issue.id]['revisions'] = []
-                        history[issue.id]['revisions'].append(issue.hexsha)
+                        history[issue.id]['revisions'] = set()
+                        history[issue.id]['revisions'].add(issue.hexsha)
                         history[issue.id]['participants'] = set()
                         history[issue.id]['participants'].add(
                             icommit.commit.author.name)
                         history[issue.id]['in_branches'] = set()
                         history[issue.id]['in_branches'].update(in_branches)
+                        # for future use filling branch status
                         history[issue.id]['open_in'] = set()
                         if 'description' in history[issue.id]:
                             history[issue.id]['description'] += f'\n -added by:{icommit.commit.author.name}'
-                    # update the history information
+                    # update the history information when more instances
+                    # of the issue is found
                     else:
                         history[issue.id]['creator'] = icommit.commit.author.name
                         history[issue.id]['created_date'] = icommit.commit.authored_datetime
@@ -297,17 +229,18 @@ class IssueRepo(Repo):
                         history[issue.id]['participants'].add(
                             icommit.commit.author.name)
                         history[issue.id]['in_branches'].update(in_branches)
-                        # a revision is added to the list
-                        if issue.hexsha == history[issue.id]['revisions'][-1]:
-                            history[issue.id]['revisions'][-1]
+                        # a revision is added to the set indicating the order of revisions
+                        history[issue.id]['revisions'].add(issue.hexsha)
 
-            # fills the open branch set with branch status
+            # fills the open branch set with branch status using the
+            # issue trees at the head of each branch
             for head in self.heads:
                 icommit = IssueCommit(self, head.commit.binsha)
                 for issue in icommit.issuetree.issues:
                     history[issue.id]['open_in'].add(head.name)
 
-            # sets the issue status
+            # sets the issue status based on its open status
+            # in other branches
             for issue in history.values():
                 if issue['open_in']:
                     issue['status'] = 'Open'
@@ -333,3 +266,40 @@ class IssueRepo(Repo):
         branches_present = branches_present
         branches_present = branches_present.split('\n')
         return branches_present
+
+    @property
+    def all_issues(self):
+        """Finds all the issues in the repo 
+
+        Returns:
+            :(dict) history: dictionary of the complex information \
+            between the issue tracker and the source control
+        """
+        history = self.build_history()
+        return history
+
+    @property
+    def open_issues(self):
+        """Finds all the open issues in the repo 
+
+        Returns:
+            :(dict) history: dictionary of the complex information \
+            between the issue tracker and the source control
+        """
+        history = self.build_history()
+        history = {key: val for key,
+                   val in history.items() if val['status'] == 'Open'}
+        return history
+
+    @property
+    def closed_issues(self):
+        """Finds all the closed issues in the repo.
+
+        Returns:
+            :(dict) history: dictionary of the complex information \
+            between the issue tracker and the source control
+        """
+        history = self.build_history()
+        history = {key: val for key,
+                   val in history.items() if val['status'] == 'Closed'}
+        return history
