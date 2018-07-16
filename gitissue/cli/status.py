@@ -13,7 +13,6 @@ of issues that are currently being tracked on HEAD or branch.
 Created on 13 June 2018
 """
 from gitissue import IssueCommit
-from gitissue.repo import get_all_issues
 from termcolor import colored
 
 
@@ -28,13 +27,13 @@ def status(args):
         print(f'On branch ' + branch)
 
     try:
-        all_issues = get_all_issues(args.repo, branch)
+        all_issues = args.repo.all_issues
     except IndexError:
         error = 'git issue error fatal: No such branch matching ' + branch + ' found'
         print(error)
         return
 
-    opened = sum(x.status == 'Open' for x in all_issues)
+    opened = sum(x['status'] == 'Open' for x in all_issues)
     closed = len(all_issues) - opened
     print(colored(f'Open Issues: ' + str(opened), 'red'))
 

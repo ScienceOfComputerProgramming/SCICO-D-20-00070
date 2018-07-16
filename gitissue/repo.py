@@ -175,14 +175,8 @@ class IssueRepo(Repo):
         Raises:
             :NoCommitsError: if the git repository has no commits
             :GitCommandError: if the rev supplied is not valid
-
-        Optionally:
-            :Shows Progress in Shell: if repo is used with command line interface
         """
-        start = datetime.now()
-        commits_scanned = 0
-
-        if len(self.heads) > 0:
+        if self.heads:
             history = {}
 
             # get all commits on the all branches
@@ -190,13 +184,8 @@ class IssueRepo(Repo):
                 icommits = list(self.iter_issue_commits(rev, paths, **kwargs))
             else:
                 icommits = list(self.iter_issue_commits('--branches'))
-            num_commits = len(icommits)
 
             for icommit in icommits:
-                commits_scanned += 1
-
-                self.print_commit_progress(
-                    datetime.now(), start, commits_scanned, num_commits)
 
                 for issue in icommit.issuetree.issues:
                     in_branches = self.find_present_branches(
@@ -225,7 +214,6 @@ class IssueRepo(Repo):
                     else:
                         history[issue.id]['creator'] = icommit.commit.author.name
                         history[issue.id]['created_date'] = icommit.commit.authored_datetime
-                        history[issue.id]['participants'] = set()
                         history[issue.id]['participants'].add(
                             icommit.commit.author.name)
                         history[issue.id]['in_branches'].update(in_branches)
@@ -235,7 +223,7 @@ class IssueRepo(Repo):
             # fills the open branch set with branch status using the
             # issue trees at the head of each branch
             for head in self.heads:
-                icommit = IssueCommit(self, head.commit.binsha)
+                icommit = IssueCommit(self, head.commit.hexsha)
                 for issue in icommit.issuetree.issues:
                     history[issue.id]['open_in'].add(head.name)
 

@@ -94,8 +94,6 @@ def main():
         tracker_parser = subparsers.add_parser(
             'tracker', description='Prints a log that shows issues and their status')
         tracker_parser.set_defaults(func=tracker)
-        tracker_parser.add_argument('branch', action='store', type=str, nargs='?',
-                                    help='the name of the branch which you would to check your issue tracker')
         tracker_parser.add_argument('--all', action='store_true',
                                     help='show all the issues currently tracked and their status')
         tracker_parser.add_argument('--open', action='store_true', default=True,
