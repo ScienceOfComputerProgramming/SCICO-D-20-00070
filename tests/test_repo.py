@@ -138,17 +138,17 @@ class TestBuildIterIssueCommits(TestCase):
         cls.repo.issue_objects_dir = 'here/objects'
         os.makedirs('here')
         os.makedirs('here/objects')
-        data = [{'id': '1', 'title': 'the contents of the file'},
-                {'id': '2', 'title': 'the contents of the file'},
-                {'id': '3', 'title': 'the contents of the file'},
-                {'id': '4', 'title': 'the contents of the file'},
-                {'id': '5', 'title': 'the contents of the file'},
-                {'id': '6', 'title': 'the contents of the file',
+        data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'id': '6', 'title': 'the contents of the file', 'filepath': 'path',
                  'description': 'here is a nice description'}]
 
-        new_data = [{'id': '1', 'title': 'the contents of the file'},
-                    {'id': '2', 'title': 'the contents of the file'},
-                    {'id': '9', 'title': 'the contents of the file'}, ]
+        new_data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
+                    {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
+                    {'id': '9', 'title': 'the contents of the file', 'filepath': 'path'}, ]
         cls.issues = []
         cls.new_issues = []
         for d in data:

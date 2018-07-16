@@ -194,6 +194,7 @@ class IssueRepo(Repo):
                     # indexes needed to record complex information
                     if issue.id not in history:
                         history[issue.id] = issue.data
+                        history[issue.id]['filepath'] = set()
                         history[issue.id]['creator'] = icommit.commit.author.name
                         history[issue.id]['created_date'] = icommit.commit.authored_datetime
                         history[issue.id]['last_author'] = icommit.commit.author.name
@@ -226,6 +227,8 @@ class IssueRepo(Repo):
                 icommit = IssueCommit(self, head.commit.hexsha)
                 for issue in icommit.issuetree.issues:
                     history[issue.id]['open_in'].add(head.name)
+                    history[issue.id]['filepath'].add(
+                        issue.data['filepath'] + ' @' + head.name)
 
             # sets the issue status based on its open status
             # in other branches

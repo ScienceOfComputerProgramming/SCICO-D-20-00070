@@ -308,11 +308,11 @@ def build_history_item(item):
     output += '\nOpen In:            '
     for branch in item['open_in']:
         output += branch + ', '
-    if 'filepath' in item:
-        output += '\nFilepath:           ' + item['filepath']
     if 'size' in item:
         output += '\nSize:               ' + str(item['size'])
-
+    output += '\nFilepath:'
+    for path in item['filepath']:
+        output += '\n\t' + path
     output += '\n'
     output += '\nNum Revisions:      ' + str(len(item['revisions']))
     output += '\nRevisions:          '
