@@ -46,7 +46,7 @@ class TestIssue(TestCase):
     def test1_create_issue(self):
         issue = Issue.create(self.repo, TestIssue.data.copy())
         self.assertTrue(issue.size > 0)
-        self.assertEqual(TestIssue.data, issue.data)
+        self.assertNotEqual(TestIssue.data, issue.data)
         self.assertIn(TestIssue.data['filepath'], issue.data['filepath'])
         self.assertIn(TestIssue.data['contents'], issue.data['contents'])
         TestIssue.issue = issue
@@ -68,7 +68,7 @@ class TestIssue(TestCase):
     def test5_create_separate_issues_from_similar_content(self):
         issue = Issue.create(self.repo, TestIssue.data1.copy())
         self.assertTrue(issue.size > 0)
-        self.assertEqual(TestIssue.data1, issue.data)
+        self.assertNotEqual(TestIssue.data1, issue.data)
         self.assertIn(TestIssue.data1['filepath'], issue.data['filepath'])
         self.assertIn(TestIssue.data1['contents'], issue.data['contents'])
         self.assertNotEqual(TestIssue.issue, issue)
@@ -81,7 +81,7 @@ class TestIssue(TestCase):
         self.assertLess(TestIssue.issue, TestIssue.issue2)
 
     def test8_issue_string_printed_properly(self):
-        self.assertTrue('Issue#1 ' in str(TestIssue.issue))
+        self.assertTrue('Issue#' in str(TestIssue.issue))
 
     def test90_create_issue_full_metadata(self):
         issue = Issue.create(self.repo, TestIssue.data3.copy())
