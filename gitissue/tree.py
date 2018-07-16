@@ -13,7 +13,7 @@ from git.util import hex_to_bin
 
 from gitissue import Issue
 from gitissue.issue import find_issue_data_in_comment
-from gitissue.functions import serialize, deserialize, object_exists, save_issue_history
+from gitissue.functions import serialize, deserialize, object_exists
 
 
 __all__ = ('IssueTree', 'find_issues_in_tree',)
@@ -143,12 +143,6 @@ class IssueTree(Object):
             for issue in self.data:
                 self.issues.append(Issue(repo, issue['hexsha']))
 
-    def save_history(self):
-        """Save the issue tree to a file containing all issues
-        that are tracked.
-        """
-        save_issue_history(self)
-
     @classmethod
     def create(cls, repo, issues):
         """Factory method that creates an IssueTree with its issues.
@@ -164,7 +158,6 @@ class IssueTree(Object):
             sha = hashlib.sha1(str(issues).encode())
             binsha = sha.digest()
             new_tree = cls(repo, binsha, issues)
-            new_tree.save_history()
             return new_tree
         else:
             new_tree = cls(repo, cls.NULL_BIN_SHA, [])

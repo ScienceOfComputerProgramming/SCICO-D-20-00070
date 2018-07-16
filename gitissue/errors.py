@@ -25,8 +25,3 @@ class RepoObjectExistsError(FileExistsError):
 class RepoObjectDoesNotExistError(FileNotFoundError):
     def __init__(self):
         super().__init__('The repository object does not exist.')
-
-
-class NoIssueHistoryError(FileNotFoundError):
-    def __init__(self):
-        super().__init__('The repository does not contain any issues.')

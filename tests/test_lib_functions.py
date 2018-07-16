@@ -8,10 +8,10 @@ from unittest import TestCase
 from unittest.mock import patch
 from gitissue import IssueRepo, Issue, IssueTree, IssueCommit
 from gitissue.functions import get_location, object_exists, \
-    get_type_from_sha, save_issue_history, get_issue_history
+    get_type_from_sha
 from gitissue.functions import serialize, deserialize
 from gitissue.errors import RepoObjectExistsError, \
-    RepoObjectDoesNotExistError, NoIssueHistoryError
+    RepoObjectDoesNotExistError
 
 
 class TestObject():
@@ -150,84 +150,6 @@ class TestGetTypeFromSha(TestCase):
             get_type_from_sha(self.repo, 'self.issue.hexsha')
         self.assertTrue(
             'The repository object does not exist.' in str(context.exception))
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree('here')
-
-
-class TestIssueHistory(TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        os.makedirs('here')
-        os.makedirs('here/a')
-
-        cls.repo = IssueRepo()
-        cls.repo.issue_dir = 'here'
-        cls.repo.issue_objects_dir = 'here/a'
-
-        cls.issues = []
-        for i in range(6):
-            d = {'id': str(i), 'title': 'clean up this mess',
-                 'filepath': 'here'}
-            cls.issues.append(Issue.create(cls.repo, d))
-
-    @patch('gitissue.IssueTree', autospec=True)
-    def test1_does_not_create_new_history(self, itree):
-        itree.repo = self.repo
-        itree.issues = []
-        save_issue_history(itree)
-        self.assertFalse(os.path.exists(self.repo.issue_dir + '/HISTORY'))
-
-    @patch('gitissue.IssueTree', autospec=True)
-    def test2_no_history_error(self, itree):
-        with self.assertRaises(NoIssueHistoryError) as context:
-            get_issue_history(self.repo)
-        self.assertTrue(
-            'The repository does not contain any issues.' in str(context.exception))
-
-    @patch('gitissue.IssueTree', autospec=True)
-    def test3_creates_new_history(self, itree):
-        itree.repo = self.repo
-        itree.issues = self.issues
-        save_issue_history(itree)
-        self.assertTrue(os.path.exists(self.repo.issue_dir + '/HISTORY'))
-
-    @patch('gitissue.IssueTree', autospec=True)
-    def test4_gets_history(self, itree):
-        contents = get_issue_history(self.repo)
-        self.assertEqual(len(contents), 6)
-        os.remove(self.repo.issue_dir + '/HISTORY')
-
-    @patch('gitissue.IssueTree', autospec=True)
-    def test5_creates_new_duplicate_history(self, itree):
-        itree.repo = self.repo
-        itree.issues = self.issues
-        save_issue_history(itree)
-        self.assertTrue(os.path.exists(self.repo.issue_dir + '/HISTORY'))
-        contents = get_issue_history(self.repo)
-        save_issue_history(itree)
-        self.assertTrue(os.path.exists(self.repo.issue_dir + '/HISTORY'))
-        contents2 = get_issue_history(self.repo)
-        self.assertEqual(contents, contents2)
-
-    @patch('gitissue.IssueTree', autospec=True)
-    def test6_adds_to_new_history(self, itree):
-        itree.repo = self.repo
-        itree.issues = self.issues
-        save_issue_history(itree)
-        self.assertTrue(os.path.exists(self.repo.issue_dir + '/HISTORY'))
-        contents = get_issue_history(self.repo)
-
-        new_data = {'id': '17', 'title': 'newfile', 'filepath': '.gitignore'}
-        new_issue = Issue.create(self.repo, new_data)
-        itree.issues.append(new_issue)
-        save_issue_history(itree)
-        self.assertTrue(os.path.exists(self.repo.issue_dir + '/HISTORY'))
-        contents2 = get_issue_history(self.repo)
-
-        self.assertNotEqual(contents, contents2)
 
     @classmethod
     def tearDownClass(cls):

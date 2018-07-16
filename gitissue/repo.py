@@ -18,7 +18,6 @@ from gitissue import IssueTree, IssueCommit, Issue
 from gitissue.errors import EmptyRepositoryError, NoCommitsError
 from gitissue.tree import find_issues_in_tree
 from gitissue.regex import PYTHON
-from gitissue.functions import get_issue_history
 from gitissue.cli.functions import print_progress_bar
 
 __all__ = ('IssueRepo', )
@@ -73,7 +72,8 @@ class IssueRepo(Repo):
         os.makedirs(self.issue_dir)
         os.makedirs(self.issue_objects_dir)
         git_hooks_dir = self.git_dir + '/hooks/'
-
+        if not os.path.exists(git_hooks_dir):
+            os.makedirs(git_hooks_dir)
         post_commit_hook = pkg_resources.resource_filename(
             'gitissue.hooks', 'post-commit')
         post_commit_git_hook = git_hooks_dir + 'post-commit'
