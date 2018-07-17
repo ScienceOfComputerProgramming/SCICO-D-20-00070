@@ -51,7 +51,7 @@ class TestCreateIssueTree(TestCase):
 
 class TestFindIssuesInTree(TestCase):
 
-    patterns = [r'((?:#.*(?:\n\s*#)*.*)|(?:#.*)|(?:#.*$))', ]
+    pattern = r'((?:#.*(?:\n\s*#)*.*)|(?:#.*)|(?:#.*$))'
     repo = None
 
     @classmethod
@@ -65,7 +65,7 @@ class TestFindIssuesInTree(TestCase):
     def test_skips_submodule(self):
         tree = Mock()
         tree.type = 'submodule'
-        issues = find_issues_in_tree(self.repo, tree, self.patterns)
+        issues = find_issues_in_tree(self.repo, tree, self.pattern)
         self.assertFalse(issues)
 
     def test_tree_contains_no_issues_one_file(self):
@@ -88,7 +88,7 @@ class TestFindIssuesInTree(TestCase):
         tree.__iter__.return_value = mock_list
 
         # run the function with the mocked object
-        issues = find_issues_in_tree(self.repo, tree, self.patterns)
+        issues = find_issues_in_tree(self.repo, tree, self.pattern)
         self.assertFalse(issues)
 
     def test_tree_skips_unicode_error_one_file(self):
@@ -111,7 +111,7 @@ class TestFindIssuesInTree(TestCase):
         tree.__iter__.return_value = mock_list
 
         # run the function with the mocked object
-        issues = find_issues_in_tree(self.repo, tree, self.patterns)
+        issues = find_issues_in_tree(self.repo, tree, self.pattern)
         self.assertFalse(issues)
 
     def test_tree_contains_no_issues_multiple_files(self):
@@ -141,7 +141,7 @@ class TestFindIssuesInTree(TestCase):
         tree.__iter__.return_value = mock_list
 
         # run the function with the mocked object
-        issues = find_issues_in_tree(self.repo, tree, self.patterns)
+        issues = find_issues_in_tree(self.repo, tree, self.pattern)
         self.assertFalse(issues)
 
     def test_tree_contains_no_issues_multiple_files_nested_folder(self):
@@ -188,7 +188,7 @@ class TestFindIssuesInTree(TestCase):
         tree.__iter__.return_value = mock_list
 
         # run the function with the mocked object
-        issues = find_issues_in_tree(self.repo, tree, self.patterns)
+        issues = find_issues_in_tree(self.repo, tree, self.pattern)
         self.assertFalse(issues)
 
     def test_tree_contains_multiple_issues_one_file(self):
@@ -211,7 +211,7 @@ class TestFindIssuesInTree(TestCase):
         tree.__iter__.return_value = mock_list
 
         # run the function with the mocked object
-        issues = find_issues_in_tree(self.repo, tree, self.patterns)
+        issues = find_issues_in_tree(self.repo, tree, self.pattern)
         self.assertEqual(len(issues), 2)
 
     def test_tree_contains_one_non_text_file(self):
@@ -234,8 +234,8 @@ class TestFindIssuesInTree(TestCase):
         tree.__iter__.return_value = mock_list
 
         # run the function with the mocked object
-        issues = find_issues_in_tree(self.repo, tree, self.patterns)
-        self.assertEqual(len(issues), 0)
+        issues = find_issues_in_tree(self.repo, tree, self.pattern)
+        self.assertEqual(len(issues), 2)
 
     def test_tree_contains_multiple_issues_multiple_files(self):
         # The magicmock helps to create an iterable object
@@ -263,7 +263,7 @@ class TestFindIssuesInTree(TestCase):
         tree.__iter__.return_value = mock_list
 
         # run the function with the mocked object
-        issues = find_issues_in_tree(self.repo, tree, self.patterns)
+        issues = find_issues_in_tree(self.repo, tree, self.pattern)
         self.assertEqual(len(issues), 6)
 
     def test_tree_contains_multiple_issues_multiple_files_nested_folder(self):
@@ -310,7 +310,7 @@ class TestFindIssuesInTree(TestCase):
         tree.__iter__.return_value = mock_list
 
         # run the function with the mocked object
-        issues = find_issues_in_tree(self.repo, tree, self.patterns)
+        issues = find_issues_in_tree(self.repo, tree, self.pattern)
         self.assertEqual(len(issues), 4)
 
     @classmethod
