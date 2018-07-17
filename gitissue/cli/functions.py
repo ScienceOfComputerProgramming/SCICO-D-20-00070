@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Module that assists printing objects to the terminal.
+"""Module that assists printing objects to the terminal, getting
+terminal responses from user input, and getting contents of 
+static files contained in the package
 
 @author: Nystrom Edwards
 
@@ -21,9 +23,9 @@ def build_log_item(icommit):
         :(str): string representation of issue commit for log
     """
     time_format = '%a %b %d %H:%M:%S %Y %z'
-    log = ''
+    output = ''
     date = icommit.commit.authored_datetime.strftime(time_format)
-    log = log + \
+    output +=  \
         colored(f'commit {icommit.hexsha} ', 'yellow') + \
         f'\nAuthor:\t {icommit.commit.author.name} <{icommit.commit.author.email}>' + \
         f'\nDate:\t {date}' + \
@@ -31,7 +33,7 @@ def build_log_item(icommit):
         f'\n' + \
         f'\n{icommit.commit.message}' + \
         f'\n'
-    return log
+    return output
 
 
 def build_log(icommits):
@@ -44,10 +46,10 @@ def build_log(icommits):
     Returns:
         :(str): string representation of issue commit for log
     """
-    log = ''
+    output = ''
     for icommit in icommits:
-        log = log + build_log_item(icommit)
-    return log
+        output += build_log_item(icommit)
+    return output
 
 
 def print_log(icommits):
@@ -87,8 +89,8 @@ def build_issue_commit(icommit):
         '\nissuetree ' + icommit.issuetree.hexsha + \
         '\nopen issues: ' + str(icommit.open_issues)
     for parent in icommit.commit.parents:
-        output = output + '\nparent ' + parent.hexsha
-    output = output + '\nauthor ' + icommit.commit.author.name + \
+        output += '\nparent ' + parent.hexsha
+    output += '\nauthor ' + icommit.commit.author.name + \
         ' <' + icommit.commit.author.email + '> ' \
         + str(icommit.commit.authored_date) + ' ' + atime + \
         '\ncommiter ' + icommit.commit.committer.name + \
@@ -135,7 +137,7 @@ def build_issue_tree(itree):
             title = issue.title
         else:
             title = colored('No title', 'red')
-        output = output + issue.id + '\t' + \
+        output += issue.id + '\t' + \
             issue.hexsha + '\t' + \
             title + '\t' + issue.filepath + '\n'
     return output
@@ -173,32 +175,32 @@ def build_issue(issue):
     """
     output = ''
     if hasattr(issue, 'id'):
-        output = output + colored('Issue: ' + issue.id, 'yellow')
+        output += colored('Issue: ' + issue.id, 'yellow')
     if hasattr(issue, 'status'):
-        output = output + '\n'
+        output += '\n'
         if issue.status == 'Open':
-            output = output + colored('Status: ' + issue.status, 'red')
+            output += colored('Status: ' + issue.status, 'red')
         else:
-            output = output + colored('Status: ' + issue.status, 'green')
+            output += colored('Status: ' + issue.status, 'green')
     if hasattr(issue, 'title'):
-        output = output + '\nTitle:         ' + issue.title
+        output += '\nTitle:         ' + issue.title
     if hasattr(issue, 'assignees'):
-        output = output + '\nAssigned To:   ' + issue.assignees
+        output += '\nAssigned To:   ' + issue.assignees
     if hasattr(issue, 'due_date'):
-        output = output + '\nDue Date:      ' + issue.due_date
+        output += '\nDue Date:      ' + issue.due_date
     if hasattr(issue, 'label'):
-        output = output + '\nLabels:        ' + issue.label
+        output += '\nLabels:        ' + issue.label
     if hasattr(issue, 'weight'):
-        output = output + '\nWeight:        ' + issue.weight
+        output += '\nWeight:        ' + issue.weight
     if hasattr(issue, 'priority'):
-        output = output + '\nPriority:      ' + issue.priority
+        output += '\nPriority:      ' + issue.priority
     if hasattr(issue, 'filepath'):
-        output = output + '\nFilepath:      ' + issue.filepath
+        output += '\nFilepath:      ' + issue.filepath
     if hasattr(issue, 'size'):
-        output = output + '\nSize:          ' + str(issue.size)
+        output += '\nSize:          ' + str(issue.size)
     if hasattr(issue, 'description'):
-        output = output + '\nDescription: ' + issue.description
-    output = output + '\n\n'
+        output += '\nDescription: ' + issue.description
+    output += '\n\n'
     return output
 
 
@@ -234,7 +236,7 @@ def build_issues(issues):
     """
     output = ''
     for issue in issues:
-        output = output + build_issue(issue)
+        output += build_issue(issue)
     return output
 
 
@@ -255,6 +257,128 @@ def page_issues(issues):
         :list(Issue) issues: issues to print to pager
     """
     output = build_issues(issues)
+    pydoc.pipepager(output, cmd='less -R')
+
+
+def build_history_item(item):
+    """Builds a string representation of a issue history item for showing 
+    to the terminal
+
+    Args:
+        :(dict) item: item to build string from
+
+    Returns:
+        :(str): string representation of issue history item
+    """
+    time_format = '%a %b %d %H:%M:%S %Y %z'
+    output = ''
+    output += colored('ID: ' + item['id'], 'yellow')
+    output += '\n'
+    if item['status'] == 'Open':
+        output += colored('Status: ' + item['status'], 'red')
+    else:
+        output += colored('Status: ' + item['status'], 'green')
+    output += '\nTitle:              ' + item['title']
+
+    output += '\n'
+    output += '\nLast Author:        ' + item['last_author']
+    output += '\nLast Authored Date: ' + \
+        item['last_authored_date'].strftime(time_format)
+    output += '\nCreator:            ' + item['creator']
+    output += '\nDate Created:       ' + \
+        item['created_date'].strftime(time_format)
+    output += '\n'
+
+    if 'assignees' in item:
+        output += '\nAssigned To:        ' + item['assignees']
+    output += '\nParticipants:       '
+    for participant in item['participants']:
+        output += participant + ','
+    if 'due_date' in item:
+        output += '\nDue Date:           ' + item['due_date']
+    if 'label' in item:
+        output += '\nLabels:             ' + item['label']
+    if 'weight' in item:
+        output += '\nWeight:             ' + item['weight']
+    if 'priority' in item:
+        output += '\nPriority:           ' + item['priority']
+    output += '\nIn Branches:        '
+    for branch in item['in_branches']:
+        output += branch + ', '
+    output += '\nOpen In:            '
+    for branch in item['open_in']:
+        output += branch + ', '
+    if 'size' in item:
+        output += '\nSize:               ' + str(item['size'])
+    output += '\nFilepath:'
+    for path in item['filepath']:
+        output += '\n\t' + path
+    output += '\n'
+    output += '\nNum Revisions:      ' + str(len(item['revisions']))
+    output += '\nRevisions:          '
+    for revision in item['revisions']:
+        output += '\n\t' + revision
+
+    output += '\n'
+    if 'description' in item:
+        output += '\nDescription:        ' + item['description']
+    output += '\n\n'
+    return output
+
+
+def print_history_item(item):
+    """Prints raw string output to stdout
+
+    Args:
+        :(dict) item: history_item to print to stdout
+    """
+    output = build_history_item(item)
+    print(output)
+
+
+def page_history_item(item):
+    """Prints raw string output to less pager
+
+    Args:
+        :(dict) item: history_item to print to pager
+    """
+    output = build_history_item(item)
+    pydoc.pipepager(output, cmd='less -R')
+
+
+def build_history_items(items):
+    """Builds a string representation of a dict of history items
+    for showing to the terminal
+
+    Args:
+        :dict(dict) items: history items to build string from
+
+    Returns:
+        :(str): string representation of history items
+    """
+    output = ''
+    for item in items.values():
+        output += build_history_item(item)
+    return output
+
+
+def print_history_items(items):
+    """Prints raw string output to stdout
+
+    Args:
+        :dict(dict) items: history items to print to stdout
+    """
+    output = build_history_items(items)
+    print(output)
+
+
+def page_history_items(items):
+    """Prints raw string output to less pager
+
+    Args:
+        :dict(dict) items: history items to print to pager
+    """
+    output = build_history_items(items)
     pydoc.pipepager(output, cmd='less -R')
 
 

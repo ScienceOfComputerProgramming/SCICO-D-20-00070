@@ -12,7 +12,7 @@ import zlib
 import json
 
 from stat import S_IREAD
-from gitissue.errors import RepoObjectExistsError, RepoObjectDoesNotExistError, NoIssueHistoryError
+from gitissue.errors import RepoObjectExistsError, RepoObjectDoesNotExistError
 
 
 def get_location(obj):
@@ -137,65 +137,21 @@ def deserialize(obj):
     return obj
 
 
-def save_issue_history(itree):
-    """Takes an issue tree and saves all its tracked issues 
+"""
+@issue cache issue history / export issue tracker
+@description
+    It may be much better to use a type of caching for issue history
+    than saving the history tree intermitantly to disk. This can be some
+    type of readable JSON file.
+"""
+
+
+def cache_history(repo):
+    """Takes an issue repo and saves all its issues 
     to a file containing the history of all issues ever created
-    that were tracked. *Skips operation if tree empty*
+    that were tracked.
 
     Args:
-        :(IssueTree) itree: The tree to use to save new issues to full history file.
+        :(IssueRepo) repo: The repo to use to save issue history file.
     """
-    if itree.issues:
-        history = itree.repo.issue_dir + '/HISTORY'
-
-        # if first time create empty file
-        if not os.path.exists(history):
-            contents = []
-        else:
-            f = open(history, 'rb')
-            contents = zlib.decompress(f.read()).decode()
-            f.close()
-            contents = json.loads(contents)
-
-        new_contents = []
-        for issue in itree.issues:
-            new_issue = {}
-            new_issue['id'] = issue.id
-            new_issue['sha'] = issue.hexsha
-            new_contents.append(new_issue)
-        contents.extend(new_contents)
-
-        # remove duplicate ids and sort by id
-        contents = list({v['id']: v for v in contents}.values())
-        contents = sorted(contents, key=lambda v: v['id'])
-
-        data_to_write = json.dumps(contents)
-        f = open(history, 'wb')
-        f.write(zlib.compress(data_to_write.encode()))
-        f.close()
-
-
-def get_issue_history(repo):
-    """Returns all tracked issues from a file containing 
-    the history of all issues ever created that were tracked.
-
-    Args:
-        :(Repo) repo: The repo where the issue history is located
-
-    Returns:
-        :(list(dict)) contents: the id and sha of the issue
-
-    Raises:
-        :NoIssueHistoryError: *If no issues created*
-    """
-    history = repo.issue_dir + '/HISTORY'
-
-    # if first time create empty file
-    if not os.path.exists(history):
-        raise NoIssueHistoryError
-    else:
-        f = open(history, 'rb')
-        contents = zlib.decompress(f.read()).decode()
-        f.close()
-        contents = json.loads(contents)
-        return contents
+    raise NotImplementedError
