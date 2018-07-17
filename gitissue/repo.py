@@ -22,8 +22,6 @@ from gitissue.cli.functions import print_progress_bar
 
 __all__ = ('IssueRepo', )
 
-patterns = [PYTHON, ]
-
 
 class IssueRepo(Repo):
     """IssueRepo objects represent the git and issue repository.
@@ -153,7 +151,7 @@ class IssueRepo(Repo):
                 self.print_commit_progress(
                     datetime.now(), start, commits_scanned, num_commits)
 
-                issues = find_issues_in_tree(self, commit.tree, patterns)
+                issues = find_issues_in_tree(self, commit.tree)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
         else:
