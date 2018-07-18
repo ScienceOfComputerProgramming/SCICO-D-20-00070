@@ -10,7 +10,7 @@ the file system.
 import os
 import zlib
 import json
-
+from datetime import datetime
 from stat import S_IREAD
 from gitissue.errors import RepoObjectExistsError, RepoObjectDoesNotExistError
 
@@ -137,21 +137,27 @@ def deserialize(obj):
     return obj
 
 
-"""
-@issue cache issue history / export issue tracker
-@description
-    It may be much better to use a type of caching for issue history
-    than saving the history tree intermitantly to disk. This can be some
-    type of readable JSON file.
-"""
-
-
-def cache_history(repo):
-    """Takes an issue repo and saves all its issues 
+def cache_history(issue_dir, history):
+    """Takes the issue history from the repo and saves all its issues 
     to a file containing the history of all issues ever created
     that were tracked.
 
     Args:
-        :(IssueRepo) repo: The repo to use to save issue history file.
+        :(str) issue_dir: the directory to store the issue *repo.issue_dir*
+        :dict(dict) history: the history dictionary with all the issue \
+        information
     """
-    raise NotImplementedError
+    history_file = issue_dir + '/HISTORY'
+
+    # convert item paths to sets
+    for item in history.values():
+        item['filepath'] = list(item['filepath'])
+        item['participants'] = list(item['participants'])
+        item['in_branches'] = list(item['in_branches'])
+        item['open_in'] = list(item['open_in'])
+        item['revisions'] = list(item['revisions'])
+
+    now = datetime.now().strftime('%a %b %d %H:%M:%S %Y %z')
+    f = open(history_file, 'w')
+    f.write(now + '\n')
+    f.write(json.dumps(history, indent=4))

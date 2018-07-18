@@ -193,7 +193,6 @@ class IssueRepo(Repo):
                     # indexes needed to record complex information
                     if issue.id not in history:
                         history[issue.id] = issue.data
-                        history[issue.id]['filepath'] = set()
                         history[issue.id]['creator'] = icommit.commit.author.name
                         history[issue.id]['created_date'] = \
                             icommit.commit.authored_datetime.strftime(
@@ -214,8 +213,9 @@ class IssueRepo(Repo):
                         history[issue.id]['in_branches'] = set()
                         history[issue.id]['in_branches'].update(in_branches)
                         # for future use filling branch status
-                        history[issue.id]['descriptions'] = []
                         history[issue.id]['open_in'] = set()
+                        history[issue.id]['filepath'] = set()
+                        history[issue.id]['descriptions'] = []
                         if 'description' in history[issue.id]:
                             history[issue.id]['descriptions'].append(
                                 issue.description +
@@ -244,10 +244,11 @@ class IssueRepo(Repo):
                                         f'\n\t-by: {icommit.commit.author.name} - ' +
                                         f'{icommit.commit.authored_datetime.strftime(time_format)}')
                         else:
-                            history[issue.id]['descriptions'].append(
-                                issue.description +
-                                f'\n\t-by: {icommit.commit.author.name} - ' +
-                                f'{icommit.commit.authored_datetime.strftime(time_format)}')
+                            if hasattr(issue, 'description'):
+                                history[issue.id]['descriptions'].append(
+                                    issue.description +
+                                    f'\n\t-by: {icommit.commit.author.name} - ' +
+                                    f'{icommit.commit.authored_datetime.strftime(time_format)}')
 
             # fills the open branch set with branch status using the
             # issue trees at the head of each branch
