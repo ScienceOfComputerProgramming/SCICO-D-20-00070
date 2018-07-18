@@ -8,8 +8,8 @@ import os
 import re
 import stat
 import pkg_resources
-from shutil import copyfile
 
+from shutil import copyfile
 from datetime import datetime
 
 from git import Repo
@@ -214,10 +214,13 @@ class IssueRepo(Repo):
                         history[issue.id]['in_branches'] = set()
                         history[issue.id]['in_branches'].update(in_branches)
                         # for future use filling branch status
+                        history[issue.id]['descriptions'] = []
                         history[issue.id]['open_in'] = set()
                         if 'description' in history[issue.id]:
-                            history[issue.id]['description'] += \
-                                f' -by:{icommit.commit.author.name}'
+                            history[issue.id]['descriptions'].append(
+                                issue.description +
+                                f'\n\t-by: {icommit.commit.author.name} - ' +
+                                f'{icommit.commit.authored_datetime.strftime(time_format)}')
                     # update the history information when more instances
                     # of the issue is found
                     else:
@@ -232,6 +235,19 @@ class IssueRepo(Repo):
                             f'\t{icommit.commit.summary}'
                         history[issue.id]['activity'].append(activity)
                         history[issue.id]['revisions'].add(issue.hexsha)
+                        if 'description' in history[issue.id]:
+                            if hasattr(issue, 'description'):
+                                if issue.description != history[issue.id]['description']:
+                                    history[issue.id]['description'] = issue.description
+                                    history[issue.id]['descriptions'].append(
+                                        issue.description +
+                                        f'\n\t-by: {icommit.commit.author.name} - ' +
+                                        f'{icommit.commit.authored_datetime.strftime(time_format)}')
+                        else:
+                            history[issue.id]['descriptions'].append(
+                                issue.description +
+                                f'\n\t-by: {icommit.commit.author.name} - ' +
+                                f'{icommit.commit.authored_datetime.strftime(time_format)}')
 
             # fills the open branch set with branch status using the
             # issue trees at the head of each branch

@@ -312,12 +312,12 @@ def build_history_item(item):
     output += '\nFilepath:'
     for path in item['filepath']:
         output += '\n\t' + path
-        
+
     output += '\n'
     output += '\nIssue Revisions:    ' + str(len(item['revisions']))
     for revision in item['revisions']:
         output += '\n\t' + revision
-        
+
     output += '\n'
     output += '\nCommit Activities:  ' + str(len(item['activity']))
     for commit in item['activity']:
@@ -325,7 +325,9 @@ def build_history_item(item):
 
     output += '\n'
     if 'description' in item:
-        output += '\nDescription:        ' + item['description']
+        output += '\nDescriptions:        '
+        for description in item['descriptions']:
+            output += '\n' + description
 
     output += '\n\n'
     output += colored('%*'*30, 'yellow')
