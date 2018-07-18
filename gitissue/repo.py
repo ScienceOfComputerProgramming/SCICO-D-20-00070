@@ -158,14 +158,6 @@ class IssueRepo(Repo):
         else:
             raise NoCommitsError
 
-    """
-    @issue generate complex history from commits
-    @description
-        Extract more information from the source control
-        to present alongside the issue history.
-        Extract commit summary as part of revision history
-    """
-
     def build_history(self, rev=None, paths='', **kwargs):
         """
         Builds the issue history from past commits on path specified
@@ -193,6 +185,7 @@ class IssueRepo(Repo):
                     # indexes needed to record complex information
                     if issue.id not in history:
                         history[issue.id] = issue.data
+                        history[issue.id]['size'] = issue.size
                         history[issue.id]['creator'] = icommit.commit.author.name
                         history[issue.id]['created_date'] = \
                             icommit.commit.authored_datetime.strftime(
@@ -204,8 +197,9 @@ class IssueRepo(Repo):
                         history[issue.id]['revisions'] = set()
                         history[issue.id]['revisions'].add(issue.hexsha)
                         history[issue.id]['activity'] = []
-                        activity = f'{icommit.commit.authored_datetime.strftime(time_format)}'\
-                            f'\t{icommit.commit.summary}'
+                        activity = {'date': icommit.commit.authored_datetime.strftime(time_format),
+                                    'author': icommit.commit.author.name,
+                                    'summary': icommit.commit.summary}
                         history[issue.id]['activity'].append(activity)
                         history[issue.id]['participants'] = set()
                         history[issue.id]['participants'].add(
@@ -218,12 +212,15 @@ class IssueRepo(Repo):
                         history[issue.id]['descriptions'] = []
                         if 'description' in history[issue.id]:
                             history[issue.id]['descriptions'].append(
-                                issue.description +
-                                f'\n\t-by: {icommit.commit.author.name} - ' +
-                                f'{icommit.commit.authored_datetime.strftime(time_format)}')
+                                {'change': issue.description,
+                                 'author': icommit.commit.author.name,
+                                 'date': icommit.commit.authored_datetime.strftime(time_format)
+                                 }
+                            )
                     # update the history information when more instances
                     # of the issue is found
                     else:
+                        history[issue.id]['size'] += issue.size
                         history[issue.id]['creator'] = icommit.commit.author.name
                         history[issue.id]['created_date'] = \
                             icommit.commit.authored_datetime.strftime(
@@ -231,8 +228,9 @@ class IssueRepo(Repo):
                         history[issue.id]['participants'].add(
                             icommit.commit.author.name)
                         history[issue.id]['in_branches'].update(in_branches)
-                        activity = f'{icommit.commit.authored_datetime.strftime(time_format)}'\
-                            f'\t{icommit.commit.summary}'
+                        activity = {'date': icommit.commit.authored_datetime.strftime(time_format),
+                                    'author': icommit.commit.author.name,
+                                    'summary': icommit.commit.summary}
                         history[issue.id]['activity'].append(activity)
                         history[issue.id]['revisions'].add(issue.hexsha)
                         if 'description' in history[issue.id]:
@@ -240,15 +238,19 @@ class IssueRepo(Repo):
                                 if issue.description != history[issue.id]['description']:
                                     history[issue.id]['description'] = issue.description
                                     history[issue.id]['descriptions'].append(
-                                        issue.description +
-                                        f'\n\t-by: {icommit.commit.author.name} - ' +
-                                        f'{icommit.commit.authored_datetime.strftime(time_format)}')
+                                        {'change': issue.description,
+                                         'author': icommit.commit.author.name,
+                                         'date': icommit.commit.authored_datetime.strftime(time_format)
+                                         }
+                                    )
                         else:
                             if hasattr(issue, 'description'):
                                 history[issue.id]['descriptions'].append(
-                                    issue.description +
-                                    f'\n\t-by: {icommit.commit.author.name} - ' +
-                                    f'{icommit.commit.authored_datetime.strftime(time_format)}')
+                                    {'change': issue.description,
+                                     'author': icommit.commit.author.name,
+                                     'date': icommit.commit.authored_datetime.strftime(time_format)
+                                     }
+                                )
 
             # fills the open branch set with branch status using the
             # issue trees at the head of each branch

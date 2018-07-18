@@ -271,20 +271,20 @@ def build_history_item(item):
         :(str): string representation of issue history item
     """
     output = ''
-    output += colored('ID: ' + item['id'], 'yellow')
+    output += colored('ID: ' + item['id'], 'yellow', attrs=['bold'])
     output += '\n'
     if item['status'] == 'Open':
-        output += colored('Status: ' + item['status'], 'red')
+        output += colored('Status: ' + item['status'], 'red', attrs=['bold'])
     else:
-        output += colored('Status: ' + item['status'], 'green')
-    output += '\nTitle:              ' + item['title']
+        output += colored('Status: ' + item['status'], 'green', attrs=['bold'])
+    output += '\nTitle: ' + item['title']
 
     output += '\n'
-    output += '\nLast Author:        ' + item['last_author']
-    output += '\nLast Authored Date: ' + \
+    output += '\nLast Author:        ' + \
+        item['last_author'] + ' | ' + \
         item['last_authored_date']
-    output += '\nCreator:            ' + item['creator']
-    output += '\nDate Created:       ' + \
+    output += '\nCreator:            ' +\
+        item['creator'] + ' | ' + \
         item['created_date']
     output += '\n'
 
@@ -304,33 +304,39 @@ def build_history_item(item):
     output += '\nIn Branches:        '
     for branch in item['in_branches']:
         output += branch + ', '
-    output += '\nOpen In:            '
+    output += '\nOpen In Branches:   '
     for branch in item['open_in']:
         output += branch + ', '
     if 'size' in item:
         output += '\nSize:               ' + str(item['size'])
     output += '\nFilepath:'
     for path in item['filepath']:
-        output += '\n\t' + path
+        output += '\n' + ' '*20 + path
 
     output += '\n'
     output += '\nIssue Revisions:    ' + str(len(item['revisions']))
     for revision in item['revisions']:
-        output += '\n\t' + revision
+        output += '\n' + ' '*20 + revision
 
     output += '\n'
     output += '\nCommit Activities:  ' + str(len(item['activity']))
     for commit in item['activity']:
-        output += '\n' + commit
+        output += '\n' + commit['date']
+        output += ' | ' + commit['author']
+        output += ' | ' + commit['summary']
 
     output += '\n'
     if 'description' in item:
-        output += '\nDescriptions:        '
+        output += '\n' + '_'*90 + '\n' + 'Descriptions:'
         for description in item['descriptions']:
-            output += '\n' + description
+            output += '\n' + description['change']
+            output += '\n--> added by: ' + \
+                colored(description['author'], 'red')
+            output += ' - ' + description['date']
+            output += '\n' + '_'*70
 
     output += '\n\n'
-    output += colored('%*'*30, 'yellow')
+    output += colored('*'*90, 'yellow')
     output += '\n\n'
     return output
 
