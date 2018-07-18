@@ -270,7 +270,6 @@ def build_history_item(item):
     Returns:
         :(str): string representation of issue history item
     """
-    time_format = '%a %b %d %H:%M:%S %Y %z'
     output = ''
     output += colored('ID: ' + item['id'], 'yellow')
     output += '\n'
@@ -283,10 +282,10 @@ def build_history_item(item):
     output += '\n'
     output += '\nLast Author:        ' + item['last_author']
     output += '\nLast Authored Date: ' + \
-        item['last_authored_date'].strftime(time_format)
+        item['last_authored_date']
     output += '\nCreator:            ' + item['creator']
     output += '\nDate Created:       ' + \
-        item['created_date'].strftime(time_format)
+        item['created_date']
     output += '\n'
 
     if 'assignees' in item:
@@ -313,15 +312,23 @@ def build_history_item(item):
     output += '\nFilepath:'
     for path in item['filepath']:
         output += '\n\t' + path
+        
     output += '\n'
-    output += '\nNum Revisions:      ' + str(len(item['revisions']))
-    output += '\nRevisions:          '
+    output += '\nIssue Revisions:    ' + str(len(item['revisions']))
     for revision in item['revisions']:
         output += '\n\t' + revision
+        
+    output += '\n'
+    output += '\nCommit Activities:  ' + str(len(item['activity']))
+    for commit in item['activity']:
+        output += '\n' + commit
 
     output += '\n'
     if 'description' in item:
         output += '\nDescription:        ' + item['description']
+
+    output += '\n\n'
+    output += colored('%*'*30, 'yellow')
     output += '\n\n'
     return output
 

@@ -25,7 +25,8 @@ __all__ = ('IssueRepo', )
 
 class IssueRepo(Repo):
     """IssueRepo objects represent the git and issue repository.
-    Inherits from `GitPython.Repo <https://gitpython.readthedocs.io/en/stable/reference.html#module-git.repo.base>`_.
+    Inherits from `GitPython.Repo <https://gitpython.readthedocs.io/en/2.1.10/\
+    reference.html#module-git.repo.base>`_.
     """
 
     def __init__(self):
@@ -160,9 +161,9 @@ class IssueRepo(Repo):
     """
     @issue generate complex history from commits
     @description
-        Try to generate the complex history between
-        commits in a way that can be inferred from the
-        source control
+        Extract more information from the source control
+        to present alongside the issue history.
+        Extract commit summary as part of revision history
     """
 
     def build_history(self, rev=None, paths='', **kwargs):
@@ -176,7 +177,7 @@ class IssueRepo(Repo):
         """
         if self.heads:
             history = {}
-
+            time_format = '%a %b %d %H:%M:%S %Y %z'
             # get all commits on the all branches
             if rev is not None:
                 icommits = list(self.iter_issue_commits(rev, paths, **kwargs))
@@ -194,11 +195,19 @@ class IssueRepo(Repo):
                         history[issue.id] = issue.data
                         history[issue.id]['filepath'] = set()
                         history[issue.id]['creator'] = icommit.commit.author.name
-                        history[issue.id]['created_date'] = icommit.commit.authored_datetime
+                        history[issue.id]['created_date'] = \
+                            icommit.commit.authored_datetime.strftime(
+                            time_format)
                         history[issue.id]['last_author'] = icommit.commit.author.name
-                        history[issue.id]['last_authored_date'] = icommit.commit.authored_datetime
+                        history[issue.id]['last_authored_date'] = \
+                            icommit.commit.authored_datetime.strftime(
+                            time_format)
                         history[issue.id]['revisions'] = set()
                         history[issue.id]['revisions'].add(issue.hexsha)
+                        history[issue.id]['activity'] = []
+                        activity = f'{icommit.commit.authored_datetime.strftime(time_format)}'\
+                            f'\t{icommit.commit.summary}'
+                        history[issue.id]['activity'].append(activity)
                         history[issue.id]['participants'] = set()
                         history[issue.id]['participants'].add(
                             icommit.commit.author.name)
@@ -207,16 +216,21 @@ class IssueRepo(Repo):
                         # for future use filling branch status
                         history[issue.id]['open_in'] = set()
                         if 'description' in history[issue.id]:
-                            history[issue.id]['description'] += f'\n -added by:{icommit.commit.author.name}'
+                            history[issue.id]['description'] += \
+                                f' -by:{icommit.commit.author.name}'
                     # update the history information when more instances
                     # of the issue is found
                     else:
                         history[issue.id]['creator'] = icommit.commit.author.name
-                        history[issue.id]['created_date'] = icommit.commit.authored_datetime
+                        history[issue.id]['created_date'] = \
+                            icommit.commit.authored_datetime.strftime(
+                            time_format)
                         history[issue.id]['participants'].add(
                             icommit.commit.author.name)
                         history[issue.id]['in_branches'].update(in_branches)
-                        # a revision is added to the set indicating the order of revisions
+                        activity = f'{icommit.commit.authored_datetime.strftime(time_format)}'\
+                            f'\t{icommit.commit.summary}'
+                        history[issue.id]['activity'].append(activity)
                         history[issue.id]['revisions'].add(issue.hexsha)
 
             # fills the open branch set with branch status using the
