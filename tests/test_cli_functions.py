@@ -5,7 +5,7 @@ import sys
 from io import StringIO
 from unittest import TestCase
 from unittest.mock import patch
-from gitissue.cli.functions import read_man_file, print_progress_bar, yes_no_option
+from sciit.cli.functions import read_man_file, print_progress_bar, yes_no_option
 
 
 class TestReadManualFiles(TestCase):

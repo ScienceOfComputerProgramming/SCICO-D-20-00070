@@ -8,7 +8,7 @@ SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build
 
-SOURCEDIR     = ../gitissue
+SOURCEDIR     = ../sciit
 EXCLUDEDIRS    =  $(SOURCEDIR)/man/* $(SOURCEDIR)/hooks/*
 
 # Internal variables.

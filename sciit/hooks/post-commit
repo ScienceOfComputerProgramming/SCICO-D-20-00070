@@ -8,9 +8,9 @@
 :@author: Nystrom Edwards
 :Created: 12 July 2018
 """
-from gitissue import IssueRepo, IssueTree, IssueCommit
-from gitissue.tree import find_issues_in_tree
-from gitissue.regex import PYTHON
+from sciit import IssueRepo, IssueTree, IssueCommit
+from sciit.tree import find_issues_in_tree
+from sciit.regex import PYTHON
 from termcolor import colored
 import subprocess
 

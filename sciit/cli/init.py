@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Module that assists with creating a git issue repository.
+"""Module that assists with creating a git sciit repository.
 It contains functions that allows the creation of an empty
 repository or to create a repository from source code comments
 in past commits. It is similar to the git init command but 
@@ -8,7 +8,7 @@ helps build issues for existing repositories.
     Example:
         This command is accessed via::
         
-            $ git issue init [-h] [-r] [-y]
+            $ git sciit init [-h] [-r] [-y]
 
 @author: Nystrom Edwards
 
@@ -16,8 +16,8 @@ Created on 18 June 2018
 """
 
 import sys
-from gitissue.cli.functions import yes_no_option
-from gitissue.errors import EmptyRepositoryError, NoCommitsError
+from sciit.cli.functions import yes_no_option
+from sciit.errors import EmptyRepositoryError, NoCommitsError
 from termcolor import colored
 
 

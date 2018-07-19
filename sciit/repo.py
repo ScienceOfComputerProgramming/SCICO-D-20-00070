@@ -14,11 +14,11 @@ from datetime import datetime
 
 from git import Repo
 
-from gitissue import IssueTree, IssueCommit, Issue
-from gitissue.errors import EmptyRepositoryError, NoCommitsError
-from gitissue.tree import find_issues_in_tree
-from gitissue.regex import PYTHON
-from gitissue.cli.functions import print_progress_bar
+from sciit import IssueTree, IssueCommit, Issue
+from sciit.errors import EmptyRepositoryError, NoCommitsError
+from sciit.tree import find_issues_in_tree
+from sciit.regex import PYTHON
+from sciit.cli.functions import print_progress_bar
 
 __all__ = ('IssueRepo', )
 
@@ -43,7 +43,7 @@ class IssueRepo(Repo):
 
     def is_init(self):
         """
-        Detect if the git-issue folders are initialised
+        Detect if the git sciit folders are initialised
 
         Returns:
             :bool: true if folder exists, false otherwise
@@ -52,7 +52,7 @@ class IssueRepo(Repo):
 
     def reset(self):
         """
-        Resets the git-issue folders 
+        Resets the git sciit folders 
 
         Raises:
             :EmptyRepositoryError: if repo is not initialized
@@ -65,7 +65,7 @@ class IssueRepo(Repo):
 
     def setup(self):
         """
-        Creates the git-issue folders and installs the necesary
+        Creates the git sciit folders and installs the necesary
         git hooks in the .git/hooks/ folder
         """
         os.makedirs(self.issue_dir)
@@ -74,7 +74,7 @@ class IssueRepo(Repo):
         if not os.path.exists(git_hooks_dir):
             os.makedirs(git_hooks_dir)
         post_commit_hook = pkg_resources.resource_filename(
-            'gitissue.hooks', 'post-commit')
+            'sciit.hooks', 'post-commit')
         post_commit_git_hook = git_hooks_dir + 'post-commit'
         copyfile(post_commit_hook, post_commit_git_hook)
         st = os.stat(post_commit_git_hook)

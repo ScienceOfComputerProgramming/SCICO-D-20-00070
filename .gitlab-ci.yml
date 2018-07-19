@@ -34,7 +34,7 @@ python_docs:
     paths:
       - docs/_build/html/*
     expire_in: 1 week
-  only: [master]
+  only: [master, tags]
 
 
 # building all the documents for the dissertation

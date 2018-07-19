@@ -12,7 +12,7 @@ import zlib
 import json
 from datetime import datetime
 from stat import S_IREAD
-from gitissue.errors import RepoObjectExistsError, RepoObjectDoesNotExistError
+from sciit.errors import RepoObjectExistsError, RepoObjectDoesNotExistError
 
 
 def get_location(obj):

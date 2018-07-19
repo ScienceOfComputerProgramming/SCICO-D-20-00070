@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Git-Issue documentation!
-==================================================
+Source Control Integrated Issue Tracker (SCIIT) API DOCS!
+=========================================================
 
 Contents:
 
@@ -25,4 +25,4 @@ Indices and tables
 Fork this project
 ==================
 
-* https://gitlab.com/nystrome/source-issue-tracker
+* https://gitlab.com/nystrome/sciit

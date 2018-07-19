@@ -6,7 +6,7 @@ pass them to the appropriate module for handling.
     Example:
         This command is accessed via::
         
-            $ git issue
+            $ git sciit
 
 @author: Nystrom Edwards
 
@@ -16,15 +16,15 @@ Created on 13 June 2018
 import argparse
 import sys
 
-from gitissue.cli.functions import read_man_file
+from sciit.cli.functions import read_man_file
 
-from gitissue.cli.status import status
-from gitissue.cli.init import init
-from gitissue.cli.log import log
-from gitissue.cli.catfile import cat
-from gitissue.cli.tracker import tracker
+from sciit.cli.status import status
+from sciit.cli.init import init
+from sciit.cli.log import log
+from sciit.cli.catfile import cat
+from sciit.cli.tracker import tracker
 
-from gitissue import IssueRepo
+from sciit import IssueRepo
 from git.exc import InvalidGitRepositoryError
 
 
@@ -38,12 +38,12 @@ def main():
         repo = IssueRepo()
         repo.cli = True
 
-        parser = argparse.ArgumentParser(prog='git issue',
+        parser = argparse.ArgumentParser(prog='git sciit',
                                          description='To use the application you can create your '
                                          'issues anywhere in your source code as block comments in '
                                          'a particular format and it will become a trackable '
                                          'versioned object within your git environment. '
-                                         'Operations done with git will run git-issue in the '
+                                         'Operations done with git will run git sciit in the '
                                          'background in order to automate issue tracking for you. ')
         parser.add_argument('-v', '--version', action='version',
                             version=read_man_file('VERSION'))

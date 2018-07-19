@@ -3,7 +3,7 @@ import shutil
 from unittest import TestCase
 
 from git import Tree, Repo
-from gitissue import Issue, IssueRepo, IssueTree, IssueCommit
+from sciit import Issue, IssueRepo, IssueTree, IssueCommit
 
 
 class TestCreateIssueCommit(TestCase):

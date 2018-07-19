@@ -421,7 +421,7 @@ def read_man_file(filename):
     Returns:
         :str: The contents of the file
     """
-    filename = pkg_resources.resource_filename('gitissue.man', filename)
+    filename = pkg_resources.resource_filename('sciit.man', filename)
     with open(filename, 'rb') as f:
         filename = f.read().decode('utf-8')
     return filename

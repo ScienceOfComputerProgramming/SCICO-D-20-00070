@@ -5,8 +5,8 @@ from unittest import TestCase
 from unittest.mock import patch, Mock, PropertyMock, MagicMock
 from git import Commit
 from git.util import hex_to_bin
-from gitissue import IssueRepo, IssueCommit, IssueTree, Issue
-from gitissue.errors import EmptyRepositoryError, NoCommitsError
+from sciit import IssueRepo, IssueCommit, IssueTree, Issue
+from sciit.errors import EmptyRepositoryError, NoCommitsError
 
 
 class TestIssueRepo(TestCase):
@@ -77,7 +77,7 @@ class TestBuildIssueRepo(TestCase):
         os.makedirs('here')
         os.makedirs('here/objects')
 
-    @patch('gitissue.repo.IssueRepo.heads', new_callable=PropertyMock)
+    @patch('sciit.repo.IssueRepo.heads', new_callable=PropertyMock)
     def test_build_from_empty_repo(self, heads):
         heads.return_value = []
         with self.assertRaises(NoCommitsError) as context:
@@ -86,7 +86,7 @@ class TestBuildIssueRepo(TestCase):
             'The repository has no commits.' in str(context.exception))
         heads.assert_called_once()
 
-    @patch('gitissue.repo.IssueRepo.iter_commits')
+    @patch('sciit.repo.IssueRepo.iter_commits')
     def test_build_from_two_known_commits(self, commits):
         # get first two commits of this repo
         first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
@@ -109,8 +109,8 @@ class TestBuildIssueRepo(TestCase):
         self.assertEqual(len(first_commit.issuetree.issues), 0)
         self.assertEqual(len(second_commit.issuetree.issues), 0)
 
-    @patch('gitissue.repo.IssueRepo.iter_commits')
-    @patch('gitissue.repo.print_progress_bar')
+    @patch('sciit.repo.IssueRepo.iter_commits')
+    @patch('sciit.repo.print_progress_bar')
     def test_print_progress_called_if_cli(self, progress, commits):
         # get first two commits of this repo
         first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
@@ -167,8 +167,8 @@ class TestBuildIterIssueCommits(TestCase):
             cls.repo, cls.head_commit, cls.new_itree)
         IssueCommit.create(cls.repo, cls.first_commit, cls.itree)
 
-    @patch('gitissue.repo.IssueRepo.iter_commits')
-    @patch('gitissue.repo.IssueRepo.heads')
+    @patch('sciit.repo.IssueRepo.iter_commits')
+    @patch('sciit.repo.IssueRepo.heads')
     def test_get_build_history(self, heads, commits):
         val = [self.head_commit, self.first_commit]
         commits.return_value = val
@@ -181,7 +181,7 @@ class TestBuildIterIssueCommits(TestCase):
         self.assertTrue(
             'here is a nice description' in history['6']['description'])
 
-    @patch('gitissue.repo.IssueRepo.heads')
+    @patch('sciit.repo.IssueRepo.heads')
     def test_get_build_history_no_commits(self, heads):
         repo = IssueRepo()
         repo.heads = False
@@ -190,8 +190,8 @@ class TestBuildIterIssueCommits(TestCase):
         self.assertTrue(
             'The repository has no commits.' in str(context.exception))
 
-    @patch('gitissue.repo.IssueRepo.iter_commits')
-    @patch('gitissue.repo.IssueRepo.heads')
+    @patch('sciit.repo.IssueRepo.iter_commits')
+    @patch('sciit.repo.IssueRepo.heads')
     def test_get_open_issues(self, heads, commits):
         val = [self.head_commit, self.first_commit]
         commits.return_value = val
@@ -202,8 +202,8 @@ class TestBuildIterIssueCommits(TestCase):
         open_issues = self.repo.open_issues
         self.assertEqual(len(open_issues), 3)
 
-    @patch('gitissue.repo.IssueRepo.iter_commits')
-    @patch('gitissue.repo.IssueRepo.heads')
+    @patch('sciit.repo.IssueRepo.iter_commits')
+    @patch('sciit.repo.IssueRepo.heads')
     def test_get_all_issues(self, heads, commits):
         val = [self.head_commit, self.first_commit]
         commits.return_value = val
@@ -214,8 +214,8 @@ class TestBuildIterIssueCommits(TestCase):
         all_issues = self.repo.all_issues
         self.assertEqual(len(all_issues), 7)
 
-    @patch('gitissue.repo.IssueRepo.iter_commits')
-    @patch('gitissue.repo.IssueRepo.heads')
+    @patch('sciit.repo.IssueRepo.iter_commits')
+    @patch('sciit.repo.IssueRepo.heads')
     def test_get_closed_issues(self, heads, commits):
         val = [self.head_commit, self.first_commit]
         commits.return_value = val
@@ -241,7 +241,7 @@ class TestIssueStatus(TestCase):
         os.makedirs('here')
         os.makedirs('here/objects')
 
-    @patch('gitissue.repo.IssueRepo.iter_commits')
+    @patch('sciit.repo.IssueRepo.iter_commits')
     def test_return_two_known_issue_commits(self, iter_commits):
         # get first two commits of this repo
         first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'

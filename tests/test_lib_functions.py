@@ -6,11 +6,11 @@ import os
 import shutil
 from unittest import TestCase
 from unittest.mock import patch
-from gitissue import IssueRepo, Issue, IssueTree, IssueCommit
-from gitissue.functions import get_location, object_exists, \
+from sciit import IssueRepo, Issue, IssueTree, IssueCommit
+from sciit.functions import get_location, object_exists, \
     get_type_from_sha
-from gitissue.functions import serialize, deserialize
-from gitissue.errors import RepoObjectExistsError, \
+from sciit.functions import serialize, deserialize
+from sciit.errors import RepoObjectExistsError, \
     RepoObjectDoesNotExistError
 
 
@@ -21,7 +21,7 @@ class TestObject():
         super(TestObject, self).__init__()
 
 
-@patch('gitissue.issue.Object', autospec=True)
+@patch('sciit.issue.Object', autospec=True)
 class TestGetLocation(TestCase):
 
     def test_correct_folder_location(self, issue):
@@ -40,7 +40,7 @@ class TestGetLocation(TestCase):
             '/here/a7/f58a19bff02e266b5b4ac59119b06461f33355', filename)
 
 
-@patch('gitissue.functions.get_location', return_value=('here', 'here/a/file'))
+@patch('sciit.functions.get_location', return_value=('here', 'here/a/file'))
 class TestObjectExists(TestCase):
 
     def test_object_does_not_exist(self, get_location):
@@ -54,7 +54,7 @@ class TestObjectExists(TestCase):
         shutil.rmtree('here')
 
 
-@patch('gitissue.functions.get_location', return_value=('here/a', 'here/a/file'))
+@patch('sciit.functions.get_location', return_value=('here/a', 'here/a/file'))
 class TestSerializeDeserializeObject(TestCase):
 
     data = {'filepath': 'here', 'contents': {

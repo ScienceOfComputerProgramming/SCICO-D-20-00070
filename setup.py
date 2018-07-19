@@ -7,7 +7,7 @@
 import subprocess
 from setuptools import setup, find_packages
 
-with open('gitissue/man/VERSION', 'rb') as f:
+with open('sciit/man/VERSION', 'rb') as f:
     version = f.read().decode('utf-8')
 
 with open('README.md', 'rb') as f:
@@ -18,18 +18,22 @@ with open('requirements.txt', 'rb') as f:
 
 
 setup(
-    name='gitissue',
+    name='sciit',
     packages=find_packages(),
     install_requires=requirements,
     entry_points={
-        'console_scripts': ['git-issue = gitissue.cli.start:main']
+        'console_scripts': ['git-sciit = sciit.cli.start:main']
     },
     zip_safe=True,
     include_package_data=True,
     version=version,
-    description='Python command line application bare bones template.',
+    description='An application that allow issues to be managed'
+    'within a version control repository rather than'
+    'as a separate database.'
+    'Contains a command line application that can manage'
+    'issues.',
     long_description=long_descr,
     author='Nystrom Johann Edwards',
     author_email='nystrom.edwards@gmail.com',
-    url='https://gitlab.com/nystrome/git-issue',
+    url='https://gitlab.com/nystrome/sciit',
 )

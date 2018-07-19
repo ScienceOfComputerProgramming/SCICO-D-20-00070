@@ -11,10 +11,10 @@ import os
 from git import util, Object
 from git.util import hex_to_bin
 
-from gitissue import Issue
-from gitissue.issue import find_issue_data_in_comment
-from gitissue.functions import serialize, deserialize, object_exists
-from gitissue.regex import get_file_object_pattern
+from sciit import Issue
+from sciit.issue import find_issue_data_in_comment
+from sciit.functions import serialize, deserialize, object_exists
+from sciit.regex import get_file_object_pattern
 
 
 __all__ = ('IssueTree', 'find_issues_in_tree',)

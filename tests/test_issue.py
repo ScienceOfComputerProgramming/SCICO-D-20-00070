@@ -6,8 +6,8 @@ import os
 import shutil
 from unittest import TestCase
 from unittest.mock import patch
-from gitissue import Issue, IssueRepo
-from gitissue.issue import find_issue_data_in_comment
+from sciit import Issue, IssueRepo
+from sciit.issue import find_issue_data_in_comment
 
 
 class TestIssue(TestCase):

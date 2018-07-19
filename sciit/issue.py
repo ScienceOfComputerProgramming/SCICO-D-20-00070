@@ -11,8 +11,8 @@ from git import Object
 from git.util import hex_to_bin
 from slugify import slugify
 
-from gitissue.functions import serialize, deserialize, object_exists
-from gitissue.regex import ISSUE
+from sciit.functions import serialize, deserialize, object_exists
+from sciit.regex import ISSUE
 
 __all__ = ('Issue', 'find_issue_data_in_comment', )
 

@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
-"""Module that assists with running git issue status commands.
+"""Module that assists with running git sciit status commands.
 It is similar to the git status command but shows the status
 of issues that are currently being tracked on HEAD or branch.
 
     Example:
         This command is accessed via::
 
-            $ git issue status [-h] [branch]
+            $ git sciit status [-h] [branch]
 
 @author: Nystrom Edwards
 
 Created on 13 June 2018
 """
-from gitissue import IssueCommit
+from sciit import IssueCommit
 from termcolor import colored
 
 
@@ -29,7 +29,7 @@ def status(args):
     try:
         all_issues = args.repo.all_issues
     except IndexError:
-        error = 'git issue error fatal: No such branch matching ' + branch + ' found'
+        error = 'git sciit error fatal: No such branch matching ' + branch + ' found'
         print(error)
         return
 

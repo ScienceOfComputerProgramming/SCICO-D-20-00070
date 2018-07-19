@@ -3,8 +3,8 @@ import os
 import shutil
 from unittest import TestCase
 from unittest.mock import patch, Mock, MagicMock
-from gitissue import IssueRepo, IssueTree, Issue
-from gitissue.tree import find_issues_in_tree
+from sciit import IssueRepo, IssueTree, Issue
+from sciit.tree import find_issues_in_tree
 
 
 class TestCreateIssueTree(TestCase):

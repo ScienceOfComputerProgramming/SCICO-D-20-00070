@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
-"""Module that assists with running git issue log commands.
+"""Module that assists with running git sciit log commands.
 It is similar to the git log command but shows the open 
 issues for each commit.
 
     Example:
         This command is accessed via:
         
-            $ git issue log [-h] [revision]
+            $ git sciit log [-h] [revision]
 
 @author: Nystrom Edwards
 
 Created on 18 June 2018
 """
 from git.exc import GitCommandError
-from gitissue.cli.functions import page_log
+from sciit.cli.functions import page_log
 
 
 def log(args):
@@ -37,7 +37,7 @@ def log(args):
     except GitCommandError as e:
         error = e.stderr.replace('\n\'', '')
         error = error.replace('\n  stderr: \'', '')
-        error = 'git issue error ' + error
+        error = 'git sciit error ' + error
         print(error)
         return
     return

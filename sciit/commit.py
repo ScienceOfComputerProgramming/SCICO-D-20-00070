@@ -11,8 +11,8 @@ import hashlib
 from git import util, Object, Commit
 from git.util import hex_to_bin
 
-from gitissue import IssueTree
-from gitissue.functions import serialize, deserialize, object_exists
+from sciit import IssueTree
+from sciit.functions import serialize, deserialize, object_exists
 
 __all__ = ('IssueCommit',)
 
