@@ -24,6 +24,11 @@ def cat(args):
     """
     Prints the content and info of objects stored in our issue repository.
     """
+    # if not args.type and not args.size and not args.print:
+    #     # no flags selected error message
+    #     error = 'git issue error fatal: one flag must be used {-t, -s, -p}'
+    #     print(error)
+    #     return
 
     try:
         object_type = get_type_from_sha(args.repo, args.sha)
@@ -41,15 +46,15 @@ def cat(args):
         obj = Issue(args.repo, args.sha)
 
     # type flag selected
-    if args.type and not args.print and not args.size:
+    if args.type:
         print(obj.type)
 
     # size flag selected
-    elif args.size and not args.type and not args.print:
+    elif args.size:
         print(obj.size)
 
     # print flag selected
-    elif args.print and not args.size and not args.type:
+    elif args.print:
 
         if obj.type == 'issuecommit':
             print_issue_commit(obj)
@@ -57,7 +62,3 @@ def cat(args):
             print_issue_tree(obj)
         elif obj.type == 'issue':
             print_issue(obj)
-    else:
-        # no flags selected error message
-        error = 'git issue error fatal: one flag must be used {-t, -s, -p}'
-        print(error)

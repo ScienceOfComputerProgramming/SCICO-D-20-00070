@@ -270,23 +270,22 @@ def build_history_item(item):
     Returns:
         :(str): string representation of issue history item
     """
-    time_format = '%a %b %d %H:%M:%S %Y %z'
     output = ''
-    output += colored('ID: ' + item['id'], 'yellow')
+    output += colored('ID: ' + item['id'], 'yellow', attrs=['bold'])
     output += '\n'
     if item['status'] == 'Open':
-        output += colored('Status: ' + item['status'], 'red')
+        output += colored('Status: ' + item['status'], 'red', attrs=['bold'])
     else:
-        output += colored('Status: ' + item['status'], 'green')
-    output += '\nTitle:              ' + item['title']
+        output += colored('Status: ' + item['status'], 'green', attrs=['bold'])
+    output += '\nTitle: ' + item['title']
 
     output += '\n'
-    output += '\nLast Author:        ' + item['last_author']
-    output += '\nLast Authored Date: ' + \
-        item['last_authored_date'].strftime(time_format)
-    output += '\nCreator:            ' + item['creator']
-    output += '\nDate Created:       ' + \
-        item['created_date'].strftime(time_format)
+    output += '\nLast Author:        ' + \
+        item['last_author'] + ' | ' + \
+        item['last_authored_date']
+    output += '\nCreator:            ' +\
+        item['creator'] + ' | ' + \
+        item['created_date']
     output += '\n'
 
     if 'assignees' in item:
@@ -305,23 +304,39 @@ def build_history_item(item):
     output += '\nIn Branches:        '
     for branch in item['in_branches']:
         output += branch + ', '
-    output += '\nOpen In:            '
+    output += '\nOpen In Branches:   '
     for branch in item['open_in']:
         output += branch + ', '
     if 'size' in item:
         output += '\nSize:               ' + str(item['size'])
     output += '\nFilepath:'
     for path in item['filepath']:
-        output += '\n\t' + path
+        output += '\n' + ' '*20 + path
+
     output += '\n'
-    output += '\nNum Revisions:      ' + str(len(item['revisions']))
-    output += '\nRevisions:          '
+    output += '\nIssue Revisions:    ' + str(len(item['revisions']))
     for revision in item['revisions']:
-        output += '\n\t' + revision
+        output += '\n' + ' '*20 + revision
+
+    output += '\n'
+    output += '\nCommit Activities:  ' + str(len(item['activity']))
+    for commit in item['activity']:
+        output += '\n' + commit['date']
+        output += ' | ' + commit['author']
+        output += ' | ' + commit['summary']
 
     output += '\n'
     if 'description' in item:
-        output += '\nDescription:        ' + item['description']
+        output += '\n' + '_'*90 + '\n' + 'Descriptions:'
+        for description in item['descriptions']:
+            output += '\n' + description['change']
+            output += '\n--> added by: ' + \
+                colored(description['author'], 'red')
+            output += ' - ' + description['date']
+            output += '\n' + '_'*70
+
+    output += '\n\n'
+    output += colored('*'*90, 'yellow')
     output += '\n\n'
     return output
 

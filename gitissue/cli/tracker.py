@@ -15,6 +15,7 @@ Created on 10 July 2018
 
 from gitissue.cli.functions import page_history_items
 from gitissue.errors import NoCommitsError
+from gitissue.functions import cache_history
 
 
 def tracker(args):
@@ -22,22 +23,26 @@ def tracker(args):
     Prints a log that shows issues and their status based on the 
     flags specified
     """
-    # supresses open if other flags supplied
-    if args.all or args.closed:
-        args.open = False
+    # force open if no flags supplied
+    if not args.all and not args.closed and not args.open:
+        args.open = True
 
     try:
         # open flag selected
-        if args.open and not args.all and not args.closed:
+        if args.open:
             history = args.repo.open_issues
         # all flag selected
-        elif args.all and not args.closed and not args.open:
+        elif args.all:
             history = args.repo.all_issues
         # closed flag selected
-        elif args.closed and not args.open and not args.all:
+        elif args.closed:
             history = args.repo.closed_issues
         if history:
-            page_history_items(history)
+            if args.save:
+                cache_history(args.repo.issue_dir, history)
+                print('Issue file saved to ./git/issue/HISTORY')
+            else:
+                page_history_items(history)
         else:
             print('No issues found')
     except NoCommitsError as error:

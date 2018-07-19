@@ -37,7 +37,8 @@ def find_issue_data_in_comment(comment):
         data['title'] = title[0]
         description = re.findall(ISSUE.DESCRIPTION, comment)
         if len(description) > 0:
-            data['description'] = description[0]
+            description = re.sub(r'\n +', '\n', description[0])
+            data['description'] = description
         assignees = re.findall(ISSUE.ASSIGNEES, comment)
         if len(assignees) > 0:
             data['assignees'] = assignees[0]
