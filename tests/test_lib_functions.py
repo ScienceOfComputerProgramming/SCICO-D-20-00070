@@ -13,6 +13,7 @@ from sciit.functions import serialize, deserialize
 from sciit.errors import RepoObjectExistsError, \
     RepoObjectDoesNotExistError
 
+from tests.external_resources import safe_create_repo_dir
 
 class TestObject():
     __slots__ = ('data', 'size', 'type')
@@ -47,8 +48,8 @@ class TestObjectExists(TestCase):
         self.assertFalse(object_exists(object))
 
     def test_object_exists(self, get_location):
-        os.makedirs('here')
-        os.makedirs('here/a')
+        safe_create_repo_dir('here')
+
         open('here/a/file', 'a').close()
         self.assertTrue(object_exists(object))
         shutil.rmtree('here')
@@ -62,8 +63,7 @@ class TestSerializeDeserializeObject(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        os.makedirs('here')
-        os.makedirs('here/a')
+        safe_create_repo_dir('here')
 
     def setUp(self):
         self.obj = TestObject()
@@ -109,17 +109,12 @@ class TestSerializeDeserializeObject(TestCase):
         self.assertTrue(
             'The repository object does not exist.' in str(context.exception))
 
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree('here')
-
 
 class TestGetTypeFromSha(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        os.makedirs('here')
-        os.makedirs('here/a')
+        safe_create_repo_dir('here')
 
         data = {'id': '3', 'title': 'clean up this mess',
                 'filepath': 'here'}
@@ -150,7 +145,3 @@ class TestGetTypeFromSha(TestCase):
             get_type_from_sha(self.repo, 'self.issue.hexsha')
         self.assertTrue(
             'The repository object does not exist.' in str(context.exception))
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree('here')

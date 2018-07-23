@@ -9,6 +9,8 @@ from unittest.mock import patch
 from sciit import Issue, IssueRepo
 from sciit.issue import find_issue_data_in_comment
 
+from tests.external_resources import safe_create_repo_dir
+
 
 class TestIssue(TestCase):
 
@@ -37,8 +39,7 @@ class TestIssue(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        os.makedirs('here')
-        os.makedirs('here/objects')
+        safe_create_repo_dir('here')
         cls.repo = IssueRepo()
         cls.repo.issue_dir = 'here'
         cls.repo.issue_objects_dir = 'here/objects'
@@ -108,10 +109,6 @@ class TestIssue(TestCase):
         self.assertTrue(hasattr(issue, 'priority'))
         self.assertTrue(hasattr(issue, 'filepath'))
         self.assertTrue(hasattr(issue, 'size'))
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree('here')
 
 
 class TestFindIssueInComment(TestCase):

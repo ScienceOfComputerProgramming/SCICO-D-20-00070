@@ -7,6 +7,8 @@ from sciit import IssueRepo, IssueTree, Issue
 from sciit.tree import find_issues_in_tree
 
 
+from tests.external_resources import safe_create_repo_dir
+
 class TestCreateIssueTree(TestCase):
 
     repo = None
@@ -15,8 +17,7 @@ class TestCreateIssueTree(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        os.makedirs('here')
-        os.makedirs('here/objects')
+        safe_create_repo_dir('here')
 
         data = [{'id': '1', 'title': 'the contents of the file'},
                 {'id': '2', 'title': 'the contents of the file'},
@@ -44,10 +45,6 @@ class TestCreateIssueTree(TestCase):
         itree = IssueTree(self.repo, TestCreateIssueTree.issue_sha[1])
         self.assertEqual(len(itree.issues), 6)
 
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree('here')
-
 
 class TestFindIssuesInTree(TestCase):
 
@@ -56,8 +53,9 @@ class TestFindIssuesInTree(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        os.makedirs('here')
-        os.makedirs('here/objects')
+
+        safe_create_repo_dir('here')
+
         cls.repo = IssueRepo()
         cls.repo.issue_dir = 'here'
         cls.repo.issue_objects_dir = 'here/objects'
@@ -313,6 +311,3 @@ class TestFindIssuesInTree(TestCase):
         issues = find_issues_in_tree(self.repo, tree, self.pattern)
         self.assertEqual(len(issues), 4)
 
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree('here')

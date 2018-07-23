@@ -8,26 +8,40 @@ from git.util import hex_to_bin
 from sciit import IssueRepo, IssueCommit, IssueTree, Issue
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 
+from tests.external_resources import safe_create_repo_dir, remove_existing_repo
 
-class TestIssueRepo(TestCase):
+
+class TestIssueRepoExistingRepository(TestCase):
+
+    def setUp(self):
+        safe_create_repo_dir('here')
 
     def test_issue_repo_is_init(self):
-        if not os.path.exists('here'):
-            os.makedirs('here')
-            os.makedirs('here/objects')
         repo = IssueRepo()
         repo.issue_dir = 'here'
         repo.issue_objects_dir = 'here/objects'
         self.assertTrue(repo.is_init())
 
-    def test_issue_repo_setup(self):
-        if os.path.exists('here'):
-            shutil.rmtree('here')
+    def test_reset_init_repo(self):
         repo = IssueRepo()
         repo.issue_dir = 'here'
         repo.issue_objects_dir = 'here/objects'
-        repo.setup()
-        self.assertTrue(os.path.exists('.git/hooks/post-commit'))
+        repo.reset()
+        self.assertFalse(os.path.exists('here'))
+
+    def test_repo_setup_correctly(self):
+        repo = IssueRepo()
+        repo.issue_dir = 'here'
+        repo.issue_objects_dir = 'here/objects'
+
+        self.assertTrue(os.path.exists('here'))
+        self.assertTrue(os.path.exists('here/objects'))
+
+
+class TestIssueRepoNoExistingRepository(TestCase):
+
+    def setUp(self):
+        remove_existing_repo('here')
 
     def test_issue_repo_is_not_init(self):
         repo = IssueRepo()
@@ -35,15 +49,13 @@ class TestIssueRepo(TestCase):
         repo.issue_objects_dir = 'here/objects'
         self.assertFalse(repo.is_init())
 
-    def test_reset_init_repo(self):
-        if not os.path.exists('here'):
-            os.makedirs('here')
-            os.makedirs('here/objects')
+    def test_issue_repo_setup(self):
         repo = IssueRepo()
         repo.issue_dir = 'here'
         repo.issue_objects_dir = 'here/objects'
-        repo.reset()
-        self.assertFalse(os.path.exists('here'))
+        repo.setup()
+
+        self.assertTrue(os.path.exists('../.git/hooks/post-commit'))
 
     def test_reset_non_init_repo(self):
         repo = IssueRepo()
@@ -54,28 +66,16 @@ class TestIssueRepo(TestCase):
         self.assertTrue(
             'The issue repository is empty.' in str(context.exception))
 
-    def test_repo_setup_correctly(self):
-        repo = IssueRepo()
-        repo.issue_dir = 'here'
-        repo.issue_objects_dir = 'here/objects'
-        os.makedirs('here')
-        os.makedirs('here/objects')
-        self.assertTrue(os.path.exists('here'))
-        self.assertTrue(os.path.exists('here/objects'))
-
-    def tearDown(self):
-        if os.path.exists('here'):
-            shutil.rmtree('here')
-
 
 class TestBuildIssueRepo(TestCase):
 
     def setUp(self):
+
+        safe_create_repo_dir('here')
+
         self.repo = IssueRepo()
         self.repo.issue_dir = 'here'
         self.repo.issue_objects_dir = 'here/objects'
-        os.makedirs('here')
-        os.makedirs('here/objects')
 
     @patch('sciit.repo.IssueRepo.heads', new_callable=PropertyMock)
     def test_build_from_empty_repo(self, heads):
@@ -124,20 +124,18 @@ class TestBuildIssueRepo(TestCase):
         self.assertTrue(progress.called)
         pass
 
-    def tearDown(self):
-        if os.path.exists('here'):
-            shutil.rmtree('here')
-
 
 class TestBuildIterIssueCommits(TestCase):
 
     @classmethod
     def setUpClass(cls):
+
+        safe_create_repo_dir('here')
+
         cls.repo = IssueRepo()
         cls.repo.issue_dir = 'here'
         cls.repo.issue_objects_dir = 'here/objects'
-        os.makedirs('here')
-        os.makedirs('here/objects')
+
         data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
                 {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
                 {'id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
@@ -226,20 +224,16 @@ class TestBuildIterIssueCommits(TestCase):
         closed_issues = self.repo.closed_issues
         self.assertEqual(len(closed_issues), 4)
 
-    @classmethod
-    def tearDownClass(cls):
-        if os.path.exists('here'):
-            shutil.rmtree('here')
-
 
 class TestIssueStatus(TestCase):
 
     def setUp(self):
+
+        safe_create_repo_dir('here')
+
         self.repo = IssueRepo()
         self.repo.issue_dir = 'here'
         self.repo.issue_objects_dir = 'here/objects'
-        os.makedirs('here')
-        os.makedirs('here/objects')
 
     @patch('sciit.repo.IssueRepo.iter_commits')
     def test_return_two_known_issue_commits(self, iter_commits):
@@ -260,7 +254,3 @@ class TestIssueStatus(TestCase):
 
         self.assertEqual(icommits[1].hexsha, val[1].hexsha)
         self.assertEqual(icommits[0].hexsha, val[0].hexsha)
-
-    def tearDown(self):
-        if os.path.exists('here'):
-            shutil.rmtree('here')

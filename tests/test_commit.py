@@ -5,6 +5,8 @@ from unittest import TestCase
 from git import Tree, Repo
 from sciit import Issue, IssueRepo, IssueTree, IssueCommit
 
+from tests.external_resources import safe_create_repo_dir
+
 
 class TestCreateIssueCommit(TestCase):
 
@@ -14,8 +16,7 @@ class TestCreateIssueCommit(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        os.makedirs('here')
-        os.makedirs('here/objects')
+        safe_create_repo_dir('here')
 
         data = [{'id': '1', 'title': 'the contents of the file'},
                 {'id': '2', 'title': 'the contents of the file'},
@@ -39,7 +40,3 @@ class TestCreateIssueCommit(TestCase):
         self.assertEqual(self.gitcommit.binsha, icommit.binsha)
         self.assertEqual(len(icommit.issuetree.issues), 6)
         self.assertEqual(icommit.open_issues, 6)
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree('here')

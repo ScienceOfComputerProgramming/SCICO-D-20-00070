@@ -14,6 +14,7 @@ dissertation/.*.lb
 
 ## ignore the ide files
 .vscode/
+.idea
 
 ## ignore built files & folders
 .coverage
@@ -29,3 +30,6 @@ docs/*.rst
 ## ignore cache files
 *.pyc
 test.py
+
+## 
+tests/here
