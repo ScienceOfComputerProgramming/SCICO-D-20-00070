@@ -60,9 +60,13 @@ class IssueRepo(Repo):
         Raises:
             :EmptyRepositoryError: if repo is not initialized
         """
+        def onerror(func, path, excp_info):
+            os.chmod(path, stat.S_IWUSR)
+            func(path)
+
         if self.is_init():
             import shutil
-            shutil.rmtree(self.issue_dir)
+            shutil.rmtree(self.issue_dir, onerror=onerror)
         else:
             raise EmptyRepositoryError
 

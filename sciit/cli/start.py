@@ -15,6 +15,7 @@ Created on 13 June 2018
 
 import argparse
 import sys
+import colorama
 
 from sciit.cli.functions import read_man_file
 
@@ -37,6 +38,7 @@ def main():
     try:
         repo = IssueRepo()
         repo.cli = True
+        colorama.init()  # initialise colours for windows
 
         parser = argparse.ArgumentParser(prog='git sciit',
                                          description='To use the application you can create your '
