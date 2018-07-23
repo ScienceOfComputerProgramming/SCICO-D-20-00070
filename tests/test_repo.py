@@ -17,25 +17,13 @@ class TestIssueRepoExistingRepository(TestCase):
         safe_create_repo_dir('here')
 
     def test_issue_repo_is_init(self):
-        repo = IssueRepo()
-        repo.issue_dir = 'here'
-        repo.issue_objects_dir = 'here/objects'
+        repo = IssueRepo('here')
         self.assertTrue(repo.is_init())
 
     def test_reset_init_repo(self):
-        repo = IssueRepo()
-        repo.issue_dir = 'here'
-        repo.issue_objects_dir = 'here/objects'
+        repo = IssueRepo('here')
         repo.reset()
         self.assertFalse(os.path.exists('here'))
-
-    def test_repo_setup_correctly(self):
-        repo = IssueRepo()
-        repo.issue_dir = 'here'
-        repo.issue_objects_dir = 'here/objects'
-
-        self.assertTrue(os.path.exists('here'))
-        self.assertTrue(os.path.exists('here/objects'))
 
 
 class TestIssueRepoNoExistingRepository(TestCase):
@@ -44,23 +32,16 @@ class TestIssueRepoNoExistingRepository(TestCase):
         remove_existing_repo('here')
 
     def test_issue_repo_is_not_init(self):
-        repo = IssueRepo()
-        repo.issue_dir = 'here'
-        repo.issue_objects_dir = 'here/objects'
+        repo = IssueRepo('here')
         self.assertFalse(repo.is_init())
 
     def test_issue_repo_setup(self):
-        repo = IssueRepo()
-        repo.issue_dir = 'here'
-        repo.issue_objects_dir = 'here/objects'
+        repo = IssueRepo('here')
         repo.setup()
-
-        self.assertTrue(os.path.exists('../.git/hooks/post-commit'))
+        self.assertTrue(os.path.exists(repo.git_dir + '/hooks/post-commit'))
 
     def test_reset_non_init_repo(self):
-        repo = IssueRepo()
-        repo.issue_dir = 'here'
-        repo.issue_objects_dir = 'here/objects'
+        repo = IssueRepo('here')
         with self.assertRaises(EmptyRepositoryError) as context:
             repo.reset()
         self.assertTrue(
@@ -70,12 +51,8 @@ class TestIssueRepoNoExistingRepository(TestCase):
 class TestBuildIssueRepo(TestCase):
 
     def setUp(self):
-
         safe_create_repo_dir('here')
-
-        self.repo = IssueRepo()
-        self.repo.issue_dir = 'here'
-        self.repo.issue_objects_dir = 'here/objects'
+        self.repo = IssueRepo('here')
 
     @patch('sciit.repo.IssueRepo.heads', new_callable=PropertyMock)
     def test_build_from_empty_repo(self, heads):
@@ -122,19 +99,14 @@ class TestBuildIssueRepo(TestCase):
         self.repo.cli = True
         self.repo.build()
         self.assertTrue(progress.called)
-        pass
 
 
 class TestBuildIterIssueCommits(TestCase):
 
     @classmethod
     def setUpClass(cls):
-
         safe_create_repo_dir('here')
-
-        cls.repo = IssueRepo()
-        cls.repo.issue_dir = 'here'
-        cls.repo.issue_objects_dir = 'here/objects'
+        cls.repo = IssueRepo('here')
 
         data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
                 {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
@@ -228,12 +200,8 @@ class TestBuildIterIssueCommits(TestCase):
 class TestIssueStatus(TestCase):
 
     def setUp(self):
-
         safe_create_repo_dir('here')
-
-        self.repo = IssueRepo()
-        self.repo.issue_dir = 'here'
-        self.repo.issue_objects_dir = 'here/objects'
+        self.repo = IssueRepo('here')
 
     @patch('sciit.repo.IssueRepo.iter_commits')
     def test_return_two_known_issue_commits(self, iter_commits):

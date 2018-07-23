@@ -17,6 +17,4 @@ def safe_create_repo_dir(path):
     remove_existing_repo(path)
 
     os.makedirs(path)
-    os.makedirs(path+"/objects")
-    os.makedirs(path + "/a")
-    os.makedirs(path + "/b")
+    os.makedirs(path + "/objects")

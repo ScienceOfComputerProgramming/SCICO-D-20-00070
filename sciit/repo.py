@@ -29,15 +29,18 @@ class IssueRepo(Repo):
     reference.html#module-git.repo.base>`_.
     """
 
-    def __init__(self):
+    def __init__(self, issue_dir=None):
         """Initialize a newly instanced IssueRepo
-        *inherited from GitPython Repo*
-        :note:
-            Add the issue and objects directory to the definition
-            of the repository
+
+        Args:
+            :(str) issue_dir: string representing location of issue\
+            repository *default='.git/issue'*  
         """
         super(IssueRepo, self).__init__(search_parent_directories=True)
-        self.issue_dir = self.git_dir + '/issue'
+        if issue_dir:
+            self.issue_dir = issue_dir
+        else:
+            self.issue_dir = self.git_dir + '/issue'
         self.issue_objects_dir = self.issue_dir + '/objects'
         self.cli = False
 
