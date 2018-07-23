@@ -68,11 +68,18 @@ class IssueRepo(Repo):
 
     def setup(self):
         """
-        Creates the git sciit folders and installs the necesary
+        Creates the git sciit folders and files and installs the necesary
         git hooks in the .git/hooks/ folder
         """
         os.makedirs(self.issue_dir)
         os.makedirs(self.issue_objects_dir)
+
+        # create history file
+        history_file = self.issue_dir + '/HISTORY'
+        f = open(history_file, 'w')
+        f.close()
+
+        # install post-commit hook
         git_hooks_dir = self.git_dir + '/hooks/'
         if not os.path.exists(git_hooks_dir):
             os.makedirs(git_hooks_dir)
