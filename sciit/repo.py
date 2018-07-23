@@ -110,6 +110,17 @@ class IssueRepo(Repo):
         st = os.stat(post_merge_git_hook)
         os.chmod(post_merge_git_hook, st.st_mode | stat.S_IEXEC)
 
+        # install post-checkout hook
+        git_hooks_dir = self.git_dir + '/hooks/'
+        if not os.path.exists(git_hooks_dir):
+            os.makedirs(git_hooks_dir)
+        post_checkout_hook = pkg_resources.resource_filename(
+            'sciit.hooks', 'post-checkout')
+        post_checkout_git_hook = git_hooks_dir + 'post-commit'
+        copyfile(post_checkout_hook, post_checkout_git_hook)
+        st = os.stat(post_checkout_git_hook)
+        os.chmod(post_checkout_git_hook, st.st_mode | stat.S_IEXEC)
+
     def iter_issue_commits(self, rev=None, paths='', **kwargs):
         """A list of IssueCommit objects representing the history of a given ref/commit
 
