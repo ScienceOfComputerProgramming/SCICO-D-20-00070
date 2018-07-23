@@ -16,11 +16,12 @@ Created on 10 July 2018
 from sciit.cli.functions import page_history_items
 from sciit.errors import NoCommitsError
 from sciit.functions import cache_history
+from termcolor import colored
 
 
 def tracker(args):
     """
-    Prints a log that shows issues and their status based on the 
+    Prints a log that shows issues and their status based on the
     flags specified
     """
     # force open if no flags supplied
@@ -40,11 +41,11 @@ def tracker(args):
         if history:
             if args.save:
                 cache_history(args.repo.issue_dir, history)
-                print('Issue file saved to ./git/issue/HISTORY')
+                print('Issues saved to ' + args.repo.issue_dir + '/HISTORY\n')
             else:
                 page_history_items(history)
         else:
-            print('No issues found')
+            print(colored('No issues open', 'green', attrs=['bold']))
     except NoCommitsError as error:
         error = 'git sciit error fatal: ' + str(error)
         print(error)

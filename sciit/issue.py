@@ -31,10 +31,14 @@ def find_issue_data_in_comment(comment):
         :(dict) data: contains all the relevant issue data
     """
     data = {}
-    title = re.findall(ISSUE.TITLE, comment)
-    if len(title) > 0:
-        data['id'] = slugify(title[0])
-        data['title'] = title[0]
+    ident = re.findall(ISSUE.ID, comment)
+    if len(ident) > 0:
+        data['id'] = slugify(ident[0])
+        title = re.findall(ISSUE.TITLE, comment)
+        if len(title) > 0:
+            data['title'] = title[0]
+        else:
+            data['title'] = ident[0]
         description = re.findall(ISSUE.DESCRIPTION, comment)
         if len(description) > 0:
             description = re.sub(r'\n +', '\n', description[0])
