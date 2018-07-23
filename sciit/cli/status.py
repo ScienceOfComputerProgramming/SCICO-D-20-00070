@@ -33,7 +33,7 @@ def status(args):
         print(error)
         return
 
-    opened = sum(x['status'] == 'Open' for x in all_issues)
+    opened = sum(x['status'] == 'Open' for x in all_issues.values())
     closed = len(all_issues) - opened
     print(colored(f'Open Issues: ' + str(opened), 'red'))
 

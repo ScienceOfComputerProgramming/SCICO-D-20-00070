@@ -12,10 +12,9 @@ python_tests:
     - pip install nose coverage
     - pip install -r requirements.txt 
     - nosetests
-    - coverage html
   artifacts:
     paths:
-      - htmlcov/*
+      - cover/*
     expire_in: 1 week
   except: [dissertation]
 
