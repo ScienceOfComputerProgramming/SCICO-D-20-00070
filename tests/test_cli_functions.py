@@ -5,13 +5,15 @@ import sys
 from io import StringIO
 from unittest import TestCase
 from unittest.mock import patch
-from sciit.cli.functions import read_man_file, print_progress_bar, yes_no_option
+
+from sciit.cli.functions import (print_progress_bar, read_man_file,
+                                 yes_no_option)
 
 
 class TestReadManualFiles(TestCase):
 
     def test_read_file_passed(self):
-        result = read_man_file('VERSION').replace('\n', '')
+        result = read_man_file('VERSION')
         self.assertTrue(isinstance(result, str))
 
     def test_read_file_fails(self):

@@ -29,15 +29,18 @@ class IssueRepo(Repo):
     reference.html#module-git.repo.base>`_.
     """
 
-    def __init__(self):
+    def __init__(self, issue_dir=None):
         """Initialize a newly instanced IssueRepo
-        *inherited from GitPython Repo*
-        :note:
-            Add the issue and objects directory to the definition
-            of the repository
+
+        Args:
+            :(str) issue_dir: string representing location of issue\
+            repository *default='.git/issue'*  
         """
         super(IssueRepo, self).__init__(search_parent_directories=True)
-        self.issue_dir = self.git_dir + '/issue'
+        if issue_dir:
+            self.issue_dir = issue_dir
+        else:
+            self.issue_dir = self.git_dir + '/issue'
         self.issue_objects_dir = self.issue_dir + '/objects'
         self.cli = False
 
@@ -57,19 +60,30 @@ class IssueRepo(Repo):
         Raises:
             :EmptyRepositoryError: if repo is not initialized
         """
+        def onerror(func, path, excp_info):
+            os.chmod(path, stat.S_IWUSR)
+            func(path)
+
         if self.is_init():
             import shutil
-            shutil.rmtree(self.issue_dir)
+            shutil.rmtree(self.issue_dir, onerror=onerror)
         else:
             raise EmptyRepositoryError
 
     def setup(self):
         """
-        Creates the git sciit folders and installs the necesary
+        Creates the git sciit folders and files and installs the necesary
         git hooks in the .git/hooks/ folder
         """
         os.makedirs(self.issue_dir)
         os.makedirs(self.issue_objects_dir)
+
+        # create history file
+        history_file = self.issue_dir + '/HISTORY'
+        f = open(history_file, 'w')
+        f.close()
+
+        # install post-commit hook
         git_hooks_dir = self.git_dir + '/hooks/'
         if not os.path.exists(git_hooks_dir):
             os.makedirs(git_hooks_dir)

@@ -1,1 +1,3 @@
+include sciit/hooks/*
+include sciit/man/*
 include README.md
