@@ -280,10 +280,10 @@ def build_history_item(item):
     output += '\nTitle: ' + item['title']
 
     output += '\n'
-    output += '\nLast Author:        ' + \
+    output += '\nLast Authored:      ' + \
         item['last_author'] + ' | ' + \
         item['last_authored_date']
-    output += '\nCreator:            ' +\
+    output += '\nCreated:            ' +\
         item['creator'] + ' | ' + \
         item['created_date']
     output += '\n'

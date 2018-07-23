@@ -161,3 +161,32 @@ def cache_history(issue_dir, history):
     f = open(history_file, 'w')
     f.write(now + '\n')
     f.write(json.dumps(history, indent=4))
+    f.close()
+
+
+def write_last_issue(issue_dir, sha):
+    """Takes the sha of the last issuecommit built and saves it 
+    to a file to be used after post-checkout and post-merge hooks
+    to identify new issues to be built
+
+    Args:
+        :(str) issue_dir: the directory to store the issue *repo.issue_dir*
+        :(str) sha: the commit sha to be saved
+    """
+    last_issue_file = issue_dir + '/LAST'
+    f = open(last_issue_file, 'w')
+    f.write(sha)
+    f.close()
+
+
+def get_last_issue(repo):
+    """Retuns the sha of the last issuecommit reference saved
+
+    Args:
+        :(IssueRepo) repo: the repository to look for
+    """
+    last_issue_file = repo.issue_dir + '/LAST'
+    f = open(last_issue_file, 'r')
+    sha = f.read()
+    f.close()
+    return sha

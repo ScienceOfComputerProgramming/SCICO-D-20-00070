@@ -18,6 +18,7 @@ from sciit import IssueTree, IssueCommit, Issue
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 from sciit.tree import find_issues_in_tree
 from sciit.regex import PYTHON
+from sciit.functions import write_last_issue
 from sciit.cli.functions import print_progress_bar
 
 __all__ = ('IssueRepo', )
@@ -81,6 +82,10 @@ class IssueRepo(Repo):
         # create history file
         history_file = self.issue_dir + '/HISTORY'
         f = open(history_file, 'w')
+        f.close()
+        # create last issue reference file
+        last_issue_file = self.issue_dir + '/LAST'
+        f = open(last_issue_file, 'w')
         f.close()
 
         # install post-commit hook
@@ -171,6 +176,7 @@ class IssueRepo(Repo):
                 IssueCommit.create(self, commit, itree)
         else:
             raise NoCommitsError
+        write_last_issue(self.issue_dir, all_commits[0].hexsha)
 
     def build_history(self, rev=None, paths='', **kwargs):
         """
