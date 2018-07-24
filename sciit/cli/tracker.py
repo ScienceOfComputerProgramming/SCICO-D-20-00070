@@ -24,6 +24,12 @@ def tracker(args):
     Prints a log that shows issues and their status based on the
     flags specified
     """
+    if not args.repo.is_init():
+        print(colored('Repository not initialized', 'red') + '\n' +
+              colored('Run: git scitt init', 'red', attrs=['bold']))
+        return
+
+    args.repo.sync()
     # force open if no flags supplied
     if not args.all and not args.closed and not args.open:
         args.open = True

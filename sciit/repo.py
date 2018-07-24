@@ -18,7 +18,7 @@ from sciit import IssueTree, IssueCommit, Issue
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 from sciit.tree import find_issues_in_tree
 from sciit.regex import PYTHON
-from sciit.functions import write_last_issue
+from sciit.functions import write_last_issue, get_last_issue
 from sciit.cli.functions import print_progress_bar
 
 __all__ = ('IssueRepo', )
@@ -54,6 +54,27 @@ class IssueRepo(Repo):
         """
         return os.path.exists(self.issue_dir)
 
+    def sync(self):
+        """
+        """
+        last_issue_commit = get_last_issue(self)
+        commits = list(self.iter_commits('--all'))
+        latest_commit = commits[0].hexsha
+        revision = last_issue_commit + '..' + latest_commit
+        str_commits = self.git.execute(['git', 'rev-list', revision])
+
+        # uses git.execute because iter_commits generator cannot
+        # correctly identify false or empty list.
+        if str_commits != '':
+            commits = list(self.iter_commits(revision))
+
+            for commit in reversed(commits):
+                issues = find_issues_in_tree(self, commit.tree)
+                itree = IssueTree.create(self, issues)
+                IssueCommit.create(self, commit, itree)
+
+            write_last_issue(self.issue_dir, latest_commit)
+
     def reset(self):
         """
         Resets the git sciit folders 
@@ -88,10 +109,12 @@ class IssueRepo(Repo):
         f = open(last_issue_file, 'w')
         f.close()
 
-        # install post-commit hook
+        # check git hook directory
         git_hooks_dir = self.git_dir + '/hooks/'
         if not os.path.exists(git_hooks_dir):
             os.makedirs(git_hooks_dir)
+
+        # install post-commit hook
         post_commit_hook = pkg_resources.resource_filename(
             'sciit.hooks', 'post-commit')
         post_commit_git_hook = git_hooks_dir + 'post-commit'
@@ -100,23 +123,17 @@ class IssueRepo(Repo):
         os.chmod(post_commit_git_hook, st.st_mode | stat.S_IEXEC)
 
         # install post-merge hook
-        git_hooks_dir = self.git_dir + '/hooks/'
-        if not os.path.exists(git_hooks_dir):
-            os.makedirs(git_hooks_dir)
         post_merge_hook = pkg_resources.resource_filename(
             'sciit.hooks', 'post-merge')
-        post_merge_git_hook = git_hooks_dir + 'post-commit'
+        post_merge_git_hook = git_hooks_dir + 'post-merge'
         copyfile(post_merge_hook, post_merge_git_hook)
         st = os.stat(post_merge_git_hook)
         os.chmod(post_merge_git_hook, st.st_mode | stat.S_IEXEC)
 
         # install post-checkout hook
-        git_hooks_dir = self.git_dir + '/hooks/'
-        if not os.path.exists(git_hooks_dir):
-            os.makedirs(git_hooks_dir)
         post_checkout_hook = pkg_resources.resource_filename(
             'sciit.hooks', 'post-checkout')
-        post_checkout_git_hook = git_hooks_dir + 'post-commit'
+        post_checkout_git_hook = git_hooks_dir + 'post-checkout'
         copyfile(post_checkout_hook, post_checkout_git_hook)
         st = os.stat(post_checkout_git_hook)
         os.chmod(post_checkout_git_hook, st.st_mode | stat.S_IEXEC)
@@ -183,7 +200,7 @@ class IssueRepo(Repo):
 
         if len(self.heads) > 0:
             # get all commits on the all branches
-            all_commits = list(self.iter_commits('--branches'))
+            all_commits = list(self.iter_commits('--all'))
             num_commits = len(all_commits)
 
             # reversed to start at the first commit

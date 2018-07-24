@@ -17,16 +17,15 @@ import argparse
 import sys
 import colorama
 
-from sciit.cli.functions import read_man_file
-
-from sciit.cli.status import status
-from sciit.cli.init import init
-from sciit.cli.log import log
-from sciit.cli.catfile import cat
-from sciit.cli.tracker import tracker
+from git.exc import InvalidGitRepositoryError
 
 from sciit import IssueRepo
-from git.exc import InvalidGitRepositoryError
+from sciit.cli.catfile import cat
+from sciit.cli.functions import read_man_file
+from sciit.cli.init import init
+from sciit.cli.log import log
+from sciit.cli.status import status
+from sciit.cli.tracker import tracker
 
 
 def main():
@@ -58,9 +57,7 @@ def main():
                                             ' past commits')
         init_parser.set_defaults(func=init)
         init_parser.add_argument('-r', '--reset', action='store_true',
-                                 help='resets the issue repo and allows rebuild from commits')
-        init_parser.add_argument('-y', '--yes', action='store_true',
-                                 help='answers yes to: Build issue repository from past commits?')
+                                 help='resets the issue repo and rebuild from past commits')
 
         # responsible for the status subcommand
         status_parser = subparsers.add_parser('status', description='Shows the user information related'

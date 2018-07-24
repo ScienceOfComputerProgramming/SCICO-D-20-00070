@@ -30,30 +30,26 @@ def init(args):
         try:
             args.repo.reset()
         except EmptyRepositoryError as error:
-            print(error)
+            print(colored(error, 'red'))
 
     if not args.repo.is_init():
         args.repo.setup()
-
-        if args.yes or yes_no_option('Build issue repository from past commits'):
-            try:
-                print(' ')
-                print('Building repository from commits')
-                args.repo.build()
-                print(' ')
-            except NoCommitsError as error:
-                print(error)
-                print('Empty issue repository created')
-            except KeyboardInterrupt:
-                print('\n')
-                print(colored('Setup issue repository process interupted', 'red'))
-                print('Cleaning up')
-                args.repo.reset()
-                print(colored('Done.', 'green') +
-                      ' Re-run command to setup repository')
-                sys.exit(0)
-        else:
+        try:
+            print(' ')
+            print('Building repository from commits')
+            args.repo.build()
+            print(' ')
+        except NoCommitsError as error:
+            print(error)
             print('Empty issue repository created')
+        except KeyboardInterrupt:
+            print('\n')
+            print(colored('Setup issue repository process interupted', 'red'))
+            print('Cleaning up')
+            args.repo.reset()
+            print(colored('Done.', 'green') +
+                  ' Re-run command to setup repository')
+            sys.exit(0)
     else:
         print('Issue repository already setup')
 
