@@ -19,6 +19,12 @@ from termcolor import colored
 def status(args):
     """Shows the user information related to their open issues.
     """
+    if not args.repo.is_init():
+        print(colored('Repository not initialized', 'red') + '\n' +
+              colored('Run: git scitt init', 'red', attrs=['bold']))
+        return
+
+    args.repo.sync()
     if args.branch:
         branch = args.branch
         print(f'For branch ' + branch)

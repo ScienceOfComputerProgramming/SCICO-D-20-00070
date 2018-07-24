@@ -14,6 +14,7 @@ Created on 09 July 2018
 """
 
 import json
+from termcolor import colored
 from sciit.errors import RepoObjectDoesNotExistError
 from sciit.functions import get_type_from_sha
 from sciit import Issue, IssueCommit, IssueTree
@@ -24,12 +25,16 @@ def cat(args):
     """
     Prints the content and info of objects stored in our issue repository.
     """
+    if not args.repo.is_init():
+        print(colored('Repository not initialized', 'red') + '\n' +
+              colored('Run: git scitt init', 'red', attrs=['bold']))
+        return
 
     try:
         object_type = get_type_from_sha(args.repo, args.sha)
     except RepoObjectDoesNotExistError as error:
         error = 'git sciit error fatal: ' + str(error)
-        print(error)
+        print(colored(error, 'red'))
         return
 
     # get object based on object type
