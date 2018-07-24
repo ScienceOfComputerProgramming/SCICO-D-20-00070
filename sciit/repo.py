@@ -88,10 +88,12 @@ class IssueRepo(Repo):
         f = open(last_issue_file, 'w')
         f.close()
 
-        # install post-commit hook
+        # check git hook directory
         git_hooks_dir = self.git_dir + '/hooks/'
         if not os.path.exists(git_hooks_dir):
             os.makedirs(git_hooks_dir)
+
+        # install post-commit hook
         post_commit_hook = pkg_resources.resource_filename(
             'sciit.hooks', 'post-commit')
         post_commit_git_hook = git_hooks_dir + 'post-commit'
@@ -100,23 +102,17 @@ class IssueRepo(Repo):
         os.chmod(post_commit_git_hook, st.st_mode | stat.S_IEXEC)
 
         # install post-merge hook
-        git_hooks_dir = self.git_dir + '/hooks/'
-        if not os.path.exists(git_hooks_dir):
-            os.makedirs(git_hooks_dir)
         post_merge_hook = pkg_resources.resource_filename(
             'sciit.hooks', 'post-merge')
-        post_merge_git_hook = git_hooks_dir + 'post-commit'
+        post_merge_git_hook = git_hooks_dir + 'post-merge'
         copyfile(post_merge_hook, post_merge_git_hook)
         st = os.stat(post_merge_git_hook)
         os.chmod(post_merge_git_hook, st.st_mode | stat.S_IEXEC)
 
         # install post-checkout hook
-        git_hooks_dir = self.git_dir + '/hooks/'
-        if not os.path.exists(git_hooks_dir):
-            os.makedirs(git_hooks_dir)
         post_checkout_hook = pkg_resources.resource_filename(
             'sciit.hooks', 'post-checkout')
-        post_checkout_git_hook = git_hooks_dir + 'post-commit'
+        post_checkout_git_hook = git_hooks_dir + 'post-checkout'
         copyfile(post_checkout_hook, post_checkout_git_hook)
         st = os.stat(post_checkout_git_hook)
         os.chmod(post_checkout_git_hook, st.st_mode | stat.S_IEXEC)
