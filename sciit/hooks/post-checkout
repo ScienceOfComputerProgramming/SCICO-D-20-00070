@@ -17,11 +17,17 @@ repo = IssueRepo()
 repo.sync()
 icommit = IssueCommit(repo, repo.head.commit.binsha)
 
+# dealing with a detached head
+try:
+    location = repo.head.ref.name
+except TypeError:
+    location = 'DETACHED:' + repo.head.commit.hexsha
+
 # show issue status at head to the user
 if icommit.open_issues > 0:
     result = str(icommit.open_issues) + \
-        ' Open Issues @' + repo.active_branch.name
+        ' Open Issues @' + location
     print(colored(result, 'red', attrs=['bold']))
 else:
-    result = 'No Open Issues @' + repo.active_branch.name
+    result = 'No Open Issues @' + location
     print(colored(result, 'green', attrs=['bold']))
