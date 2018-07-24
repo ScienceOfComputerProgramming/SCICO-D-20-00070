@@ -2,43 +2,26 @@
 # -*- coding: utf-8 -*-
 """Script that contains the operation to be done
  after a merge is made. This script builds the 
- issues from the new head to the last head and
+ issues from the latest commit to the last issue and
  stores it in our issue repository
 
 :@author: Nystrom Edwards
 :Created: 23 July 2018
 """
-from sciit import IssueRepo, IssueTree, IssueCommit
-from sciit.tree import find_issues_in_tree
-from sciit.functions import get_last_issue, write_last_issue
+from sciit import IssueRepo, IssueCommit
 from termcolor import colored
 import colorama
 
 colorama.init()
 repo = IssueRepo()
+repo.sync()
+icommit = IssueCommit(repo, repo.head.commit.binsha)
 
-last_issue_commit = get_last_issue(repo)
-this_commit = repo.head.commit.hexsha
-revision = last_issue_commit + '..' + this_commit
-str_commits = repo.git.execute(['git', 'rev-list', revision])
-
-# uses git.execute because iter_commits generator cannot
-# correctly identify false or empty list.
-if str_commits != '':
-    commits = list(repo.iter_commits(revision))
-
-    for commit in reversed(commits):
-        issues = find_issues_in_tree(repo, commit.tree)
-        itree = IssueTree.create(repo, issues)
-        icommit = IssueCommit.create(repo, commit, itree)
-
-    write_last_issue(repo.issue_dir, this_commit)
-
-    # show issue status at head to the user
-    if icommit.open_issues > 0:
-        result = str(icommit.open_issues) + \
-            ' Open Issues @' + repo.active_branch.name
-        print(colored(result, 'red', attrs=['bold']))
-    else:
-        result = 'No Open Issues @' + repo.active_branch.name
-        print(colored(result, 'green', attrs=['bold']))
+# show issue status at head to the user
+if icommit.open_issues > 0:
+    result = str(icommit.open_issues) + \
+        ' Open Issues @' + repo.active_branch.name
+    print(colored(result, 'red', attrs=['bold']))
+else:
+    result = 'No Open Issues @' + repo.active_branch.name
+    print(colored(result, 'green', attrs=['bold']))
