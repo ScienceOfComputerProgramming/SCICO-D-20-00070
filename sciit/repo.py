@@ -58,7 +58,7 @@ class IssueRepo(Repo):
         """
         """
         last_issue_commit = get_last_issue(self)
-        commits = list(self.iter_commits('--branches'))
+        commits = list(self.iter_commits('--all'))
         latest_commit = commits[0].hexsha
         revision = last_issue_commit + '..' + latest_commit
         str_commits = self.git.execute(['git', 'rev-list', revision])
@@ -200,7 +200,7 @@ class IssueRepo(Repo):
 
         if len(self.heads) > 0:
             # get all commits on the all branches
-            all_commits = list(self.iter_commits('--branches'))
+            all_commits = list(self.iter_commits('--all'))
             num_commits = len(all_commits)
 
             # reversed to start at the first commit
