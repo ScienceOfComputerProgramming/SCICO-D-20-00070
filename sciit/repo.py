@@ -18,7 +18,7 @@ from sciit import IssueTree, IssueCommit, Issue
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 from sciit.tree import find_issues_in_tree
 from sciit.regex import PYTHON
-from sciit.functions import write_last_issue
+from sciit.functions import write_last_issue, get_last_issue
 from sciit.cli.functions import print_progress_bar
 
 __all__ = ('IssueRepo', )
@@ -53,6 +53,27 @@ class IssueRepo(Repo):
             :bool: true if folder exists, false otherwise
         """
         return os.path.exists(self.issue_dir)
+
+    def sync(self):
+        """
+        """
+        last_issue_commit = get_last_issue(self)
+        commits = list(self.iter_commits('--branches'))
+        latest_commit = commits[0].hexsha
+        revision = last_issue_commit + '..' + latest_commit
+        str_commits = self.git.execute(['git', 'rev-list', revision])
+
+        # uses git.execute because iter_commits generator cannot
+        # correctly identify false or empty list.
+        if str_commits != '':
+            commits = list(self.iter_commits(revision))
+
+            for commit in reversed(commits):
+                issues = find_issues_in_tree(self, commit.tree)
+                itree = IssueTree.create(self, issues)
+                IssueCommit.create(self, commit, itree)
+
+            write_last_issue(self.issue_dir, latest_commit)
 
     def reset(self):
         """
