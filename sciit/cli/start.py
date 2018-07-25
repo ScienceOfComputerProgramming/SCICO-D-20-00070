@@ -60,11 +60,9 @@ def main():
                                  help='resets the issue repo and rebuild from past commits')
 
         # responsible for the status subcommand
-        status_parser = subparsers.add_parser('status', description='Shows the user information related'
-                                              ' to their open issues.')
+        status_parser = subparsers.add_parser('status', description='Shows the user how many issues are open'
+                                              ' and how many are closed on all branches.')
         status_parser.set_defaults(func=status)
-        status_parser.add_argument('branch', action='store', type=str, nargs='?',
-                                   help='the name of the branch which you would to check your issue tracker')
 
         # responsible for the log subcommand
         log_parser = subparsers.add_parser('log', description='Prints a log that is similar to the git'

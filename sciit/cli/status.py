@@ -25,19 +25,7 @@ def status(args):
         return
 
     args.repo.sync()
-    if args.branch:
-        branch = args.branch
-        print(f'For branch ' + branch)
-    else:
-        branch = args.repo.head.ref.name
-        print(f'On branch ' + branch)
-
-    try:
-        all_issues = args.repo.all_issues
-    except IndexError:
-        error = 'git sciit error fatal: No such branch matching ' + branch + ' found'
-        print(error)
-        return
+    all_issues = args.repo.all_issues
 
     opened = sum(x['status'] == 'Open' for x in all_issues.values())
     closed = len(all_issues) - opened
