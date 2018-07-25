@@ -226,6 +226,19 @@ class IssueRepo(Repo):
             :NoCommitsError: if the git repository has no commits
             :GitCommandError: if the rev supplied is not valid
         """
+
+        '''
+        @issue better issue inferrence
+        @title Providing a better way to infer info from commits
+        @description: Update the issue tracker builder to get information
+        about the following:
+
+        * Show the commit that closes an issue -> gitlab-issue#15
+        * Show more detailed information on issue revisions
+          * Show who made the revision and what was revised
+        * Show better display of changes to the description possibly in
+        the issue revisions section.
+        '''
         if self.heads:
             history = {}
             time_format = '%a %b %d %H:%M:%S %Y %z'
