@@ -1,0 +1,6 @@
+***
+@issue Research the opening / closing of issues
+@description
+    Find a method to determine that an issue was closed and then reopened at
+    a later stage. Find the best way to display this to the user.
+***

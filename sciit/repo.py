@@ -195,6 +195,23 @@ class IssueRepo(Repo):
         Optionally:
             :Shows Progress in Shell: if repo is used with command line interface
         """
+
+        '''
+        @issue Better Build Performance
+        @description
+            Find some method to increase the speed of this algorithm for finding
+            issue data in commit trees. Check if the GitPython library has good
+            multithreading support so that we can use thread to build issues.
+            Essentially this should be done here as this is a time consuming
+            process and can lead to a waste of developer time.
+
+            Threading is a good solution here because the commits and the references
+            that are used to build them are stored as text in a series of files.
+            It does not matter what order the files are written to the issue 
+            repository cache once they contain the correct references.
+        @assigned to: nystrome
+        @priority: medium 6/10
+        '''
         start = datetime.now()
         commits_scanned = 0
 
@@ -236,7 +253,17 @@ class IssueRepo(Repo):
                 icommits = list(self.iter_issue_commits('--branches'))
 
             for icommit in icommits:
-
+                """
+                @issue specify files related to issue
+                @description
+                    It may be useful to specify the files that are related to the issue.
+                    This way when we are building the history, if those files specified
+                    are present we can then use the commit data only from those files to
+                    show the commit activity. This will show explicitly that work has been
+                    done on those files.
+                @label feature-enhancement
+                @priority medium
+                """
                 for issue in icommit.issuetree.issues:
                     in_branches = self.find_present_branches(
                         icommit.commit.hexsha)
