@@ -1,0 +1,55 @@
+# Version 0.3.2
+
+## Changes
+
+* fixed command line errors associated with empty repository objects by:
+  * adding a sync method to keep issue repository in sync with git repository
+  * used the sync method in the command line to ensure repository is up to date
+* fixed issue hooks so that they install correctly when using `git sciit init` command
+* updated hooks with sync function
+* updated hooks to deal with detached HEAD
+
+# Version 0.3.1
+
+## Changes
+
+* fixed the colour issues for the windows style terminals caused by ANSI
+* fixed the delete issue repository issue where shutil must find 
+and appropriate command based on desktop type to recursively remove directories.
+* updated regexes to find and use a unique slug for issues
+
+# Version 0.3
+
+## New Features
+
+* Project renamed to Source Control Integrated Issue Tracker (SCIIT)
+* CLI issue tracker infers complex issue information from commit history
+  * Builds open on branch information
+  * Builds status information
+  * Builds commit activity for commits that are done if the issue exists
+* Extracts the block comments in the correct format from different programming languages
+
+**Supports: '.java', '.c', '.cpp', '.cxx', '.h', '.hpp', '.hxx', '.cs', '.php', '.css', '.js', '.sql', '.scala', '.swift', '.go', '.kt', '.kts', '.htm', '.html', '.xhtml', '.m', '.hs', '.rb', and '.py' source code files**
+
+# Version 0.2
+
+## New Features
+
+* Specifies issues in source code using a particular format **python only**
+* Gets metadata for issues and store them to the file system
+* Querys git commits to find associated issues
+* Prints information stored in individual integrated issue repository objects
+* CLI used to get information from the integrated issue repository
+
+# Version 0.1
+
+## New Features
+
+* Library for managing source control integrated issues on the file system
+  * Manages issues within issue tress
+  * Manages issue trees associated to issue commits
+  * Manages issue commits associated with git commits
+* Basic command line interface to interact with the library
+* Search through individual git commit contents and pull out issues
+* Build issues from a current git repository
+* Install project on machine using a *setup.py*
