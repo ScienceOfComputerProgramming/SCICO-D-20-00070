@@ -316,9 +316,10 @@ class IssueRepo(Repo):
             for head in self.heads:
                 icommit = IssueCommit(self, head.commit.hexsha)
                 for issue in icommit.issuetree.issues:
-                    history[issue.id]['open_in'].add(head.name)
-                    history[issue.id]['filepath'].add(
-                        issue.data['filepath'] + ' @' + head.name)
+                    if issue.id in history:
+                        history[issue.id]['open_in'].add(head.name)
+                        history[issue.id]['filepath'].add(
+                            issue.data['filepath'] + ' @' + head.name)
 
             # sets the issue status based on its open status
             # in other branches
@@ -348,39 +349,48 @@ class IssueRepo(Repo):
         branches_present = branches_present.split('\n')
         return branches_present
 
-    @property
-    def all_issues(self):
+    def get_all_issues(self, rev=None, paths='', **kwargs):
         """Finds all the issues in the repo 
 
         Returns:
             :(dict) history: dictionary of the complex information \
             between the issue tracker and the source control
         """
-        history = self.build_history()
+        history = self.build_history(rev, paths, **kwargs)
         return history
 
-    @property
-    def open_issues(self):
+    def get_open_issues(self, rev=None, paths='', **kwargs):
         """Finds all the open issues in the repo 
 
         Returns:
             :(dict) history: dictionary of the complex information \
             between the issue tracker and the source control
         """
-        history = self.build_history()
+        history = self.build_history(rev, paths, **kwargs)
         history = {key: val for key,
                    val in history.items() if val['status'] == 'Open'}
         return history
 
-    @property
-    def closed_issues(self):
+    def get_closed_issues(self, rev=None, paths='', **kwargs):
         """Finds all the closed issues in the repo.
 
         Returns:
             :(dict) history: dictionary of the complex information \
             between the issue tracker and the source control
         """
-        history = self.build_history()
+        history = self.build_history(rev, paths, **kwargs)
         history = {key: val for key,
                    val in history.items() if val['status'] == 'Closed'}
         return history
+
+    @property
+    def all_issues(self):
+        return self.get_all_issues()
+
+    @property
+    def open_issues(self):
+        return self.get_open_issues()
+
+    @property
+    def closed_issues(self):
+        return self.get_closed_issues()

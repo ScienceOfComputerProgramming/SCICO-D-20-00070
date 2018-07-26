@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 """Module that assists with running git sciit tracker commands.
 This is in no way similar to any other git command. It compares
-all tracked issues with issues open in the current HEAD or branch.
+all tracked issues with issues open in the current repository 
+or from the specified revision revision.
 
     Example:
         This module is accessed via::
 
-            $ git sciit tracker [-h] [--all] [--open] [--closed] [branch]
+            $ git sciit tracker [-h] [--all] [--open] [--closed] [revision]
 
 @author: Nystrom Edwards
 
 Created on 10 July 2018
 """
-
+from git.exc import GitCommandError
 from sciit.cli.functions import page_history_items
 from sciit.errors import NoCommitsError
 from sciit.functions import cache_history
@@ -37,13 +38,13 @@ def tracker(args):
     try:
         # open flag selected
         if args.open:
-            history = args.repo.open_issues
+            history = args.repo.get_open_issues(args.revision)
         # all flag selected
         elif args.all:
-            history = args.repo.all_issues
+            history = args.repo.get_all_issues(args.revision)
         # closed flag selected
         elif args.closed:
-            history = args.repo.closed_issues
+            history = args.repo.get_closed_issues(args.revision)
         if history:
             if args.save:
                 cache_history(args.repo.issue_dir, history)
@@ -51,8 +52,12 @@ def tracker(args):
             else:
                 page_history_items(history)
         else:
-            print(colored('No issues open', 'green', attrs=['bold']))
+            print(colored('No issues found', 'green', attrs=['bold']))
     except NoCommitsError as error:
-        error = 'git sciit error fatal: ' + str(error)
-        print(error)
+        error = f'git sciit error fatal: {str(error)}'
+        print(colored(error, 'red', attrs=['bold']))
+        return
+    except GitCommandError as error:
+        error = f'git sciit error fatal: bad revision \'{args.revision}\''
+        print(colored(error, 'red', attrs=['bold']))
         return
