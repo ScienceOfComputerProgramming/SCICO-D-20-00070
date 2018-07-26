@@ -21,7 +21,7 @@ from git.exc import InvalidGitRepositoryError
 
 from sciit import IssueRepo
 from sciit.cli.catfile import cat
-from sciit.cli.functions import read_man_file
+from sciit.cli.functions import read_man_file, CPrint
 from sciit.cli.init import init
 from sciit.cli.log import log
 from sciit.cli.status import status
@@ -122,8 +122,10 @@ def main():
                 args.func(args)
                 sys.exit(0)
     except InvalidGitRepositoryError:
-        print('fatal: not a git repository (or any parent up to mount point /)')
-        print('Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
+        CPrint.bold(
+            'fatal: not a git repository (or any parent up to mount point /)')
+        CPrint.bold(
+            'Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
         sys.exit(0)
 
 

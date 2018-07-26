@@ -12,9 +12,9 @@ issues for each commit.
 
 Created on 18 June 2018
 """
-from termcolor import colored
+
 from git.exc import GitCommandError
-from sciit.cli.functions import page_log
+from sciit.cli.functions import page_log, CPrint
 
 
 def log(args):
@@ -22,8 +22,8 @@ def log(args):
     Prints a log that is similar to the git log but shows open issues
     """
     if not args.repo.is_init():
-        print(colored('Repository not initialized', 'red') + '\n' +
-              colored('Run: git scitt init', 'red', attrs=['bold']))
+        CPrint.red('Repository not initialized')
+        CPrint.bold_red('Run: git scitt init')
         return
 
     args.repo.sync()
@@ -44,6 +44,6 @@ def log(args):
         error = e.stderr.replace('\n\'', '')
         error = error.replace('\n  stderr: \'', '')
         error = 'git sciit error ' + error
-        print(colored(error, 'red'))
+        CPrint.bold_red(error)
         return
     return

@@ -14,11 +14,10 @@ Created on 09 July 2018
 """
 
 import json
-from termcolor import colored
 from sciit.errors import RepoObjectDoesNotExistError
 from sciit.functions import get_type_from_sha
 from sciit import Issue, IssueCommit, IssueTree
-from sciit.cli.functions import print_issue_commit, print_issue_tree, print_issue
+from sciit.cli.functions import print_issue_commit, print_issue_tree, print_issue, CPrint
 
 
 def cat(args):
@@ -26,15 +25,15 @@ def cat(args):
     Prints the content and info of objects stored in our issue repository.
     """
     if not args.repo.is_init():
-        print(colored('Repository not initialized', 'red') + '\n' +
-              colored('Run: git scitt init', 'red', attrs=['bold']))
+        CPrint.red('Repository not initialized')
+        CPrint.bold_red('Run: git scitt init')
         return
 
     try:
         object_type = get_type_from_sha(args.repo, args.sha)
     except RepoObjectDoesNotExistError as error:
         error = 'git sciit error fatal: ' + str(error)
-        print(colored(error, 'red'))
+        CPrint.bold_red(error)
         return
 
     # get object based on object type
@@ -47,11 +46,11 @@ def cat(args):
 
     # type flag selected
     if args.type:
-        print(obj.type)
+        CPrint.bold(obj.type)
 
     # size flag selected
     elif args.size:
-        print(obj.size)
+        CPrint.bold(obj.size)
 
     # print flag selected
     elif args.print:

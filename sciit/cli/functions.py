@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Module that assists printing objects to the terminal, getting
-terminal responses from user input, and getting contents of 
+terminal responses from user input, and getting contents of
 static files contained in the package
 
 @author: Nystrom Edwards
@@ -13,7 +13,7 @@ from termcolor import colored
 
 
 def build_log_item(icommit):
-    """Builds a string representation of issue commit for log 
+    """Builds a string representation of issue commit for log
     to the terminal
 
     Args:
@@ -23,21 +23,19 @@ def build_log_item(icommit):
         :(str): string representation of issue commit for log
     """
     time_format = '%a %b %d %H:%M:%S %Y %z'
-    output = ''
     date = icommit.commit.authored_datetime.strftime(time_format)
-    output +=  \
-        colored(f'commit {icommit.hexsha} ', 'yellow') + \
-        f'\nAuthor:\t {icommit.commit.author.name} <{icommit.commit.author.email}>' + \
-        f'\nDate:\t {date}' + \
-        f'\n' + colored(f'Open Issues: {icommit.open_issues}', 'red') + \
-        f'\n' + \
-        f'\n{icommit.commit.message}' + \
-        f'\n'
+    output = Color.bold_yellow(f'commit {icommit.hexsha}')
+    output += f'\nAuthor:\t {icommit.commit.author.name} <{icommit.commit.author.email}>'
+    output += f'\nDate:\t {date}'
+    output += f'\n{Color.bold_red(f"Open Issues: {icommit.open_issues}")}'
+    output += f'\n'
+    output += f'\n{icommit.commit.message}'
+    output += f'\n'
     return output
 
 
 def build_log(icommits):
-    """Builds a string representation of a list of issue commits for log 
+    """Builds a string representation of a list of issue commits for log
     to the terminal
 
     Args:
@@ -73,7 +71,7 @@ def page_log(icommits):
 
 
 def build_issue_commit(icommit):
-    """Builds a string representation of issue commit for showing 
+    """Builds a string representation of issue commit for showing
     to the terminal
 
     Args:
@@ -85,19 +83,19 @@ def build_issue_commit(icommit):
     time_format = '%z'
     atime = icommit.commit.authored_datetime.strftime(time_format)
     ctime = icommit.commit.committed_datetime.strftime(time_format)
-    output = 'tree ' + icommit.commit.tree.hexsha + \
-        '\nissuetree ' + icommit.issuetree.hexsha + \
-        '\nopen issues: ' + str(icommit.open_issues)
+    output = f'tree {icommit.commit.tree.hexsha}'
+    output += f'\nissuetree {icommit.issuetree.hexsha}'
+    output += f'\nopen issues: {str(icommit.open_issues)}'
     for parent in icommit.commit.parents:
-        output += '\nparent ' + parent.hexsha
-    output += '\nauthor ' + icommit.commit.author.name + \
-        ' <' + icommit.commit.author.email + '> ' \
-        + str(icommit.commit.authored_date) + ' ' + atime + \
-        '\ncommiter ' + icommit.commit.committer.name + \
-        ' <' + icommit.commit.committer.email + '> ' + \
-        str(icommit.commit.committed_date) + ' ' + ctime + \
-        '\n\n' + \
-        icommit.commit.message + '\n'
+        output += f'\nparent {parent.hexsha}'
+    output += f'\nauthor {icommit.commit.author.name}'
+    output += f' <{icommit.commit.author.email}>'
+    output += f' {str(icommit.commit.authored_date)} {atime}'
+    output += f'\ncommiter {icommit.commit.committer.name}'
+    output += f' <{icommit.commit.committer.email}>'
+    output += f' {str(icommit.commit.committed_date)} {ctime}'
+    output += f'\n\n'
+    output += f'{icommit.commit.message}\n'
     return output
 
 
@@ -122,7 +120,7 @@ def page_issue_commit(icommit):
 
 
 def build_issue_tree(itree):
-    """Builds a string representation of issue tree for showing 
+    """Builds a string representation of issue tree for showing
     to the terminal
 
     Args:
@@ -133,13 +131,11 @@ def build_issue_tree(itree):
     """
     output = ''
     for issue in itree.issues:
-        if hasattr(issue, 'title'):
-            title = issue.title
-        else:
-            title = colored('No title', 'red')
-        output += issue.id + '\t' + \
-            issue.hexsha + '\t' + \
-            title + '\t' + issue.filepath + '\n'
+        title = issue.title
+        output += f'{issue.id}\t'
+        output += f'{issue.hexsha}\t'
+        output += f'{title}\t'
+        output += f'{issue.filepath}\n'
     return output
 
 
@@ -164,7 +160,7 @@ def page_issue_tree(itree):
 
 
 def build_issue(issue):
-    """Builds a string representation of issue for showing 
+    """Builds a string representation of issue for showing
     to the terminal
 
     Args:
@@ -173,34 +169,25 @@ def build_issue(issue):
     Returns:
         :(str): string representation of issue
     """
-    output = ''
-    if hasattr(issue, 'id'):
-        output += colored('Issue: ' + issue.id, 'yellow')
-    if hasattr(issue, 'status'):
-        output += '\n'
-        if issue.status == 'Open':
-            output += colored('Status: ' + issue.status, 'red')
-        else:
-            output += colored('Status: ' + issue.status, 'green')
-    if hasattr(issue, 'title'):
-        output += '\nTitle:         ' + issue.title
+    output = f'{Color.bold_yellow(f"Issue:         {issue.id}")}'
+    output += f'\nTitle:         {issue.title}'
     if hasattr(issue, 'assignees'):
-        output += '\nAssigned To:   ' + issue.assignees
+        output += f'\nAssigned To:   {issue.assignees}'
     if hasattr(issue, 'due_date'):
-        output += '\nDue Date:      ' + issue.due_date
+        output += f'\nDue Date:      {issue.due_date}'
     if hasattr(issue, 'label'):
-        output += '\nLabels:        ' + issue.label
+        output += f'\nLabels:        {issue.label}'
     if hasattr(issue, 'weight'):
-        output += '\nWeight:        ' + issue.weight
+        output += f'\nWeight:        {issue.weight}'
     if hasattr(issue, 'priority'):
-        output += '\nPriority:      ' + issue.priority
+        output += f'\nPriority:      {issue.priority}'
     if hasattr(issue, 'filepath'):
-        output += '\nFilepath:      ' + issue.filepath
+        output += f'\nFilepath:      {issue.filepath}'
     if hasattr(issue, 'size'):
-        output += '\nSize:          ' + str(issue.size)
+        output += f'\nSize:          {str(issue.size)}'
     if hasattr(issue, 'description'):
-        output += '\nDescription: ' + issue.description
-    output += '\n\n'
+        output += f'\nDescription: \n{issue.description}'
+    output += f'\n\n'
     return output
 
 
@@ -225,7 +212,7 @@ def page_issue(issue):
 
 
 def build_issues(issues):
-    """Builds a string representation of a list fo issues for showing 
+    """Builds a string representation of a list fo issues for showing
     to the terminal
 
     Args:
@@ -261,7 +248,7 @@ def page_issues(issues):
 
 
 def build_history_item(item):
-    """Builds a string representation of a issue history item for showing 
+    """Builds a string representation of a issue history item for showing
     to the terminal
 
     Args:
@@ -270,74 +257,74 @@ def build_history_item(item):
     Returns:
         :(str): string representation of issue history item
     """
-    output = ''
-    output += colored('ID: ' + item['id'], 'yellow', attrs=['bold'])
-    output += '\n'
+    output = Color.bold_yellow(f"ID: {item['id']}")
+    output += f'\n'
+    status = item['status']
     if item['status'] == 'Open':
-        output += colored('Status: ' + item['status'], 'red', attrs=['bold'])
+        output += f'{Color.bold_red(f"Status: {status}")}'
     else:
-        output += colored('Status: ' + item['status'], 'green', attrs=['bold'])
-    output += '\nTitle: ' + item['title']
+        output += f'{Color.bold_green(f"Status: {status}")}'
+    output += f'\nTitle: {item["title"]}'
 
-    output += '\n'
-    output += '\nLast Authored:      ' + \
-        item['last_author'] + ' | ' + \
-        item['last_authored_date']
-    output += '\nCreated:            ' +\
-        item['creator'] + ' | ' + \
-        item['created_date']
-    output += '\n'
+    output += f'\n'
+    output += f'\nLast Authored:      '
+    output += f' {item["last_author"]}'
+    output += f' | {item["last_authored_date"]}'
+    output += f'\nCreated:            '
+    output += f' {item["creator"]}'
+    output += f' | {item["created_date"]}'
+    output += f'\n'
 
     if 'assignees' in item:
-        output += '\nAssigned To:        ' + item['assignees']
-    output += '\nParticipants:       '
+        output += f'\nAssigned To:        {item["assignees"]}'
+    output += f'\nParticipants:       '
     for participant in item['participants']:
-        output += participant + ','
+        output += participant + ', '
     if 'due_date' in item:
-        output += '\nDue Date:           ' + item['due_date']
+        output += f'\nDue Date:           {item["due_date"]}'
     if 'label' in item:
-        output += '\nLabels:             ' + item['label']
+        output += f'\nLabels:             {item["label"]}'
     if 'weight' in item:
-        output += '\nWeight:             ' + item['weight']
+        output += f'\nWeight:             {item["weight"]}'
     if 'priority' in item:
-        output += '\nPriority:           ' + item['priority']
-    output += '\nIn Branches:        '
+        output += f'\nPriority:           {item["priority"]}'
+    output += f'\nIn Branches:        '
     for branch in item['in_branches']:
         output += branch + ', '
-    output += '\nOpen In Branches:   '
+    output += f'\nOpen In Branches:   '
     for branch in item['open_in']:
         output += branch + ', '
     if 'size' in item:
-        output += '\nSize:               ' + str(item['size'])
+        output += f'\nSize:               {str(item["size"])}'
     output += '\nFilepath:'
     for path in item['filepath']:
         output += '\n' + ' '*20 + path
 
-    output += '\n'
-    output += '\nIssue Revisions:    ' + str(len(item['revisions']))
+    output += f'\n'
+    output += f'\nIssue Revisions:    {str(len(item["revisions"]))}'
     for revision in item['revisions']:
         output += '\n' + ' '*20 + revision
 
-    output += '\n'
-    output += '\nCommit Activities:  ' + str(len(item['activity']))
+    output += f'\n'
+    output += f'\nCommit Activities:  {str(len(item["activity"]))}'
     for commit in item['activity']:
-        output += '\n' + commit['date']
-        output += ' | ' + commit['author']
-        output += ' | ' + commit['summary']
+        output += f'\n{commit["date"]}'
+        output += f' | {commit["author"]}'
+        output += f' | {commit["summary"]}'
 
-    output += '\n'
+    output += f'\n'
     if 'description' in item:
-        output += '\n' + '_'*90 + '\n' + 'Descriptions:'
+        output += '\n' + '_'*90 + '\nDescriptions:'
         for description in item['descriptions']:
-            output += '\n' + description['change']
-            output += '\n--> added by: ' + \
-                colored(description['author'], 'red')
-            output += ' - ' + description['date']
+            output += f'\n{description["change"]}'
+            output += f'\n--> added by:'
+            output += f' {Color.red(description["author"])}'
+            output += f' - {description["date"]}'
             output += '\n' + '_'*70
 
-    output += '\n\n'
-    output += colored('*'*90, 'yellow')
-    output += '\n\n'
+    output += f'\n\n'
+    output += f'{Color.yellow("*"*90)}'
+    output += f'\n\n'
     return output
 
 
@@ -399,7 +386,7 @@ def page_history_items(items):
 
 def yes_no_option(msg=''):
     """
-    A function used to stall program operation until user 
+    A function used to stall program operation until user
     specifies an option of yes or no
 
     Returns:
@@ -450,3 +437,70 @@ def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, lengt
     # Print New Line on Complete
     if iteration == total:
         print()
+
+
+class Color:
+    """A simple class wrapper that helps to add color to strings
+    """
+
+    @classmethod
+    def red(cls, string):
+        return(colored(string, 'red'))
+
+    @classmethod
+    def green(cls, string):
+        return(colored(string, 'green'))
+
+    @classmethod
+    def yellow(cls, string):
+        return(colored(string, 'yellow'))
+
+    @classmethod
+    def bold(cls, string):
+        return(colored(string, attrs=['bold']))
+
+    @classmethod
+    def bold_red(cls, string):
+        return(colored(string, 'red', attrs=['bold']))
+
+    @classmethod
+    def bold_green(cls, string):
+        return(colored(string, 'green', attrs=['bold']))
+
+    @classmethod
+    def bold_yellow(cls, string):
+        return(colored(string, 'yellow', attrs=['bold']))
+
+
+class CPrint:
+    """A simple class wrapper that helps to print messages to the
+    shell terminals
+    """
+
+    @classmethod
+    def red(cls, string):
+        print(colored(string, 'red'))
+
+    @classmethod
+    def green(cls, string):
+        print(colored(string, 'green'))
+
+    @classmethod
+    def yellow(cls, string):
+        print(colored(string, 'yellow'))
+
+    @classmethod
+    def bold(cls, string):
+        print(colored(string, attrs=['bold']))
+
+    @classmethod
+    def bold_red(cls, string):
+        print(colored(string, 'red', attrs=['bold']))
+
+    @classmethod
+    def bold_green(cls, string):
+        print(colored(string, 'green', attrs=['bold']))
+
+    @classmethod
+    def bold_yellow(cls, string):
+        print(colored(string, 'yellow', attrs=['bold']))

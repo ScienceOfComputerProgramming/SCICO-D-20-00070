@@ -14,10 +14,9 @@ or from the specified revision revision.
 Created on 10 July 2018
 """
 from git.exc import GitCommandError
-from sciit.cli.functions import page_history_items
+from sciit.cli.functions import page_history_items, CPrint
 from sciit.errors import NoCommitsError
 from sciit.functions import cache_history
-from termcolor import colored
 
 
 def tracker(args):
@@ -26,8 +25,8 @@ def tracker(args):
     flags specified
     """
     if not args.repo.is_init():
-        print(colored('Repository not initialized', 'red') + '\n' +
-              colored('Run: git scitt init', 'red', attrs=['bold']))
+        CPrint.red('Repository not initialized')
+        CPrint.bold_red('Run: git scitt init')
         return
 
     args.repo.sync()
@@ -48,16 +47,17 @@ def tracker(args):
         if history:
             if args.save:
                 cache_history(args.repo.issue_dir, history)
-                print('Issues saved to ' + args.repo.issue_dir + '/HISTORY\n')
+                CPrint.bold('Issues saved to ' +
+                            args.repo.issue_dir + '/HISTORY\n')
             else:
                 page_history_items(history)
         else:
-            print(colored('No issues found', 'green', attrs=['bold']))
+            CPrint.bold_green('No issues found')
     except NoCommitsError as error:
         error = f'git sciit error fatal: {str(error)}'
-        print(colored(error, 'red', attrs=['bold']))
+        CPrint.bold_red(error)
         return
     except GitCommandError as error:
         error = f'git sciit error fatal: bad revision \'{args.revision}\''
-        print(colored(error, 'red', attrs=['bold']))
+        CPrint.bold_red(error)
         return

@@ -13,15 +13,15 @@ of issues that are currently being tracked on HEAD or branch.
 Created on 13 June 2018
 """
 from sciit import IssueCommit
-from termcolor import colored
+from sciit.cli.functions import CPrint
 
 
 def status(args):
     """Shows the user information related to their open issues.
     """
     if not args.repo.is_init():
-        print(colored('Repository not initialized', 'red') + '\n' +
-              colored('Run: git scitt init', 'red', attrs=['bold']))
+        CPrint.red('Repository not initialized')
+        CPrint.bold_red('Run: git scitt init')
         return
 
     args.repo.sync()
@@ -29,9 +29,9 @@ def status(args):
 
     opened = sum(x['status'] == 'Open' for x in all_issues.values())
     closed = len(all_issues) - opened
-    print(colored(f'Open Issues: ' + str(opened), 'red'))
+    CPrint.bold_red(f'Open Issues: ' + str(opened))
 
     # TODO add a function to have closed issues
-    print(colored(f'Closed Issues: ' + str(closed), 'green'))
+    CPrint.bold_green(f'Closed Issues: ' + str(closed))
     print('')
     return
