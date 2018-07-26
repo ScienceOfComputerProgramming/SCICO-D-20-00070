@@ -90,6 +90,20 @@ class TestIssue(TestCase):
         self.assertTrue(hasattr(issue, 'filepath'))
         self.assertTrue(hasattr(issue, 'size'))
 
+    def test_get_issue_full_metadata(self):
+        issue = Issue.create(self.repo, self.data3.copy())
+        issue = Issue(self.repo, issue.binsha)
+        self.assertTrue(hasattr(issue, 'id'))
+        self.assertTrue(hasattr(issue, 'title'))
+        self.assertTrue(hasattr(issue, 'description'))
+        self.assertTrue(hasattr(issue, 'assignees'))
+        self.assertTrue(hasattr(issue, 'due_date'))
+        self.assertTrue(hasattr(issue, 'label'))
+        self.assertTrue(hasattr(issue, 'weight'))
+        self.assertTrue(hasattr(issue, 'priority'))
+        self.assertTrue(hasattr(issue, 'filepath'))
+        self.assertTrue(hasattr(issue, 'size'))
+
 
 class TestFindIssueInComment(TestCase):
 
@@ -111,12 +125,13 @@ class TestFindIssueInComment(TestCase):
     def test_find_id_and_title(self):
         comment = """
         @issue something new
+        @title this is different
         """
         data = find_issue_data_in_comment(comment)
         self.assertIn('id', data)
         self.assertEqual(data['id'], 'something-new')
         self.assertIn('title', data)
-        self.assertEqual(data['title'], 'something new')
+        self.assertEqual(data['title'], 'this is different')
 
     def test_find_id_and_description_inline(self):
         comment = """

@@ -261,9 +261,9 @@ def build_history_item(item):
     output += f'\n'
     status = item['status']
     if item['status'] == 'Open':
-        output += f'{Color.bold_red(f"Status: {status}")}'
+        output += f'{Color.red(f"Status: {status}")}'
     else:
-        output += f'{Color.bold_green(f"Status: {status}")}'
+        output += f'{Color.green(f"Status: {status}")}'
     output += f'\nTitle: {item["title"]}'
 
     output += f'\n'
@@ -314,7 +314,7 @@ def build_history_item(item):
 
     output += f'\n'
     if 'description' in item:
-        output += '\n' + '_'*90 + '\nDescriptions:'
+        output += '\n' + '_'*90 + '\n' + Color.bold('Descriptions:')
         for description in item['descriptions']:
             output += f'\n{description["change"]}'
             output += f'\n--> added by:'
