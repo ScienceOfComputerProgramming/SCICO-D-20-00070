@@ -12,6 +12,10 @@ import pkg_resources
 from termcolor import colored
 
 
+def page(output):
+    pydoc.pipepager(output, cmd='less -FRSX')
+
+
 def build_log_item(icommit):
     """Builds a string representation of issue commit for log
     to the terminal
@@ -50,16 +54,6 @@ def build_log(icommits):
     return output
 
 
-def print_log(icommits):
-    """Prints raw string output to stdout
-
-    Args:
-        :list(IssueCommit) icommits: commits to print to stdout
-    """
-    output = build_log(icommits)
-    print(output)
-
-
 def page_log(icommits):
     """Prints raw string output to less pager
 
@@ -67,7 +61,8 @@ def page_log(icommits):
         :list(IssueCommit) icommits: commits to print to pager
     """
     output = build_log(icommits)
-    pydoc.pipepager(output, cmd='less -R')
+    page(output)
+    return output
 
 
 def build_issue_commit(icommit):
@@ -99,16 +94,6 @@ def build_issue_commit(icommit):
     return output
 
 
-def print_issue_commit(icommit):
-    """Prints raw string output to stdout
-
-    Args:
-        :(IssueCommit) icommit: commit to print to stdout
-    """
-    output = build_issue_commit(icommit)
-    print(output)
-
-
 def page_issue_commit(icommit):
     """Prints raw string output to less pager
 
@@ -116,7 +101,8 @@ def page_issue_commit(icommit):
         :(IssueCommit) icommit: commit to print to pager
     """
     output = build_issue_commit(icommit)
-    pydoc.pipepager(output, cmd='less -R')
+    page(output)
+    return output
 
 
 def build_issue_tree(itree):
@@ -139,16 +125,6 @@ def build_issue_tree(itree):
     return output
 
 
-def print_issue_tree(itree):
-    """Prints raw string output to stdout
-
-    Args:
-        :(IssueTree) itree: issue tree to print to stdout
-    """
-    output = build_issue_tree(itree)
-    print(output)
-
-
 def page_issue_tree(itree):
     """Prints raw string output to less pager
 
@@ -156,7 +132,8 @@ def page_issue_tree(itree):
         :(IssueTree) itree: issue tree to print to pager
     """
     output = build_issue_tree(itree)
-    pydoc.pipepager(output, cmd='less -R')
+    page(output)
+    return output
 
 
 def build_issue(issue):
@@ -191,16 +168,6 @@ def build_issue(issue):
     return output
 
 
-def print_issue(issue):
-    """Prints raw string output to stdout
-
-    Args:
-        :(Issue) issue: issue to print to stdout
-    """
-    output = build_issue(issue)
-    print(output)
-
-
 def page_issue(issue):
     """Prints raw string output to less pager
 
@@ -208,43 +175,8 @@ def page_issue(issue):
         :(Issue) issue: issue to print to pager
     """
     output = build_issue(issue)
-    pydoc.pipepager(output, cmd='less -R')
-
-
-def build_issues(issues):
-    """Builds a string representation of a list fo issues for showing
-    to the terminal
-
-    Args:
-        :list(Issue) issues: issues to build string from
-
-    Returns:
-        :(str): string representation of issues
-    """
-    output = ''
-    for issue in issues:
-        output += build_issue(issue)
+    page(output)
     return output
-
-
-def print_issues(issues):
-    """Prints raw string output to stdout
-
-    Args:
-        :list(Issue) issues: issues to print to stdout
-    """
-    output = build_issues(issues)
-    print(output)
-
-
-def page_issues(issues):
-    """Prints raw string output to less pager
-
-    Args:
-        :list(Issue) issues: issues to print to pager
-    """
-    output = build_issues(issues)
-    pydoc.pipepager(output, cmd='less -R')
 
 
 def build_history_item(item):
@@ -328,16 +260,6 @@ def build_history_item(item):
     return output
 
 
-def print_history_item(item):
-    """Prints raw string output to stdout
-
-    Args:
-        :(dict) item: history_item to print to stdout
-    """
-    output = build_history_item(item)
-    print(output)
-
-
 def page_history_item(item):
     """Prints raw string output to less pager
 
@@ -345,7 +267,8 @@ def page_history_item(item):
         :(dict) item: history_item to print to pager
     """
     output = build_history_item(item)
-    pydoc.pipepager(output, cmd='less -R')
+    page(output)
+    return output
 
 
 def build_history_items(items):
@@ -364,16 +287,6 @@ def build_history_items(items):
     return output
 
 
-def print_history_items(items):
-    """Prints raw string output to stdout
-
-    Args:
-        :dict(dict) items: history items to print to stdout
-    """
-    output = build_history_items(items)
-    print(output)
-
-
 def page_history_items(items):
     """Prints raw string output to less pager
 
@@ -381,7 +294,8 @@ def page_history_items(items):
         :dict(dict) items: history items to print to pager
     """
     output = build_history_items(items)
-    pydoc.pipepager(output, cmd='less -R')
+    page(output)
+    return output
 
 
 def yes_no_option(msg=''):

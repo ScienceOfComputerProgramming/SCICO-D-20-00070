@@ -30,6 +30,7 @@ def init(args):
             args.repo.reset()
         except EmptyRepositoryError as error:
             CPrint.bold_red(error)
+            return
 
     if not args.repo.is_init():
         args.repo.setup()
@@ -48,7 +49,7 @@ def init(args):
             args.repo.reset()
             CPrint.yellow('Done.')
             CPrint.bold_yellow(' Re-run command to setup repository')
-            sys.exit(0)
+            return
     else:
         CPrint.green('Issue repository already setup')
 

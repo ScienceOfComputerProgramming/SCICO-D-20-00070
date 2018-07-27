@@ -56,6 +56,9 @@ class IssueRepo(Repo):
 
     def sync(self):
         """
+        This function ensures that the issue repository issuecommits
+        are sycned with the git commits such that there is a
+        issuecommit for every commit in the git repository
         """
         last_issue_commit = get_last_issue(self)
         commits = list(self.iter_commits('--all'))
@@ -213,9 +216,13 @@ class IssueRepo(Repo):
                 issues = find_issues_in_tree(self, commit.tree)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
+
+            if all_commits:
+                write_last_issue(self.issue_dir, all_commits[0].hexsha)
+            else:
+                raise NoCommitsError
         else:
             raise NoCommitsError
-        write_last_issue(self.issue_dir, all_commits[0].hexsha)
 
     def build_history(self, rev=None, paths='', **kwargs):
         """

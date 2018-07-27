@@ -17,10 +17,10 @@ import json
 from sciit.errors import RepoObjectDoesNotExistError
 from sciit.functions import get_type_from_sha
 from sciit import Issue, IssueCommit, IssueTree
-from sciit.cli.functions import print_issue_commit, print_issue_tree, print_issue, CPrint
+from sciit.cli.functions import page_issue_commit, page_issue_tree, page_issue, CPrint
 
 
-def cat(args):
+def catfile(args):
     """
     Prints the content and info of objects stored in our issue repository.
     """
@@ -56,8 +56,9 @@ def cat(args):
     elif args.print:
 
         if obj.type == 'issuecommit':
-            print_issue_commit(obj)
+            output = page_issue_commit(obj)
         elif obj.type == 'issuetree':
-            print_issue_tree(obj)
+            output = page_issue_tree(obj)
         elif obj.type == 'issue':
-            print_issue(obj)
+            output = page_issue(obj)
+        return output

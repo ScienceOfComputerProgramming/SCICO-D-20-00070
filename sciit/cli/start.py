@@ -20,7 +20,7 @@ import colorama
 from git.exc import InvalidGitRepositoryError
 
 from sciit import IssueRepo
-from sciit.cli.catfile import cat
+from sciit.cli.catfile import catfile
 from sciit.cli.functions import read_man_file, CPrint
 from sciit.cli.init import init
 from sciit.cli.log import log
@@ -77,7 +77,7 @@ def main():
         # responsible for the cat-file subcommand
         cat_file_parser = subparsers.add_parser('cat-file', description='Prints the content and info of objects'
                                                 ' stored in our issue repository. Only one flag can be specified')
-        cat_file_parser.set_defaults(func=cat)
+        cat_file_parser.set_defaults(func=catfile)
         cat_file_parser.add_argument('sha', action='store', type=str,
                                      help='the sha of the issue repository object')
         group = cat_file_parser.add_mutually_exclusive_group(required=True)
