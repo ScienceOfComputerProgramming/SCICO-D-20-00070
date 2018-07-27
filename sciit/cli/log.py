@@ -28,17 +28,13 @@ def log(args):
 
     args.repo.sync()
     if args.revision:
-        if args.revision == 'all':
-            revision = '--' + args.revision
-        else:
-            revision = args.revision
+        revision = args.revision
     else:
         revision = args.repo.head
 
-    all_issue_commits = args.repo.iter_issue_commits(revision)
-
     try:
-        page_log(all_issue_commits)
+        all_issue_commits = list(args.repo.iter_issue_commits(revision))
+        output = page_log(all_issue_commits)
     # if user enters incorrect value for revision
     except GitCommandError as e:
         error = e.stderr.replace('\n\'', '')
@@ -46,4 +42,4 @@ def log(args):
         error = 'git sciit error ' + error
         CPrint.bold_red(error)
         return
-    return
+    return output
