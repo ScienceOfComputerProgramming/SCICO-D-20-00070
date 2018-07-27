@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 """Module that assists with running git sciit status commands.
 It is similar to the git status command but shows the status
-of issues that are currently being tracked on HEAD or branch.
+of issues that are currently being tracked on HEAD or revision.
 
     Example:
         This command is accessed via::
 
-            $ git sciit status [-h] [branch]
+            $ git sciit status [-h] [revision]
 
 @author: Nystrom Edwards
 
 Created on 13 June 2018
 """
+from git.exc import GitCommandError
 from sciit import IssueCommit
 from sciit.cli.functions import CPrint
 
@@ -24,8 +25,20 @@ def status(args):
         CPrint.bold_red('Run: git scitt init')
         return
 
+    if args.revision:
+        revision = args.revision
+    else:
+        revision = args.repo.head
+
     args.repo.sync()
-    all_issues = args.repo.all_issues
+    try:
+        all_issues = args.repo.get_all_issues(revision)
+    except GitCommandError as e:
+        error = e.stderr.replace('\n\'', '')
+        error = error.replace('\n  stderr: \'', '')
+        error = 'git sciit error ' + error
+        CPrint.bold_red(error)
+        return
 
     opened = sum(x['status'] == 'Open' for x in all_issues.values())
     closed = len(all_issues) - opened
