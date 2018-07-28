@@ -115,24 +115,26 @@ def main():
                                     help='saves issue history selected to the HISTORY file in '
                                     'your issue repository directory')
 
-        # allow the cli to run if we are in a legal .git repo
-        if repo.git_dir:
-            args = parser.parse_args()
+        args = parser.parse_args()
 
-            # no args supplied
-            if not len(sys.argv) > 1:
-                parser.print_help()
-            else:
-                args.repo = repo
-                args.func(args)
-                sys.exit(0)
+        # no args supplied
+        if not hasattr(args, 'func'):
+            parser.print_help()
+        else:
+            args.repo = repo
+            args.func(args)
+        return
     except InvalidGitRepositoryError:
         CPrint.bold(
             'fatal: not a git repository (or any parent up to mount point /)')
         CPrint.bold(
             'Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
-        sys.exit(0)
+        return
 
 
-if __name__ == '__main__':
-    main()
+def start():
+    if __name__ == '__main__':
+        sys.exit(main())
+
+
+start()
