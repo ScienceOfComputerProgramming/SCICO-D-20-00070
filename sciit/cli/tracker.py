@@ -50,7 +50,8 @@ def tracker(args):
                 CPrint.bold('Issues saved to ' +
                             args.repo.issue_dir + '/HISTORY\n')
             else:
-                page_history_items(history)
+                output = page_history_items(history)
+                return output
         else:
             CPrint.bold_green('No issues found')
     except NoCommitsError as error:

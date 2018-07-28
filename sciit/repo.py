@@ -299,6 +299,16 @@ class IssueRepo(Repo):
                                     'summary': icommit.commit.summary}
                         history[issue.id]['activity'].append(activity)
                         history[issue.id]['revisions'].add(issue.hexsha)
+                        if hasattr(issue, 'assignees'):
+                            history[issue.id]['assignees'] = issue.assignees
+                        if hasattr(issue, 'due_date'):
+                            history[issue.id]['due_date'] = issue.due_date
+                        if hasattr(issue, 'label'):
+                            history[issue.id]['label'] = issue.label
+                        if hasattr(issue, 'weight'):
+                            history[issue.id]['weight'] = issue.weight
+                        if hasattr(issue, 'priority'):
+                            history[issue.id]['priority'] = issue.priority
                         if 'description' in history[issue.id]:
                             if hasattr(issue, 'description'):
                                 if issue.description != history[issue.id]['description']:

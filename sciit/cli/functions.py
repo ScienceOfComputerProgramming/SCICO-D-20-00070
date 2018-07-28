@@ -378,10 +378,6 @@ class Color:
         return(colored(string, 'red', attrs=['bold']))
 
     @classmethod
-    def bold_green(cls, string):
-        return(colored(string, 'green', attrs=['bold']))
-
-    @classmethod
     def bold_yellow(cls, string):
         return(colored(string, 'yellow', attrs=['bold']))
 
@@ -414,7 +410,3 @@ class CPrint:
     @classmethod
     def bold_green(cls, string):
         print(colored(string, 'green', attrs=['bold']))
-
-    @classmethod
-    def bold_yellow(cls, string):
-        print(colored(string, 'yellow', attrs=['bold']))
