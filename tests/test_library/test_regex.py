@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 from sciit.regex import get_file_object_pattern
-from sciit.regex import (CSTYLE, PYTHON, HTML, MATLAB, HASKELL, RUBY, PLAIN)
+from sciit.regex import (CSTYLE, PYTHON, HTML, MATLAB, HASKELL, PLAIN)
 
 
 class TestFileObjectPattern(TestCase):
@@ -64,7 +64,25 @@ class TestFileObjectPattern(TestCase):
         file_object = Mock()
         file_object.path = 'test.rb'
         pattern = get_file_object_pattern(file_object)
-        self.assertEqual(pattern, RUBY)
+        self.assertEqual(pattern, PLAIN)
+
+    def test_file_is_markdown(self):
+        file_object = Mock()
+        file_object.path = 'test.md'
+        pattern = get_file_object_pattern(file_object)
+        self.assertEqual(pattern, HTML)
+
+    def test_file_is_bdd_feature(self):
+        file_object = Mock()
+        file_object.path = 'test.feature'
+        pattern = get_file_object_pattern(file_object)
+        self.assertEqual(pattern, PLAIN)
+
+    def test_file_is_yaml(self):
+        file_object = Mock()
+        file_object.path = 'test.yml'
+        pattern = get_file_object_pattern(file_object)
+        self.assertEqual(pattern, PLAIN)
 
     def test_file_is_plain_text(self):
         file_object = Mock()
@@ -79,15 +97,9 @@ class TestFileObjectPattern(TestCase):
         pattern = get_file_object_pattern(file_object)
         self.assertFalse(pattern)
 
-    def test_file_is_markdown_no_mime(self):
-        file_object = Mock()
-        file_object.path = 'test.md'
-        pattern = get_file_object_pattern(file_object)
-        self.assertFalse(pattern)
-
-    def test_file_is_markdown_with_mime(self):
+    def test_file_mime_type_not_supported(self):
         file_object = Mock()
         file_object.path = 'test'
-        file_object.mime_type = 'text/markdown'
+        file_object.mime_type = 'application/pdf'
         pattern = get_file_object_pattern(file_object)
         self.assertFalse(pattern)
