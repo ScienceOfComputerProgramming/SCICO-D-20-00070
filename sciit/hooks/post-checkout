@@ -9,7 +9,7 @@
 :Created: 23 July 2018
 """
 from sciit import IssueRepo, IssueCommit
-from termcolor import colored
+from sciit.cli.color import CPrint
 import colorama
 
 colorama.init()
@@ -27,7 +27,7 @@ except TypeError:
 if icommit.open_issues > 0:
     result = str(icommit.open_issues) + \
         ' Open Issues @' + location
-    print(colored(result, 'red', attrs=['bold']))
+    CPrint.bold_red(result)
 else:
     result = 'No Open Issues @' + location
-    print(colored(result, 'green', attrs=['bold']))
+    CPrint.bold_green(result)
