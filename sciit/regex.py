@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Module that contains the definition regex patterns used to identify issues
-in source code.
+in source code. Also identifies the file types supported and thier comment
+structure
 
 :@author: Nystrom Edwards
 :Created: 24 June 2018
@@ -18,7 +19,7 @@ PLAIN = r'(?:[*]){3,}((?:(?:.|[\r\n])*?))(?:[*]){3,}'
 
 CSTYLE_EXTS = ['.java', '.c', '.cpp', '.cxx', '.h', '.hpp', '.hxx', '.cs', '.php',
                '.css', '.js', '.sql', '.scala', '.swift', '.go', '.kt', '.kts']
-HTML_EXTS = ['.htm', '.html', '.xhtml']
+HTML_EXTS = ['.htm', '.html', '.xhtml', '.md']
 
 
 class ISSUE:
@@ -50,8 +51,7 @@ def get_file_object_pattern(file_object):
             pattern = RUBY
         else:
             pattern = False
-    elif file_object.mime_type != 'text/plain' \
-            or 'markdown' in file_object.mime_type:
+    elif file_object.mime_type != 'text/plain':
         pattern = False
     else:
         pattern = PLAIN
