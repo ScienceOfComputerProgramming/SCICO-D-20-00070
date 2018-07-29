@@ -53,10 +53,7 @@ def find_issues_in_tree(repo, commit_tree, pattern=None):
                     continue
 
                 # search for comment blocks in file based on file type
-                if search is None:
-                    comments = [object_contents, ]
-                else:
-                    comments = re.findall(search, object_contents)
+                comments = re.findall(search, object_contents)
 
                 # if a comment block is found in the file
                 if comments:

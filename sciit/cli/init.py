@@ -17,8 +17,8 @@ Created on 18 June 2018
 
 import sys
 from sciit.cli.functions import yes_no_option
+from sciit.cli.color import CPrint
 from sciit.errors import EmptyRepositoryError, NoCommitsError
-from termcolor import colored
 
 
 def init(args):
@@ -30,27 +30,28 @@ def init(args):
         try:
             args.repo.reset()
         except EmptyRepositoryError as error:
-            print(colored(error, 'red'))
+            CPrint.bold_red(error)
+            return
 
     if not args.repo.is_init():
         args.repo.setup()
         try:
             print(' ')
-            print('Building repository from commits')
+            CPrint.bold('Building repository from commits')
             args.repo.build()
             print(' ')
         except NoCommitsError as error:
-            print(error)
-            print('Empty issue repository created')
+            CPrint.yellow(error)
+            CPrint.green('Empty issue repository created')
         except KeyboardInterrupt:
             print('\n')
-            print(colored('Setup issue repository process interupted', 'red'))
+            CPrint.bold_red('Setup issue repository process interupted')
             print('Cleaning up')
             args.repo.reset()
-            print(colored('Done.', 'green') +
-                  ' Re-run command to setup repository')
-            sys.exit(0)
+            CPrint.yellow('Done.')
+            CPrint.bold_yellow(' Re-run command to setup repository')
+            return
     else:
-        print('Issue repository already setup')
+        CPrint.green('Issue repository already setup')
 
     return

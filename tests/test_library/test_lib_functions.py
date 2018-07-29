@@ -3,12 +3,14 @@ This module tests the functionality of the functions module.
 """
 import os
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
+from git import Commit
+from git.util import hex_to_bin
 from sciit import Issue, IssueCommit, IssueRepo, IssueTree
 from sciit.errors import RepoObjectDoesNotExistError, RepoObjectExistsError
 from sciit.functions import (deserialize, get_location, get_type_from_sha,
-                             object_exists, serialize)
+                             object_exists, serialize, cache_history)
 from tests.external_resources import safe_create_repo_dir
 
 
@@ -122,3 +124,59 @@ class TestGetTypeFromSha(TestCase):
             get_type_from_sha(self.repo, 'self.issue.hexsha')
         self.assertTrue(
             'The repository object does not exist.' in str(context.exception))
+
+
+class TestCacheIssueHistory(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        safe_create_repo_dir('here')
+        cls.repo = IssueRepo('here')
+
+        data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path',
+                 'description': 'This issue had a description'},
+                {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'id': '6', 'title': 'the contents of the file', 'filepath': 'path',
+                 'description': 'here is a nice description'}]
+
+        new_data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
+                    {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
+                    {'id': '9', 'title': 'the contents of the file', 'filepath': 'path'},
+                    {'id': '6', 'title': 'the contents of the file', 'filepath': 'path',
+                     'description': 'description has changed'},
+                    {'id': '12', 'title': 'the contents of the file', 'filepath': 'path',
+                     'description': 'here is a nice description'}]
+        cls.issues = []
+        cls.new_issues = []
+        for d in data:
+            cls.issues.append(Issue.create(cls.repo, d))
+        cls.itree = IssueTree.create(cls.repo, cls.issues)
+
+        for d in new_data:
+            cls.new_issues.append(Issue.create(cls.repo, d))
+        cls.new_itree = IssueTree.create(cls.repo, cls.new_issues)
+
+        cls.head = '622918a4c6539f853320e06804f73d1165df69d0'
+        cls.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
+        cls.head_commit = Commit(cls.repo, hex_to_bin(cls.head))
+        cls.first_commit = Commit(cls.repo, hex_to_bin(cls.first))
+        cls.head_icommit = IssueCommit.create(
+            cls.repo, cls.head_commit, cls.new_itree)
+        IssueCommit.create(cls.repo, cls.first_commit, cls.itree)
+
+    @patch('sciit.repo.IssueRepo.iter_commits')
+    @patch('sciit.repo.IssueRepo.heads')
+    def test_cache_build_history(self, heads, commits):
+        val = [self.head_commit, self.first_commit]
+        commits.return_value = val
+        head = MagicMock()
+        head.commit = self.head_icommit
+        head.name = 'master'
+        heads.__iter__.return_value = [head]
+        history = self.repo.build_history('--all')
+        cache_history(self.repo.issue_dir, history)
+        stats = os.stat(self.repo.issue_dir + '/HISTORY')
+        self.assertTrue(stats.st_size > 1000)

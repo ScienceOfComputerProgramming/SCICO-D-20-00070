@@ -66,7 +66,7 @@ class Issue(Object):
 
     __slots__ = ('data', 'title', 'description', 'assignees',
                  'due_date', 'label', 'weight', 'priority', 'title',
-                 'size', 'filepath', 'status', 'id')
+                 'size', 'filepath', 'id')
 
     type = 'issue'
     """ The base type of this issue repository object
