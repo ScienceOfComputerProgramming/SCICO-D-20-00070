@@ -18,6 +18,32 @@ colorama.init()
 repo = IssueRepo()
 commit = repo.head.commit
 issues = find_issues_in_tree(repo, commit.tree)
+
+
+# if duplicate issues rollback commit and exit
+if len(set(issues)) != len(issues):
+    # get duplicates to print to user
+    freq = {(x.id, x.filepath): issues.count(x) for x in issues}
+    duplicates = {x for x in freq.keys() if freq[x] > 1}
+    result = {}
+    for duplicate in duplicates:
+        if duplicate[0] not in result:
+            result[duplicate[0]] = [duplicate[1]]
+        else:
+            result[duplicate[0]].append(duplicate[1])
+
+    # print duplicates to user
+    for (ident, files_found) in result.items():
+        print(colored(f'Duplicate Issue: {ident}', 'red', attrs=['bold']))
+        for file_found in files_found:
+            print(
+                colored(f'\tfound in {file_found}', 'red'))
+
+    repo.git.execute(['git', 'reset', 'HEAD~1', '--soft'])
+    print(
+        colored(f'HEAD @: {repo.head.commit.summary} ~ {repo.head.commit.hexsha[:7]}', 'red', attrs=['bold']))
+    exit()
+
 itree = IssueTree.create(repo, issues)
 icommit = IssueCommit.create(repo, commit, itree)
 write_last_issue(repo.issue_dir, commit.hexsha)
