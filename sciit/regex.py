@@ -13,13 +13,13 @@ PYTHON = r'(?:=\s*(?:[\'\"]){3}(?:.*(?:.|[\r\n])*?)(?:[\'\"]){3})|(?:[\'\"]){3}(
 HTML = r'<!--((?:(?:.|[\r\n])*?))-->'
 MATLAB = r'%{((?:.|[\r\n])*?)%}'
 HASKELL = r'{-((?:.|[\r\n])*?)-}'
-RUBY = r'=begin((?:(?:.|[\r\n])*?))[\r\n]{1}=end'
-PLAIN = r'(?:[*]){3,}((?:(?:.|[\r\n])*?))(?:[*]){3,}'
+PLAIN = r'#(?:[*]){3,}((?:(?:.|[\r\n])*?))#(?:[*]){3,}'
 
 
 CSTYLE_EXTS = ['.java', '.c', '.cpp', '.cxx', '.h', '.hpp', '.hxx', '.cs', '.php',
                '.css', '.js', '.sql', '.scala', '.swift', '.go', '.kt', '.kts']
 HTML_EXTS = ['.htm', '.html', '.xhtml', '.md']
+OTHER_EXTS = ['.yml', '.yaml', '.feature']
 
 
 class ISSUE:
@@ -36,11 +36,15 @@ class ISSUE:
 def get_file_object_pattern(file_object):
     # get file extension and set pattern
     ext = os.path.splitext(file_object.path)[1]
+    if ext == '.feature':
+        pass
     if ext is not '':
         if ext in CSTYLE_EXTS:
             pattern = CSTYLE
         elif ext in HTML_EXTS:
             pattern = HTML
+        elif ext in OTHER_EXTS:
+            pattern = PLAIN
         elif ext == '.m':
             pattern = MATLAB
         elif ext == '.hs':
@@ -48,7 +52,7 @@ def get_file_object_pattern(file_object):
         elif ext == '.py':
             pattern = PYTHON
         elif ext == '.rb':
-            pattern = RUBY
+            pattern = PLAIN
         else:
             pattern = False
     elif file_object.mime_type != 'text/plain':

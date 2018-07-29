@@ -2,7 +2,6 @@ stages:
   - tests
   - docs
 
-
 # running all the python tests
 python_tests:
   stage: tests
