@@ -30,7 +30,7 @@ help:
 
 .PHONY: clean
 clean:
-	find . ! -name index.rst ! -name Makefile ! -name conf.py -type f -delete
+	find . ! -name index.rst ! -name Makefile ! -name Cheatsheet.png ! -name conf.py -type f -delete
 	rm -rf $(BUILDDIR)/
 
 .PHONY: html
