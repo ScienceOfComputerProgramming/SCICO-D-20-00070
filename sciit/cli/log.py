@@ -14,7 +14,8 @@ Created on 18 June 2018
 """
 
 from git.exc import GitCommandError
-from sciit.cli.functions import page_log, CPrint
+from sciit.cli.functions import page_log
+from sciit.cli.color import CPrint
 
 
 def log(args):

@@ -14,7 +14,8 @@ or from the specified revision revision.
 Created on 10 July 2018
 """
 from git.exc import GitCommandError
-from sciit.cli.functions import page_history_items, CPrint
+from sciit.cli.functions import page_history_items
+from sciit.cli.color import CPrint
 from sciit.errors import NoCommitsError
 from sciit.functions import cache_history
 

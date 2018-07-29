@@ -14,7 +14,7 @@ Created on 13 June 2018
 """
 from git.exc import GitCommandError
 from sciit import IssueCommit
-from sciit.cli.functions import CPrint
+from sciit.cli.color import CPrint
 
 
 def status(args):

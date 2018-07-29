@@ -21,7 +21,8 @@ from git.exc import InvalidGitRepositoryError
 
 from sciit import IssueRepo
 from sciit.cli.catfile import catfile
-from sciit.cli.functions import read_man_file, CPrint
+from sciit.cli.functions import read_man_file
+from sciit.cli.color import CPrint
 from sciit.cli.init import init
 from sciit.cli.log import log
 from sciit.cli.status import status

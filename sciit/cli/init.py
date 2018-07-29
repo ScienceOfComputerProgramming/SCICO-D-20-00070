@@ -16,7 +16,8 @@ Created on 18 June 2018
 """
 
 import sys
-from sciit.cli.functions import yes_no_option, CPrint
+from sciit.cli.functions import yes_no_option
+from sciit.cli.color import CPrint
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 
 

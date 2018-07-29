@@ -17,7 +17,8 @@ import json
 from sciit.errors import RepoObjectDoesNotExistError
 from sciit.functions import get_type_from_sha
 from sciit import Issue, IssueCommit, IssueTree
-from sciit.cli.functions import page_issue_commit, page_issue_tree, page_issue, CPrint
+from sciit.cli.functions import page_issue_commit, page_issue_tree, page_issue
+from sciit.cli.color import CPrint
 
 
 def catfile(args):
