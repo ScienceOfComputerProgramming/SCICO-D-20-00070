@@ -9,14 +9,10 @@ from sciit.tree import find_issues_in_tree
 
 from tests.external_resources import safe_create_repo_dir
 
+
 class TestCreateIssueTree(TestCase):
 
-    repo = None
-    issue_sha = None
-    issues = None
-
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         safe_create_repo_dir('here')
 
         data = [{'id': '1', 'title': 'the contents of the file'},
@@ -25,24 +21,22 @@ class TestCreateIssueTree(TestCase):
                 {'id': '4', 'title': 'the contents of the file'},
                 {'id': '5', 'title': 'the contents of the file'},
                 {'id': '6', 'title': 'the contents of the file'}]
-        cls.repo = IssueRepo()
-        cls.repo.issue_dir = 'here'
-        cls.repo.issue_objects_dir = 'here/objects'
-        cls.issues = []
+        self.repo = IssueRepo()
+        self.repo.issue_dir = 'here'
+        self.repo.issue_objects_dir = 'here/objects'
+        self.issues = []
         for issue_data in data:
-            cls.issues.append(Issue.create(cls.repo, issue_data))
+            self.issues.append(Issue.create(self.repo, issue_data))
 
-    def test1_create_issue_tree(self):
+    def test_create_issue_tree(self):
         itree = IssueTree.create(self.repo, self.issues)
         self.assertEqual(len(itree.issues), 6)
         TestCreateIssueTree.issue_sha = (itree.binsha, itree.hexsha)
 
-    def test2_get_issue_tree_binsha(self):
-        itree = IssueTree(self.repo, TestCreateIssueTree.issue_sha[0])
-        self.assertEqual(len(itree.issues), 6)
-
-    def test2_get_issue_tree_hexsha(self):
-        itree = IssueTree(self.repo, TestCreateIssueTree.issue_sha[1])
+    def test_get_issue_tree_binsha(self):
+        itree = IssueTree.create(self.repo, self.issues)
+        itree = IssueTree(self.repo, itree.hexsha)
+        itree = IssueTree(self.repo, itree.binsha)
         self.assertEqual(len(itree.issues), 6)
 
 
@@ -310,4 +304,3 @@ class TestFindIssuesInTree(TestCase):
         # run the function with the mocked object
         issues = find_issues_in_tree(self.repo, tree, self.pattern)
         self.assertEqual(len(issues), 4)
-

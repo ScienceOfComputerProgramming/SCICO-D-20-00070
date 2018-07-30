@@ -23,15 +23,14 @@ It is structured as a Python command line applications.
 
 To use the application you can create your issues anywhere in your source code as block comments in a particular format and it will become a trackable versioned object within your git environment. Operations done with git will run git sciit in the background in order to automate issue tracking for you.
 
-The recommended comment style to use is as follows:
+An example of a recommended style for Java:
 
-#### Java or C style
-
+```java
     /*
     * @issue Eg: The title of your issue
     * @description:
-    *   A description of you issue as you
-    *   want it to be ``markdown`` supported
+    *   A description of an issue as you
+    *   want it to be even with markdown supported
     * @issue_assigned to nystrome, kevin, daniels
     * @due date 12 oct 2018
     * @label in-development
@@ -39,23 +38,12 @@ The recommended comment style to use is as follows:
     * @priority high
     *
     */
+```
 
-#### Python Style
+More styles and supported files can be found [here](STYLES.md)
 
-    """
-    @issue Eg: The title of your issue
-    @description:
-      A description of you issue as you
-      want it to be ``markdown`` supported
-    @issue_assigned to nystrome, kevin, daniels
-    @due date 12 oct 2018
-    @label in-development
-    @weight 4
-    @priority high
+Cheat sheet of commands can be found [here](docs/Cheatsheet.png)
 
-    """
-
-## Behavior
 
 # Installation
 
@@ -68,7 +56,7 @@ Installation via pip:
 
     $ pip install sciit
 
-Installation right from the source tree (or via pip from PyPI)::
+Installation right from the source tree:
 
     $ python setup.py install
 

@@ -20,8 +20,9 @@ import colorama
 from git.exc import InvalidGitRepositoryError
 
 from sciit import IssueRepo
-from sciit.cli.catfile import cat
+from sciit.cli.catfile import catfile
 from sciit.cli.functions import read_man_file
+from sciit.cli.color import CPrint
 from sciit.cli.init import init
 from sciit.cli.log import log
 from sciit.cli.status import status
@@ -60,11 +61,14 @@ def main():
                                  help='resets the issue repo and rebuild from past commits')
 
         # responsible for the status subcommand
-        status_parser = subparsers.add_parser('status', description='Shows the user information related'
-                                              ' to their open issues.')
+        status_parser = subparsers.add_parser('status', description='Shows the user how many issues are open'
+                                              ' and how many are closed on all branches.')
         status_parser.set_defaults(func=status)
-        status_parser.add_argument('branch', action='store', type=str, nargs='?',
-                                   help='the name of the branch which you would to check your issue tracker')
+        status_parser.add_argument('revision', action='store', type=str, nargs='?',
+                                   help='the revision path to use to generate the issue log e.g \'all\' '
+                                   'for all commits or \'master\' for all commit on master branch '
+                                   'or \'HEAD~2\' from the last two commits on current branch. '
+                                   'see git rev-list options for more path options.')
 
         # responsible for the log subcommand
         log_parser = subparsers.add_parser('log', description='Prints a log that is similar to the git'
@@ -79,7 +83,7 @@ def main():
         # responsible for the cat-file subcommand
         cat_file_parser = subparsers.add_parser('cat-file', description='Prints the content and info of objects'
                                                 ' stored in our issue repository. Only one flag can be specified')
-        cat_file_parser.set_defaults(func=cat)
+        cat_file_parser.set_defaults(func=catfile)
         cat_file_parser.add_argument('sha', action='store', type=str,
                                      help='the sha of the issue repository object')
         group = cat_file_parser.add_mutually_exclusive_group(required=True)
@@ -94,6 +98,10 @@ def main():
         tracker_parser = subparsers.add_parser(
             'tracker', description='Prints a log that shows issues and their status')
         tracker_parser.set_defaults(func=tracker)
+        tracker_parser.add_argument('revision', action='store', type=str, nargs='?',
+                                    help='the revision which you would like'
+                                    'to check for your issue tracker. see git revision'
+                                    'for more information')
         group = tracker_parser.add_mutually_exclusive_group()
         group.add_argument('--all',
                            help='show all the issues currently tracked and their status',
@@ -108,22 +116,26 @@ def main():
                                     help='saves issue history selected to the HISTORY file in '
                                     'your issue repository directory')
 
-        # allow the cli to run if we are in a legal .git repo
-        if repo.git_dir:
-            args = parser.parse_args()
+        args = parser.parse_args()
 
-            # no args supplied
-            if not len(sys.argv) > 1:
-                parser.print_help()
-            else:
-                args.repo = repo
-                args.func(args)
-                sys.exit(0)
+        # no args supplied
+        if not hasattr(args, 'func'):
+            parser.print_help()
+        else:
+            args.repo = repo
+            args.func(args)
+        return
     except InvalidGitRepositoryError:
-        print('fatal: not a git repository (or any parent up to mount point /)')
-        print('Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
-        sys.exit(0)
+        CPrint.bold(
+            'fatal: not a git repository (or any parent up to mount point /)')
+        CPrint.bold(
+            'Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
+        return
 
 
-if __name__ == '__main__':
-    main()
+def start():
+    if __name__ == '__main__':
+        sys.exit(main())
+
+
+start()
