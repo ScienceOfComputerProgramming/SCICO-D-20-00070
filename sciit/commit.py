@@ -5,7 +5,7 @@
 :Created: 24 June 2018
 """
 
-
+import re
 import hashlib
 
 from git import util, Object, Commit
@@ -68,6 +68,21 @@ class IssueCommit(Object):
         else:
             deserialize(self)
             self.issuetree = IssueTree(repo, self.data['itree'])
+
+    @property
+    def children(self):
+        """
+        The list of children that this commit has.
+        """
+        children = []
+        rev_list = self.repo.git.execute(
+            ['git', 'rev-list', '--all', '--children'])
+        pattern = re.compile(r'(?:' + self.hexsha + ')(.*)')
+        child_shas = pattern.findall(rev_list)[0]
+        child_shas = child_shas.strip(' ').split(' ')
+        for child in child_shas:
+            children.append(Commit(self.repo, hex_to_bin(child)))
+        return children
 
     @property
     def open_issues(self):
