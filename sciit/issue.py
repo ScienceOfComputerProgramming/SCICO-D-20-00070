@@ -66,7 +66,7 @@ class Issue(Object):
 
     __slots__ = ('data', 'title', 'description', 'assignees',
                  'due_date', 'label', 'weight', 'priority', 'title',
-                 'size', 'filepath', 'status', 'id')
+                 'size', 'filepath', 'id')
 
     type = 'issue'
     """ The base type of this issue repository object
@@ -130,13 +130,15 @@ class Issue(Object):
         return self.id < other.id
 
     def __eq__(self, other):
-        return self.binsha == other.binsha
+        return self.id == other.id
 
     def __gt__(self, other):
         return self.id > other.id
 
     def __hash__(self):
-        return int(self.hexsha, 17)
+        sha = hashlib.sha1(self.id.encode())
+        sha = sha.hexdigest()
+        return int(sha, 16)
 
     def __str__(self):
         return 'Issue#' + str(self.id) + ' ' + str(self.hexsha)

@@ -155,7 +155,6 @@ def cache_history(issue_dir, history):
         item['participants'] = list(item['participants'])
         item['in_branches'] = list(item['in_branches'])
         item['open_in'] = list(item['open_in'])
-        item['revisions'] = list(item['revisions'])
 
     now = datetime.now().strftime('%a %b %d %H:%M:%S %Y %z')
     f = open(history_file, 'w')

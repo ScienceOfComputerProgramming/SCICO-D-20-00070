@@ -8,6 +8,7 @@ import os
 import re
 import stat
 import pkg_resources
+import difflib
 
 from shutil import copyfile
 from datetime import datetime
@@ -56,6 +57,9 @@ class IssueRepo(Repo):
 
     def sync(self):
         """
+        This function ensures that the issue repository issuecommits
+        are sycned with the git commits such that there is a
+        issuecommit for every commit in the git repository
         """
         last_issue_commit = get_last_issue(self)
         commits = list(self.iter_commits('--all'))
@@ -195,6 +199,23 @@ class IssueRepo(Repo):
         Optionally:
             :Shows Progress in Shell: if repo is used with command line interface
         """
+
+        '''
+        @issue Better Build Performance
+        @description
+            Find some method to increase the speed of this algorithm for finding
+            issue data in commit trees. Check if the GitPython library has good
+            multithreading support so that we can use thread to build issues.
+            Essentially this should be done here as this is a time consuming
+            process and can lead to a waste of developer time.
+
+            Threading is a good solution here because the commits and the references
+            that are used to build them are stored as text in a series of files.
+            It does not matter what order the files are written to the issue 
+            repository cache once they contain the correct references.
+        @assigned to: nystrome
+        @priority: medium 6/10
+        '''
         start = datetime.now()
         commits_scanned = 0
 
@@ -213,9 +234,13 @@ class IssueRepo(Repo):
                 issues = find_issues_in_tree(self, commit.tree)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
+
+            if all_commits:
+                write_last_issue(self.issue_dir, all_commits[0].hexsha)
+            else:
+                raise NoCommitsError
         else:
             raise NoCommitsError
-        write_last_issue(self.issue_dir, all_commits[0].hexsha)
 
     def build_history(self, rev=None, paths='', **kwargs):
         """
@@ -236,7 +261,17 @@ class IssueRepo(Repo):
                 icommits = list(self.iter_issue_commits('--branches'))
 
             for icommit in icommits:
-
+                """
+                @issue specify files related to issue
+                @description
+                    It may be useful to specify the files that are related to the issue.
+                    This way when we are building the history, if those files specified
+                    are present we can then use the commit data only from those files to
+                    show the commit activity. This will show explicitly that work has been
+                    done on those files.
+                @label feature-enhancement
+                @priority medium
+                """
                 for issue in icommit.issuetree.issues:
                     in_branches = self.find_present_branches(
                         icommit.commit.hexsha)
@@ -253,21 +288,31 @@ class IssueRepo(Repo):
                         history[issue.id]['last_authored_date'] = \
                             icommit.commit.authored_datetime.strftime(
                             time_format)
-                        history[issue.id]['revisions'] = set()
-                        history[issue.id]['revisions'].add(issue.hexsha)
+
+                        # add lists of information for the latest revision and activity
+                        history[issue.id]['revisions'] = []
+                        history[issue.id]['revisions'].append(issue.hexsha)
                         history[issue.id]['activity'] = []
-                        activity = {'date': icommit.commit.authored_datetime.strftime(time_format),
+                        activity = {'commitsha': icommit.hexsha,
+                                    'date': icommit.commit.authored_datetime.strftime(time_format),
                                     'author': icommit.commit.author.name,
                                     'summary': icommit.commit.summary}
                         history[issue.id]['activity'].append(activity)
+
+                        # add sets needed to detect the participants and
+                        # branches where the issue can be found
                         history[issue.id]['participants'] = set()
                         history[issue.id]['participants'].add(
                             icommit.commit.author.name)
                         history[issue.id]['in_branches'] = set()
                         history[issue.id]['in_branches'].update(in_branches)
-                        # for future use filling branch status
+
+                        # add sets for future use filling branch status
                         history[issue.id]['open_in'] = set()
                         history[issue.id]['filepath'] = set()
+
+                        # add lists to denote the changes made to issue description
+                        # over revisions of the issue
                         history[issue.id]['descriptions'] = []
                         if 'description' in history[issue.id]:
                             history[issue.id]['descriptions'].append(
@@ -276,9 +321,14 @@ class IssueRepo(Repo):
                                  'date': icommit.commit.authored_datetime.strftime(time_format)
                                  }
                             )
+
                     # update the history information when more instances
                     # of the issue is found
                     else:
+
+                        # update the creator as the first appearance of the
+                        # issue in a reversed list would mean that was the
+                        # creator
                         history[issue.id]['size'] += issue.size
                         history[issue.id]['creator'] = icommit.commit.author.name
                         history[issue.id]['created_date'] = \
@@ -287,14 +337,53 @@ class IssueRepo(Repo):
                         history[issue.id]['participants'].add(
                             icommit.commit.author.name)
                         history[issue.id]['in_branches'].update(in_branches)
-                        activity = {'date': icommit.commit.authored_datetime.strftime(time_format),
+
+                        # update the activity of the issue
+                        activity = {'commitsha': icommit.commit.hexsha,
+                                    'date': icommit.commit.authored_datetime.strftime(time_format),
                                     'author': icommit.commit.author.name,
                                     'summary': icommit.commit.summary}
                         history[issue.id]['activity'].append(activity)
-                        history[issue.id]['revisions'].add(issue.hexsha)
+
+                        # detect a revision change, find the differences between
+                        # the previous issue and update the previous revision
+                        # showing what changes were made.
+                        # finally: add the new revision to the list
+                        if issue.hexsha not in history[issue.id]['revisions']:
+                            last_revision = history[issue.id]['revisions'][-1]
+                            last_issue_revision = Issue(self, last_revision)
+                            changes = [x for x, v in last_issue_revision.data.items()
+                                       if v not in issue.data.values()]
+                            history[issue.id]['revisions'][-1] = history[issue.id]['revisions'][-1] + ' ~'
+                            for change in changes:
+                                if change != 'hexsha':
+                                    history[issue.id]['revisions'][-1] += f' {change},'
+                            history[issue.id]['revisions'][-1] += ' changed'
+                            history[issue.id]['revisions'].append(issue.hexsha)
+
+                        # if the previous issue had other issue information
+                        # not previously found on the first occurance of the issue
+                        if hasattr(issue, 'assignees'):
+                            history[issue.id]['assignees'] = issue.assignees
+                        if hasattr(issue, 'due_date'):
+                            history[issue.id]['due_date'] = issue.due_date
+                        if hasattr(issue, 'label'):
+                            history[issue.id]['label'] = issue.label
+                        if hasattr(issue, 'weight'):
+                            history[issue.id]['weight'] = issue.weight
+                        if hasattr(issue, 'priority'):
+                            history[issue.id]['priority'] = issue.priority
+
+                        # denote the changes made to issue description
+                        # over revisions of the issue using a diff
                         if 'description' in history[issue.id]:
                             if hasattr(issue, 'description'):
                                 if issue.description != history[issue.id]['description']:
+                                    diff = difflib.ndiff(
+                                        issue.description.splitlines(),
+                                        history[issue.id]['description'].splitlines())
+                                    history[issue.id]['descriptions'][-1]['change'] = \
+                                        '\n'.join(diff) + '\n'
                                     history[issue.id]['description'] = issue.description
                                     history[issue.id]['descriptions'].append(
                                         {'change': issue.description,
@@ -302,6 +391,9 @@ class IssueRepo(Repo):
                                          'date': icommit.commit.authored_datetime.strftime(time_format)
                                          }
                                     )
+
+                        # if the previous issue had other issue description
+                        # not previously found on the first occurance of the issue
                         else:
                             if hasattr(issue, 'description'):
                                 history[issue.id]['descriptions'].append(
@@ -316,9 +408,10 @@ class IssueRepo(Repo):
             for head in self.heads:
                 icommit = IssueCommit(self, head.commit.hexsha)
                 for issue in icommit.issuetree.issues:
-                    history[issue.id]['open_in'].add(head.name)
-                    history[issue.id]['filepath'].add(
-                        issue.data['filepath'] + ' @' + head.name)
+                    if issue.id in history:
+                        history[issue.id]['open_in'].add(head.name)
+                        history[issue.id]['filepath'].add(
+                            issue.data['filepath'] + ' @' + head.name)
 
             # sets the issue status based on its open status
             # in other branches
@@ -327,6 +420,21 @@ class IssueRepo(Repo):
                     issue['status'] = 'Open'
                 else:
                     issue['status'] = 'Closed'
+
+                    # gets the commit information of the closed issue
+                    # and adds that commit activity to the tip of activity list
+                    last_commit_sha = issue['activity'][0]['commitsha']
+                    last_icommit = IssueCommit(self, last_commit_sha)
+                    child = last_icommit.children[0]
+                    issue['closer'] = child.author.name
+                    issue['closed_date'] = child.authored_datetime.strftime(
+                        time_format)
+                    activity = {'commitsha': child.hexsha,
+                                'date': child.authored_datetime.strftime(time_format),
+                                'author': child.author.name,
+                                'summary': child.summary}
+                    issue['activity'].insert(0, activity)
+
         else:
             raise NoCommitsError
 
@@ -348,39 +456,48 @@ class IssueRepo(Repo):
         branches_present = branches_present.split('\n')
         return branches_present
 
-    @property
-    def all_issues(self):
+    def get_all_issues(self, rev=None, paths='', **kwargs):
         """Finds all the issues in the repo 
 
         Returns:
             :(dict) history: dictionary of the complex information \
             between the issue tracker and the source control
         """
-        history = self.build_history()
+        history = self.build_history(rev, paths, **kwargs)
         return history
 
-    @property
-    def open_issues(self):
+    def get_open_issues(self, rev=None, paths='', **kwargs):
         """Finds all the open issues in the repo 
 
         Returns:
             :(dict) history: dictionary of the complex information \
             between the issue tracker and the source control
         """
-        history = self.build_history()
+        history = self.build_history(rev, paths, **kwargs)
         history = {key: val for key,
                    val in history.items() if val['status'] == 'Open'}
         return history
 
-    @property
-    def closed_issues(self):
+    def get_closed_issues(self, rev=None, paths='', **kwargs):
         """Finds all the closed issues in the repo.
 
         Returns:
             :(dict) history: dictionary of the complex information \
             between the issue tracker and the source control
         """
-        history = self.build_history()
+        history = self.build_history(rev, paths, **kwargs)
         history = {key: val for key,
                    val in history.items() if val['status'] == 'Closed'}
         return history
+
+    @property
+    def all_issues(self):
+        return self.get_all_issues()
+
+    @property
+    def open_issues(self):
+        return self.get_open_issues()
+
+    @property
+    def closed_issues(self):
+        return self.get_closed_issues()
