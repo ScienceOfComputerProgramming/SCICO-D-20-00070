@@ -1,3 +1,21 @@
+# Version 0.4
+
+## New Features
+
+* Supports BDD `.feature` files
+* Supports `.yaml` `.yml` files
+* Supports Markdown documents `.md` files with HTML comment block
+* Detects and warns of duplicate issue ids
+* Tracker shows person that closed the issue
+* Tracker shows diff of descriptions of an issue changed over time
+* Tracker infers issue revision showing what has chanded on the issue over time
+* Command line argument can specify git revisions
+
+## Changes
+
+* Fixed arguments of command line inputs
+* All tests updated
+
 # Version 0.3.2
 
 ## Changes

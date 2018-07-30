@@ -25,7 +25,8 @@ python_docs:
   script:
     - apk --no-cache add make
     - apk --no-cache add git
-    - pip install sphinx sphinx_rtd_theme gitpython
+    - pip install sphinx sphinx_rtd_theme
+    - pip install -r requirements.txt
     - cd docs
     - make html
   artifacts:
