@@ -206,22 +206,24 @@ def build_history_item(item):
         output += f'\nWeight:             {item["weight"]}'
     if 'priority' in item:
         output += f'\nPriority:           {item["priority"]}'
-    output += f'\nIn Branches:        '
+    output += f'\nFound In:           '
     for branch in item['in_branches']:
         output += branch + ', '
-    output += f'\nOpen In Branches:   '
-    for branch in item['open_in']:
-        output += branch + ', '
-    if 'size' in item:
-        output += f'\nSize:               {str(item["size"])}'
-    output += '\nFilepath:'
-    for path in item['filepath']:
-        output += '\n' + ' '*20 + path
+
+    if item['status'] == 'Open':
+        output += f'\nOpen In Branches:   '
+        for branch in item['open_in']:
+            output += branch + ', '
+        if 'size' in item:
+            output += f'\nSize:               {str(item["size"])}'
+        output += '\nFilepath:'
+        for path in item['filepath']:
+            output += '\n' + ' '*20 + path
 
     output += f'\n'
     output += f'\nIssue Revisions:    {str(len(item["revisions"]))}'
     for revision in item['revisions']:
-        output += '\n' + ' '*20 + revision
+        output += '\n' + revision
 
     output += f'\n'
     output += f'\nCommit Activities:  {str(len(item["activity"]))}'
