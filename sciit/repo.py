@@ -303,7 +303,8 @@ class IssueRepo(Repo):
                         history[issue.id]['revisions'] = set()
                         history[issue.id]['revisions'].add(issue.hexsha)
                         history[issue.id]['activity'] = []
-                        activity = {'date': icommit.commit.authored_datetime.strftime(time_format),
+                        activity = {'commitsha': icommit.hexsha,
+                                    'date': icommit.commit.authored_datetime.strftime(time_format),
                                     'author': icommit.commit.author.name,
                                     'summary': icommit.commit.summary}
                         history[issue.id]['activity'].append(activity)
@@ -334,7 +335,8 @@ class IssueRepo(Repo):
                         history[issue.id]['participants'].add(
                             icommit.commit.author.name)
                         history[issue.id]['in_branches'].update(in_branches)
-                        activity = {'date': icommit.commit.authored_datetime.strftime(time_format),
+                        activity = {'commitsha': icommit.commit.hexsha,
+                                    'date': icommit.commit.authored_datetime.strftime(time_format),
                                     'author': icommit.commit.author.name,
                                     'summary': icommit.commit.summary}
                         history[issue.id]['activity'].append(activity)
@@ -385,6 +387,18 @@ class IssueRepo(Repo):
                     issue['status'] = 'Open'
                 else:
                     issue['status'] = 'Closed'
+                    last_commit_sha = issue['activity'][0]['commitsha']
+                    last_icommit = IssueCommit(self, last_commit_sha)
+                    child = last_icommit.children[0]
+                    issue['closer'] = child.author.name
+                    issue['closed_date'] = child.authored_datetime.strftime(
+                        time_format)
+                    activity = {'commitsha': child.hexsha,
+                                'date': child.authored_datetime.strftime(time_format),
+                                'author': child.author.name,
+                                'summary': child.summary}
+                    issue['activity'].insert(0, activity)
+
         else:
             raise NoCommitsError
 

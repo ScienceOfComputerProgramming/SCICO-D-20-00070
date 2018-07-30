@@ -181,6 +181,10 @@ def build_history_item(item):
     output += f'\nTitle: {item["title"]}'
 
     output += f'\n'
+    if 'closer' in item:
+        output += f'\nClosed:             '
+        output += f' {item["closer"]}'
+        output += f' | {item["closed_date"]}'
     output += f'\nLast Authored:      '
     output += f' {item["last_author"]}'
     output += f' | {item["last_authored_date"]}'
