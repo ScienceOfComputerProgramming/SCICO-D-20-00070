@@ -236,9 +236,17 @@ def build_history_item(item):
     if 'description' in item:
         output += '\n' + '_'*90 + '\n' + Color.bold('Descriptions:')
         for description in item['descriptions']:
-            output += f'\n{description["change"]}'
-            output += f'\n--> added by:'
-            output += f' {Color.red(description["author"])}'
+            for line in description["change"].splitlines():
+                if line.startswith('+'):
+                    output += '\n' + Color.green(line)
+                elif line.startswith('-'):
+                    output += '\n' + Color.red(line)
+                elif line.startswith('?'):
+                    output += '\n' + Color.yellow(line)
+                else:
+                    output += '\n' + line
+            output += f'\n\n'
+            output += f'{Color.bold_yellow("--> added by: " + description["author"])}'
             output += f' - {description["date"]}'
             output += '\n' + '_'*70
 

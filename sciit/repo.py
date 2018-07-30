@@ -8,6 +8,7 @@ import os
 import re
 import stat
 import pkg_resources
+import difflib
 
 from shutil import copyfile
 from datetime import datetime
@@ -250,19 +251,6 @@ class IssueRepo(Repo):
             :NoCommitsError: if the git repository has no commits
             :GitCommandError: if the rev supplied is not valid
         """
-
-        '''
-        @issue better issue inferrence
-        @title Providing a better way to infer info from commits
-        @description: Update the issue tracker builder to get information
-        about the following:
-
-        * Show the commit that closes an issue -> gitlab-issue#15
-        * Show more detailed information on issue revisions
-          * Show who made the revision and what was revised
-        * Show better display of changes to the description possibly in
-        the issue revisions section.
-        '''
         if self.heads:
             history = {}
             time_format = '%a %b %d %H:%M:%S %Y %z'
@@ -300,8 +288,8 @@ class IssueRepo(Repo):
                         history[issue.id]['last_authored_date'] = \
                             icommit.commit.authored_datetime.strftime(
                             time_format)
-                        
-                        #add lists of information for the latest revision and activity
+
+                        # add lists of information for the latest revision and activity
                         history[issue.id]['revisions'] = []
                         history[issue.id]['revisions'].append(issue.hexsha)
                         history[issue.id]['activity'] = []
@@ -311,7 +299,7 @@ class IssueRepo(Repo):
                                     'summary': icommit.commit.summary}
                         history[issue.id]['activity'].append(activity)
 
-                        #add sets needed to detect the participants and 
+                        # add sets needed to detect the participants and
                         # branches where the issue can be found
                         history[issue.id]['participants'] = set()
                         history[issue.id]['participants'].add(
@@ -334,12 +322,11 @@ class IssueRepo(Repo):
                                  }
                             )
 
-
                     # update the history information when more instances
                     # of the issue is found
                     else:
 
-                        # update the creator as the first appearance of the 
+                        # update the creator as the first appearance of the
                         # issue in a reversed list would mean that was the
                         # creator
                         history[issue.id]['size'] += issue.size
@@ -358,7 +345,7 @@ class IssueRepo(Repo):
                                     'summary': icommit.commit.summary}
                         history[issue.id]['activity'].append(activity)
 
-                        # detect a revision change, find the differences between 
+                        # detect a revision change, find the differences between
                         # the previous issue and update the previous revision
                         # showing what changes were made.
                         # finally: add the new revision to the list
@@ -373,7 +360,7 @@ class IssueRepo(Repo):
                                     history[issue.id]['revisions'][-1] += f' {change},'
                             history[issue.id]['revisions'][-1] += ' changed'
                             history[issue.id]['revisions'].append(issue.hexsha)
-                        
+
                         # if the previous issue had other issue information
                         # not previously found on the first occurance of the issue
                         if hasattr(issue, 'assignees'):
@@ -388,10 +375,15 @@ class IssueRepo(Repo):
                             history[issue.id]['priority'] = issue.priority
 
                         # denote the changes made to issue description
-                        # over revisions of the issue
+                        # over revisions of the issue using a diff
                         if 'description' in history[issue.id]:
                             if hasattr(issue, 'description'):
                                 if issue.description != history[issue.id]['description']:
+                                    diff = difflib.ndiff(
+                                        issue.description.splitlines(),
+                                        history[issue.id]['description'].splitlines())
+                                    history[issue.id]['descriptions'][-1]['change'] = \
+                                        '\n'.join(diff) + '\n'
                                     history[issue.id]['description'] = issue.description
                                     history[issue.id]['descriptions'].append(
                                         {'change': issue.description,
