@@ -80,8 +80,9 @@ class IssueCommit(Object):
         pattern = re.compile(r'(?:' + self.hexsha + ')(.*)')
         child_shas = pattern.findall(rev_list)[0]
         child_shas = child_shas.strip(' ').split(' ')
-        for child in child_shas:
-            children.append(Commit(self.repo, hex_to_bin(child)))
+        if child_shas[0] != '':
+            for child in child_shas:
+                children.append(Commit(self.repo, hex_to_bin(child)))
         return children
 
     @property

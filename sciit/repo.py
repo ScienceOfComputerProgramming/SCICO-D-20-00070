@@ -251,6 +251,23 @@ class IssueRepo(Repo):
             :NoCommitsError: if the git repository has no commits
             :GitCommandError: if the rev supplied is not valid
         """
+
+        def find_present_branches(commit_sha):
+            """
+            A function that helps find the branches that this commit is
+            present in which can be used to define where issues are present
+
+            Args:
+                :(str) commit_sha: The commit hexsha to look for
+            """
+            branches_present = self.git.execute(
+                ['git', 'branch', '--contains', commit_sha])
+            branches_present = branches_present.replace(
+                '*', '').replace(' ', '')
+            branches_present = branches_present
+            branches_present = branches_present.split('\n')
+            return branches_present
+
         if self.heads:
             history = {}
             time_format = '%a %b %d %H:%M:%S %Y %z'
@@ -273,8 +290,7 @@ class IssueRepo(Repo):
                 @priority medium
                 """
                 for issue in icommit.issuetree.issues:
-                    in_branches = self.find_present_branches(
-                        icommit.commit.hexsha)
+                    in_branches = find_present_branches(icommit.commit.hexsha)
                     # issue first appearance in history build the general
                     # indexes needed to record complex information
                     if issue.id not in history:
@@ -309,7 +325,7 @@ class IssueRepo(Repo):
 
                         # add sets for future use filling branch status
                         history[issue.id]['open_in'] = set()
-                        history[issue.id]['filepath'] = set()
+                        history[issue.id]['filepaths'] = set()
 
                         # add lists to denote the changes made to issue description
                         # over revisions of the issue
@@ -404,13 +420,21 @@ class IssueRepo(Repo):
                                 )
 
             # fills the open branch set with branch status using the
-            # issue trees at the head of each branch
+            # issue trees at the head of each branch depending on rev
             for head in self.heads:
-                icommit = IssueCommit(self, head.commit.hexsha)
+                if rev is not None:
+                    rev_list = self.git.execute(
+                        ['git', 'rev-list', f'{head.name}', '--'])
+                    if icommits[0].hexsha not in rev_list:
+                        continue
+                    else:
+                        icommit = icommits[0]
+                else:
+                    icommit = IssueCommit(self, head.commit.hexsha)
                 for issue in icommit.issuetree.issues:
                     if issue.id in history:
                         history[issue.id]['open_in'].add(head.name)
-                        history[issue.id]['filepath'].add(
+                        history[issue.id]['filepaths'].add(
                             issue.data['filepath'] + ' @' + head.name)
 
             # sets the issue status based on its open status
@@ -439,22 +463,6 @@ class IssueRepo(Repo):
             raise NoCommitsError
 
         return history
-
-    def find_present_branches(self, commit_sha):
-        """
-        A function that helps find the branches that this commit is
-        present in which can be used to define where issues are present
-
-        Args:
-            :(str) commit_sha: The commit hexsha to look for
-        """
-        branches_present = self.git.execute(
-            ['git', 'branch', '--contains', commit_sha])
-        branches_present = branches_present.replace(
-            '*', '').replace(' ', '')
-        branches_present = branches_present
-        branches_present = branches_present.split('\n')
-        return branches_present
 
     def get_all_issues(self, rev=None, paths='', **kwargs):
         """Finds all the issues in the repo 

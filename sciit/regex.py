@@ -41,7 +41,7 @@ def get_file_object_pattern(file_object):
             pattern = CSTYLE
         elif ext in HTML_EXTS:
             pattern = HTML
-        elif ext in OTHER_EXTS:
+        elif ext in OTHER_EXTS or file_object.mime_type == 'text/plain':
             pattern = PLAIN
         elif ext == '.m':
             pattern = MATLAB
