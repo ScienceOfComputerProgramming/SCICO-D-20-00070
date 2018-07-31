@@ -216,8 +216,8 @@ def build_history_item(item):
             output += branch + ', '
         if 'size' in item:
             output += f'\nSize:               {str(item["size"])}'
-        output += '\nFilepath:'
-        for path in item['filepath']:
+        output += '\nFilepaths:'
+        for path in item['filepaths']:
             output += '\n' + ' '*20 + path
 
     output += f'\n'
