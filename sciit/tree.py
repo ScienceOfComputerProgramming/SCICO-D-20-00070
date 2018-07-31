@@ -14,7 +14,7 @@ from git.util import hex_to_bin
 from sciit import Issue
 from sciit.issue import find_issue_data_in_comment
 from sciit.functions import serialize, deserialize, object_exists
-from sciit.regex import get_file_object_pattern
+from sciit.regex import get_file_object_pattern, PLAIN
 
 
 __all__ = ('IssueTree', 'find_issues_in_tree',)
@@ -59,6 +59,8 @@ def find_issues_in_tree(repo, commit_tree, pattern=None):
                 if comments:
                     # search for issues embedded within the comments
                     for comment in comments:
+                        if search == PLAIN:
+                            comment = re.sub(r'^\s*#', '', comment, flags=re.M)
                         issue_data = find_issue_data_in_comment(comment)
                         if issue_data:
                             issue_data['filepath'] = file_object.path
