@@ -27,6 +27,7 @@ from sciit.cli.init import init
 from sciit.cli.log import log
 from sciit.cli.status import status
 from sciit.cli.tracker import tracker
+from sciit.cli.issue import issue
 
 
 def main():
@@ -115,6 +116,16 @@ def main():
         tracker_parser.add_argument('--save', action='store_true',
                                     help='saves issue history selected to the HISTORY file in '
                                     'your issue repository directory')
+
+        # responsible for the issue subcommand
+        issue_parser = subparsers.add_parser(
+            'issue', description='Prints an issue and it\'s status')
+        issue_parser.set_defaults(func=issue)
+        issue_parser.add_argument('issueid', action='store', type=str,
+                                  help='The id of the issue that you are looking for')
+        issue_parser.add_argument('--save', action='store_true',
+                                  help='saves issue history selected to the HISTORY file in '
+                                  'your issue repository directory')
 
         args = parser.parse_args()
 
