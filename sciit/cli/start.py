@@ -22,7 +22,7 @@ from git.exc import InvalidGitRepositoryError
 from sciit import IssueRepo
 from sciit.cli.catfile import catfile
 from sciit.cli.functions import read_man_file
-from sciit.cli.color import CPrint
+from sciit.cli.color import CPrint, Color
 from sciit.cli.init import init
 from sciit.cli.log import log
 from sciit.cli.status import status
@@ -100,20 +100,37 @@ def main():
             'tracker', description='Prints a log that shows issues and their status')
         tracker_parser.set_defaults(func=tracker)
         tracker_parser.add_argument('revision', action='store', type=str, nargs='?',
-                                    help='the revision which you would like'
-                                    'to check for your issue tracker. see git revision'
-                                    'for more information')
+                                    help='default: uses the entire issue repository. or if'
+                                    'specified the revision which you would like '
+                                    'to check for your issue tracker. see git revision '
+                                    'for more information *optional')
         group = tracker_parser.add_mutually_exclusive_group()
-        group.add_argument('--all',
+        group.add_argument('-a', '--all',
                            help='show all the issues currently tracked and their status',
                            action='store_true')
-        group.add_argument('--open',
-                           help='show only issues that are open',
+        group.add_argument('-o', '--open',
+                           help=Color.green('default:') +
+                           ' show only issues that are open',
                            action='store_true')
-        group.add_argument('--closed',
+        group.add_argument('-c', '--closed',
                            help='show only issues that are closed',
                            action='store_true')
-        tracker_parser.add_argument('--save', action='store_true',
+        group2 = tracker_parser.add_mutually_exclusive_group()
+        group2.add_argument('-f', '--full',
+                            help='view the full tracker information for all issues including, '
+                            'description revisions, commit activity, issue revisions, '
+                            'multiple filepaths, open in, and found in branches  ',
+                            action='store_true')
+        group2.add_argument('-d', '--detailed',
+                            help='view tracker information including '
+                            'commit activity, multiple filepaths, open in, '
+                            'and found in branches ',
+                            action='store_true')
+        group2.add_argument('-n', '--normal',
+                            help=Color.green('default:') +
+                            ' view tracker information normally needed ',
+                            action='store_true')
+        tracker_parser.add_argument('-s', '--save', action='store_true',
                                     help='saves issue history selected to the HISTORY file in '
                                     'your issue repository directory')
 

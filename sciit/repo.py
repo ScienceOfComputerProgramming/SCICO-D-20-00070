@@ -331,6 +331,7 @@ class IssueRepo(Repo):
                         # over revisions of the issue
                         history[issue.id]['descriptions'] = []
                         if 'description' in history[issue.id]:
+                            history[issue.id]['last_description'] = issue.description
                             history[issue.id]['descriptions'].append(
                                 {'change': issue.description,
                                  'author': icommit.commit.author.name,
@@ -394,13 +395,13 @@ class IssueRepo(Repo):
                         # over revisions of the issue using a diff
                         if 'description' in history[issue.id]:
                             if hasattr(issue, 'description'):
-                                if issue.description != history[issue.id]['description']:
+                                if issue.description != history[issue.id]['last_description']:
                                     diff = difflib.ndiff(
                                         issue.description.splitlines(),
                                         history[issue.id]['description'].splitlines())
                                     history[issue.id]['descriptions'][-1]['change'] = \
                                         '\n'.join(diff) + '\n'
-                                    history[issue.id]['description'] = issue.description
+                                    history[issue.id]['last_description'] = issue.description
                                     history[issue.id]['descriptions'].append(
                                         {'change': issue.description,
                                          'author': icommit.commit.author.name,
@@ -412,6 +413,7 @@ class IssueRepo(Repo):
                         # not previously found on the first occurance of the issue
                         else:
                             if hasattr(issue, 'description'):
+                                history[issue.id]['last_description'] = issue.description
                                 history[issue.id]['descriptions'].append(
                                     {'change': issue.description,
                                      'author': icommit.commit.author.name,
@@ -440,6 +442,8 @@ class IssueRepo(Repo):
             # sets the issue status based on its open status
             # in other branches
             for issue in history.values():
+                if 'last_description' in issue:
+                    del issue['last_description']
                 if issue['open_in']:
                     issue['status'] = 'Open'
                 else:
@@ -456,7 +460,7 @@ class IssueRepo(Repo):
                     activity = {'commitsha': child.hexsha,
                                 'date': child.authored_datetime.strftime(time_format),
                                 'author': child.author.name,
-                                'summary': child.summary}
+                                'summary': child.summary + ' (closed)'}
                     issue['activity'].insert(0, activity)
 
         else:
