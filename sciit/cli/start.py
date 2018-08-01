@@ -138,6 +138,21 @@ def main():
         issue_parser = subparsers.add_parser(
             'issue', description='Prints an issue and it\'s status')
         issue_parser.set_defaults(func=issue)
+        group = issue_parser.add_mutually_exclusive_group()
+        group.add_argument('-f', '--full',
+                           help='view the full tracker information for all issues including, '
+                           'description revisions, commit activity, issue revisions, '
+                           'multiple filepaths, open in, and found in branches  ',
+                           action='store_true')
+        group.add_argument('-d', '--detailed',
+                           help='view tracker information including '
+                           'commit activity, multiple filepaths, open in, '
+                           'and found in branches ',
+                           action='store_true')
+        group.add_argument('-n', '--normal',
+                           help=Color.green('default:') +
+                           ' view tracker information normally needed ',
+                           action='store_true')
         issue_parser.add_argument('issueid', action='store', type=str,
                                   help='The id of the issue that you are looking for')
         issue_parser.add_argument('--save', action='store_true',

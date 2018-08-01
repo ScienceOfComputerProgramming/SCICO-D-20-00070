@@ -29,11 +29,22 @@ def issue(args):
         CPrint.bold_red('Run: git scitt init')
         return
 
+    # force normal if no flags supplied
+    if not args.normal and not args.detailed and not args.full:
+        args.normal = True
+
+    if args.normal:
+        view = 'normal'
+    elif args.detailed:
+        view = 'detailed'
+    elif args.full:
+        view = 'full'
+
     args.repo.sync()
     try:
         history = args.repo.build_history()
         if args.issueid in history:
-            page_history_item(history[args.issueid])
+            page_history_item(history[args.issueid], view)
         else:
             print("\n".join(history.keys()))
             CPrint.bold_green('No issues found')
