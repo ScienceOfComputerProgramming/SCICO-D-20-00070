@@ -17,6 +17,7 @@ from git.exc import GitCommandError
 from sciit.cli.functions import page_history_item
 from sciit.cli.color import CPrint
 from sciit.errors import NoCommitsError
+from slugify import slugify
 
 
 def issue(args):
@@ -41,13 +42,15 @@ def issue(args):
         view = 'full'
 
     args.repo.sync()
+    args.issueid = slugify(args.issueid)
     try:
         history = args.repo.build_history()
         if args.issueid in history:
             page_history_item(history[args.issueid], view)
         else:
+            CPrint.bold_red(f'No issues found matching \'{args.issueid}\' ')
+            print('\nHere are issues that are in the tracker:\n')
             print("\n".join(history.keys()))
-            CPrint.bold_green('No issues found')
     except NoCommitsError as error:
         error = f'git sciit error fatal: {str(error)}'
         CPrint.bold_red(error)
