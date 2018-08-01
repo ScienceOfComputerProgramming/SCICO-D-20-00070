@@ -35,6 +35,17 @@ def tracker(args):
     if not args.all and not args.closed and not args.open:
         args.open = True
 
+    # force normal if no flags supplied
+    if not args.normal and not args.detailed and not args.full:
+        args.normal = True
+
+    if args.normal:
+        view = 'normal'
+    elif args.detailed:
+        view = 'detailed'
+    elif args.full:
+        view = 'full'
+
     try:
         # open flag selected
         if args.open:
@@ -51,7 +62,7 @@ def tracker(args):
                 CPrint.bold('Issues saved to ' +
                             args.repo.issue_dir + '/HISTORY\n')
             else:
-                output = page_history_items(history)
+                output = page_history_items(history, view)
                 return output
         else:
             CPrint.bold_green('No issues found')

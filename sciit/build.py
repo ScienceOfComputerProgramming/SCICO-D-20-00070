@@ -161,7 +161,7 @@ def build_clean_issue(issue):
     return output
 
 
-def build_history_item(item):
+def build_history_item(item, view=None):
     """Builds a string representation of a issue history item for showing
     to the terminal with ANSI color codes
 
@@ -206,48 +206,68 @@ def build_history_item(item):
         output += f'\nWeight:             {item["weight"]}'
     if 'priority' in item:
         output += f'\nPriority:           {item["priority"]}'
-    output += f'\nFound In:           '
-    for branch in item['in_branches']:
-        output += branch + ', '
+
+    if view == 'full' or view == 'detailed':
+        output += f'\nFound In:           '
+        for branch in item['in_branches']:
+            output += branch + ', '
 
     if item['status'] == 'Open':
-        output += f'\nOpen In Branches:   '
-        for branch in item['open_in']:
-            output += branch + ', '
+
+        if view == 'full' or view == 'detailed':
+            output += f'\nOpen In Branches:   '
+            for branch in item['open_in']:
+                output += branch + ', '
+
         if 'size' in item:
             output += f'\nSize:               {str(item["size"])}'
-        output += '\nFilepaths:'
-        for path in item['filepaths']:
-            output += '\n' + ' '*20 + path
+        if view == 'full' or view == 'detailed':
+            output += '\nFilepaths:'
+            for path in item['filepaths']:
+                output += '\n' + ' '*20 + path
+        else:
+            output += '\nFilepath:           ' + item['filepath']
 
-    output += f'\n'
-    output += f'\nIssue Revisions:    {str(len(item["revisions"]))}'
-    for revision in item['revisions']:
-        output += '\n' + revision
+    if view == 'full':
+        output += f'\n'
+        output += f'\nIssue Revisions:    {str(len(item["revisions"]))}'
+        for revision in item['revisions']:
+            output += '\n' + revision
 
-    output += f'\n'
-    output += f'\nCommit Activities:  {str(len(item["activity"]))}'
-    for commit in item['activity']:
-        output += f'\n{commit["date"]}'
-        output += f' | {commit["author"]}'
-        output += f' | {commit["summary"]}'
+    if view == 'full' or view == 'detailed':
+        output += f'\n'
+        output += f'\nCommit Activities:  {str(len(item["activity"]))}'
+        for commit in item['activity']:
+            output += f'\n{commit["date"]}'
+            output += f' | {commit["author"]}'
+            output += f' | {commit["summary"]}'
 
-    output += f'\n'
-    if 'description' in item:
-        output += '\n' + '_'*90 + '\n' + Color.bold('Descriptions:')
-        for description in item['descriptions']:
-            for line in description["change"].splitlines():
-                if line.startswith('+'):
-                    output += '\n' + Color.green(line)
-                elif line.startswith('-'):
-                    output += '\n' + Color.red(line)
-                elif line.startswith('?'):
-                    output += '\n' + Color.yellow(line)
-                else:
-                    output += '\n' + line
+    if view == 'full':
+        output += f'\n'
+        if 'descriptions' in item:
+            output += '\n' + '_'*90 + '\n' + Color.bold('Descriptions:')
+            for description in item['descriptions']:
+                for line in description["change"].splitlines():
+                    if line.startswith('+'):
+                        output += '\n' + Color.green(line)
+                    elif line.startswith('-'):
+                        output += '\n' + Color.red(line)
+                    elif line.startswith('?'):
+                        output += '\n' + Color.yellow(line)
+                    else:
+                        output += '\n' + line
+                output += f'\n\n'
+                output += f'{Color.bold_yellow("--> added by: " + description["author"])}'
+                output += f' - {description["date"]}'
+                output += '\n' + '_'*70
+    else:
+        output += f'\n'
+        if 'description' in item:
+            output += '\n' + '_'*90 + '\n' + Color.bold('Description:')
+            output += '\n' + item['description']
             output += f'\n\n'
-            output += f'{Color.bold_yellow("--> added by: " + description["author"])}'
-            output += f' - {description["date"]}'
+            output += f'{Color.bold_yellow("--> added by: " + item["last_author"])}'
+            output += f' - {item["last_authored_date"]}'
             output += '\n' + '_'*70
 
     output += f'\n\n'
@@ -256,7 +276,7 @@ def build_history_item(item):
     return output
 
 
-def build_history_items(items):
+def build_history_items(items, view=None):
     """Builds a string representation of a dict of history items
     for showing to the terminal with ANSI color codes
 
@@ -268,7 +288,7 @@ def build_history_items(items):
     """
     output = ''
     for item in items.values():
-        output += build_history_item(item)
+        output += build_history_item(item, view)
     return output
 
 
