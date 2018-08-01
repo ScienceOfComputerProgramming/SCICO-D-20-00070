@@ -2,13 +2,21 @@
 """Module that assists with running git sciit tracker commands.
 This is in no way similar to any other git command. It compares
 all tracked issues with issues open in the current repository 
-or from the specified revision revision.
+or from the specified revision.
 
     Example:
         This module is accessed via::
 
-            $ git sciit tracker [-h] [--all] [--open] [--closed] [revision]
+            $ git sciit tracker [-h] [-a | -o | -c] [-f | -d | -n] [-s] [*revision*]
 
+                -a, --all       
+                -o, --open      
+                -c, --closed    
+                -f, --full      
+                -d, --detailed  
+                -n, --normal    
+                -s, --save      
+                    
 @author: Nystrom Edwards
 
 Created on 10 July 2018

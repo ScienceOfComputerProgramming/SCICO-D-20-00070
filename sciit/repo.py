@@ -460,7 +460,7 @@ class IssueRepo(Repo):
                     activity = {'commitsha': child.hexsha,
                                 'date': child.authored_datetime.strftime(time_format),
                                 'author': child.author.name,
-                                'summary': child.summary}
+                                'summary': child.summary + ' (closed)'}
                     issue['activity'].insert(0, activity)
 
         else:

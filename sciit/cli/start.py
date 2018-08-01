@@ -99,7 +99,8 @@ def main():
             'tracker', description='Prints a log that shows issues and their status')
         tracker_parser.set_defaults(func=tracker)
         tracker_parser.add_argument('revision', action='store', type=str, nargs='?',
-                                    help='the revision which you would like '
+                                    help='default: uses the entire issue repository. or if'
+                                    'specified the revision which you would like '
                                     'to check for your issue tracker. see git revision '
                                     'for more information *optional')
         group = tracker_parser.add_mutually_exclusive_group()
