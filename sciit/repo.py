@@ -18,6 +18,7 @@ from git import Repo
 from sciit import IssueTree, IssueCommit, Issue
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 from sciit.tree import find_issues_in_tree
+from sciit.commit import find_issues_in_commit
 from sciit.regex import PYTHON
 from sciit.functions import write_last_issue, get_last_issue
 from sciit.cli.functions import print_progress_bar
@@ -240,7 +241,7 @@ class IssueRepo(Repo):
                 self.print_commit_progress(
                     datetime.now(), start, commits_scanned, num_commits)
 
-                issues = find_issues_in_tree(self, commit.tree)
+                issues = find_issues_in_commit(self, commit)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
 
