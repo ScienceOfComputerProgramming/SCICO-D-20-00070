@@ -17,7 +17,6 @@ from git import Repo
 
 from sciit import IssueTree, IssueCommit, Issue
 from sciit.errors import EmptyRepositoryError, NoCommitsError
-from sciit.tree import find_issues_in_tree
 from sciit.commit import find_issues_in_commit
 from sciit.regex import PYTHON
 from sciit.functions import write_last_issue, get_last_issue
@@ -74,7 +73,7 @@ class IssueRepo(Repo):
             commits = list(self.iter_commits(revision))
 
             for commit in reversed(commits):
-                issues = find_issues_in_tree(self, commit.tree)
+                issues = find_issues_in_commit(self, commit)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
 
@@ -221,7 +220,9 @@ class IssueRepo(Repo):
             Then we must detect the issues that have been changed between this commit
             and the previous commit parent.
 
-            * consider that merge commits has several parents!
+            The Solution works:
+            Refactor all the code in the repository to use this new implementation and
+            update all tests for this accordingly
         @assigned to: nystrome
         @priority: high 8/10
         @label enhancement
