@@ -203,18 +203,27 @@ class IssueRepo(Repo):
         '''
         @issue Better Build Performance
         @description
-            Find some method to increase the speed of this algorithm for finding
-            issue data in commit trees. Check if the GitPython library has good
-            multithreading support so that we can use thread to build issues.
+            Motivation:
             Essentially this should be done here as this is a time consuming
             process and can lead to a waste of developer time.
 
-            Threading is a good solution here because the commits and the references
-            that are used to build them are stored as text in a series of files.
-            It does not matter what order the files are written to the issue 
-            repository cache once they contain the correct references.
+            Find some method to increase the speed of this algorithm for finding
+            issue data in commits. The GitPython library does not have good
+            multi-threading support, neither does git.
+            
+            Threading is not good because the bottle neck still exists at the 
+            file access and decompression level.
+
+            Possible Solution:
+            Find the files that have been changed in the commit made. This can be
+            provided by the GitPython object. Search for new issues in these files.
+            Then we must detect the issues that have been changed between this commit
+            and the previous commit parent.
+
+            * consider that merge commits has several parents!
         @assigned to: nystrome
-        @priority: medium 6/10
+        @priority: high 8/10
+        @label enhancement
         '''
         start = datetime.now()
         commits_scanned = 0
