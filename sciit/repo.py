@@ -232,7 +232,8 @@ class IssueRepo(Repo):
 
         if len(self.heads) > 0:
             # get all commits on the all branches
-            all_commits = list(self.iter_commits('--all'))
+            # enforcing the topology order of parents to children
+            all_commits = list(self.iter_commits(['--all','--topo-order']))
             num_commits = len(all_commits)
 
             # reversed to start at the first commit
