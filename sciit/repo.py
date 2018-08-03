@@ -200,33 +200,6 @@ class IssueRepo(Repo):
             :Shows Progress in Shell: if repo is used with command line interface
         """
 
-        '''
-        @issue Better Build Performance
-        @description
-            Motivation:
-            Essentially this should be done here as this is a time consuming
-            process and can lead to a waste of developer time.
-
-            Find some method to increase the speed of this algorithm for finding
-            issue data in commits. The GitPython library does not have good
-            multi-threading support, neither does git.
-            
-            Threading is not good because the bottle neck still exists at the 
-            file access and decompression level.
-
-            Possible Solution:
-            Find the files that have been changed in the commit made. This can be
-            provided by the GitPython object. Search for new issues in these files.
-            Then we must detect the issues that have been changed between this commit
-            and the previous commit parent.
-
-            The Solution works:
-            Refactor all the code in the repository to use this new implementation and
-            update all tests for this accordingly
-        @assigned to: nystrome
-        @priority: high 8/10
-        @label enhancement
-        '''
         start = datetime.now()
         commits_scanned = 0
 
@@ -290,17 +263,7 @@ class IssueRepo(Repo):
                 icommits = list(self.iter_issue_commits('--branches'))
 
             for icommit in icommits:
-                """
-                @issue specify files related to issue
-                @description
-                    It may be useful to specify the files that are related to the issue.
-                    This way when we are building the history, if those files specified
-                    are present we can then use the commit data only from those files to
-                    show the commit activity. This will show explicitly that work has been
-                    done on those files.
-                @label feature-enhancement
-                @priority medium
-                """
+                
                 for issue in icommit.issuetree.issues:
                     in_branches = find_present_branches(icommit.commit.hexsha)
                     # issue first appearance in history build the general
