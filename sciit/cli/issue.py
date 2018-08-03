@@ -7,7 +7,7 @@ user.
     Example:
         This module is accessed via::
 
-            $ git sciit issue [-h] [issue-id]
+            $ git sciit issue [-h] [-f | -d | -n] [--save] issueid [*revision*]
 
 @author: Nystrom Edwards
 
@@ -44,13 +44,18 @@ def issue(args):
     args.repo.sync()
     args.issueid = slugify(args.issueid)
     try:
-        history = args.repo.build_history()
+        history = args.repo.build_history(args.revision)
         if args.issueid in history:
-            page_history_item(history[args.issueid], view)
+            return page_history_item(history[args.issueid], view)
         else:
-            CPrint.bold_red(f'No issues found matching \'{args.issueid}\' ')
-            print('\nHere are issues that are in the tracker:\n')
-            print("\n".join(history.keys()))
+            if history:
+                CPrint.bold_red(
+                    f'No issues found matching \'{args.issueid}\' ')
+                print('\nHere are issues that are in the tracker:\n')
+                print("\n".join(history.keys()))
+            else:
+                CPrint.bold_red(
+                    f'No issues in the repository')
     except NoCommitsError as error:
         error = f'git sciit error fatal: {str(error)}'
         CPrint.bold_red(error)

@@ -158,6 +158,11 @@ def main():
         issue_parser.add_argument('--save', action='store_true',
                                   help='saves issue history selected to the HISTORY file in '
                                   'your issue repository directory')
+        issue_parser.add_argument('revision', action='store', type=str, nargs='?',
+                                  help='the revision path to use to generate the issue log e.g \'all\' '
+                                  'for all commits or \'master\' for all commit on master branch '
+                                  'or \'HEAD~2\' from the last two commits on current branch. '
+                                  'see git rev-list options for more path options. *optional')
 
         args = parser.parse_args()
 
