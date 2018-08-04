@@ -10,6 +10,7 @@ BUILDDIR      = _build
 
 SOURCEDIR     = ../sciit
 EXCLUDEDIRS    =  $(SOURCEDIR)/man/* $(SOURCEDIR)/hooks/*
+APIDIR = ./api
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
@@ -30,13 +31,13 @@ help:
 
 .PHONY: clean
 clean:
-	find . ! -name index.rst ! -name Makefile ! -name Cheatsheet.png ! -name conf.py -type f -delete
+	rm -rf $(APIDIR)
 	rm -rf $(BUILDDIR)/
 
 .PHONY: html
 html:
 	rm -rf $(BUILDDIR)/html/
-	$(SPHINXAPI) -o . $(SOURCEDIR) $(EXCLUDEDIRS) --separate
+	$(SPHINXAPI) -o $(APIDIR) $(SOURCEDIR) $(EXCLUDEDIRS) --separate
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
@@ -44,7 +45,7 @@ html:
 .PHONY: latex
 latex:
 	rm -rf $(BUILDDIR)/latex/
-	$(SPHINXAPI) -o . $(SOURCEDIR) $(EXCLUDEDIRS)
+	$(SPHINXAPI) -o $(APIDIR) $(SOURCEDIR) $(EXCLUDEDIRS)
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	@echo
 	@echo "Build finished; the LaTeX files are in $(BUILDDIR)/latex."
@@ -54,7 +55,7 @@ latex:
 .PHONY: latexpdf
 latexpdf:
 	rm -rf $(BUILDDIR)/latex/
-	$(SPHINXAPI) -o . $(SOURCEDIR) $(EXCLUDEDIRS)
+	$(SPHINXAPI) -o $(APIDIR) $(SOURCEDIR) $(EXCLUDEDIRS)
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	@echo "Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(BUILDDIR)/latex all-pdf
@@ -63,7 +64,7 @@ latexpdf:
 .PHONY: man
 man:
 	rm -rf $(BUILDDIR)/man/
-	$(SPHINXAPI) -o . $(SOURCEDIR) $(EXCLUDEDIRS)
+	$(SPHINXAPI) -o $(APIDIR) $(SOURCEDIR) $(EXCLUDEDIRS)
 	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(BUILDDIR)/man
 	@echo
 	@echo "Build finished. The manual pages are in $(BUILDDIR)/man."
@@ -71,7 +72,7 @@ man:
 .PHONY: coverage
 coverage:
 	rm -rf $(BUILDDIR)/coverage/
-	$(SPHINXAPI) -o . $(SOURCEDIR) $(EXCLUDEDIRS)
+	$(SPHINXAPI) -o $(APIDIR) $(SOURCEDIR) $(EXCLUDEDIRS)
 	$(SPHINXBUILD) -b coverage $(ALLSPHINXOPTS) $(BUILDDIR)/coverage
 	@echo "Testing of coverage in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/coverage/python.txt."

@@ -94,10 +94,8 @@ class TestStatusCommand(TestCase):
         args.revision = self.second
         args.repo = self.repo
 
-        args.all = False
-        args.open = False
+        args.normal = args.detailed = args.full = args.all = args.open = args.save = False
         args.closed = True
-        args.save = False
         args.repo.heads = []
 
         tracker(args)
@@ -115,9 +113,7 @@ class TestStatusCommand(TestCase):
         args.repo = self.repo
 
         args.all = True
-        args.open = False
-        args.closed = False
-        args.save = False
+        args.normal = args.detailed = args.full = args.open = args.closed = args.save = False
         args.repo.heads = []
         args.repo.build_history.return_value = {}
 
@@ -133,10 +129,8 @@ class TestStatusCommand(TestCase):
         args.revision = self.second
         args.repo = self.repo
 
-        args.all = False
+        args.all = args.closed = args.save = args.normal = args.detailed = args.full = False
         args.open = True
-        args.closed = False
-        args.save = False
 
         mhead = Mock()
         mhead.commit = self.second_commit
@@ -155,10 +149,8 @@ class TestStatusCommand(TestCase):
         args.revision = self.second
         args.repo = self.repo
 
-        args.all = False
-        args.open = False
-        args.closed = False
-        args.save = False
+        args.normal = args.detailed = args.full = False
+        args.closed = args.save = args.open = args.all = False
 
         mhead = Mock()
         mhead.commit = self.second_commit
@@ -179,9 +171,7 @@ class TestStatusCommand(TestCase):
         args.repo = self.repo
 
         args.all = True
-        args.open = False
-        args.closed = False
-        args.save = False
+        args.open = args.normal = args.detailed = args.full = args.closed = args.save = False
 
         mhead = Mock()
         mhead.commit = self.second_commit
@@ -204,10 +194,8 @@ class TestStatusCommand(TestCase):
         args.revision = self.second
         args.repo = self.repo
 
-        args.all = False
-        args.open = False
+        args.all = args.normal = args.detailed = args.full = args.save = args.open = False
         args.closed = True
-        args.save = False
 
         mhead = Mock()
         mhead.commit = self.second_commit
@@ -229,10 +217,8 @@ class TestStatusCommand(TestCase):
         args.revision = self.second
         args.repo = self.repo
 
-        args.all = False
-        args.open = True
-        args.closed = False
-        args.save = True
+        args.all = args.normal = args.detailed = args.full = args.closed = False
+        args.open = args.save = True
 
         mhead = Mock()
         mhead.commit = self.second_commit
@@ -241,3 +227,79 @@ class TestStatusCommand(TestCase):
 
         output = tracker(args)
         self.assertIsNone(output)
+
+    @patch('sciit.repo.IssueRepo.heads')
+    @patch('sciit.repo.IssueRepo.sync')
+    @patch('pydoc.pipepager')
+    def test_prints_normal_tracker_view(self, pager, sync, heads):
+        args = Mock()
+        args.revision = self.second
+        args.repo = self.repo
+
+        args.open = args.save = args.detailed = args.full = args.closed = False
+        args.all = args.normal = True
+
+        mhead = Mock()
+        mhead.commit = self.second_commit
+        mhead.name = 'master'
+        args.repo.heads = [mhead]
+
+        output = tracker(args)
+        output = self.ansi_escape.sub('', output)
+        self.assertNotIn('Descriptions:', output)
+        self.assertNotIn('Filepaths:', output)
+        self.assertNotIn('Commit Activities:', output)
+        self.assertNotIn('Found In:', output)
+        self.assertNotIn('Open In Branches:', output)
+
+    @patch('sciit.repo.IssueRepo.heads')
+    @patch('sciit.repo.IssueRepo.sync')
+    @patch('pydoc.pipepager')
+    def test_prints_detailed_tracker_view(self, pager, sync, heads):
+        args = Mock()
+        args.revision = self.second
+        args.repo = self.repo
+
+        args.open = args.save = args.normal = args.full = args.closed = False
+        args.all = args.detailed = True
+
+        mhead = Mock()
+        mhead.commit = self.second_commit
+        mhead.name = 'master'
+        args.repo.heads = [mhead]
+
+        output = tracker(args)
+        output = self.ansi_escape.sub('', output)
+        self.assertNotIn('Filepath:', output)
+        self.assertIn('Description:', output)
+        self.assertIn('Filepaths:', output)
+        self.assertIn('Commit Activities:', output)
+        self.assertIn('Found In:', output)
+        self.assertIn('Open In Branches:', output)
+        self.assertNotIn('Issue Revisions:', output)
+
+    @patch('sciit.repo.IssueRepo.heads')
+    @patch('sciit.repo.IssueRepo.sync')
+    @patch('pydoc.pipepager')
+    def test_prints_full_tracker_view(self, pager, sync, heads):
+        args = Mock()
+        args.revision = self.second
+        args.repo = self.repo
+
+        args.open = args.save = args.normal = args.detailed = args.closed = False
+        args.all = args.full = True
+
+        mhead = Mock()
+        mhead.commit = self.second_commit
+        mhead.name = 'master'
+        args.repo.heads = [mhead]
+
+        output = tracker(args)
+        output = self.ansi_escape.sub('', output)
+        self.assertNotIn('Filepath:', output)
+        self.assertIn('Descriptions:', output)
+        self.assertIn('Filepaths:', output)
+        self.assertIn('Commit Activities:', output)
+        self.assertIn('Found In:', output)
+        self.assertIn('Open In Branches:', output)
+        self.assertIn('Issue Revisions:', output)

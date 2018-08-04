@@ -14,62 +14,10 @@ from git.util import hex_to_bin
 from sciit import Issue
 from sciit.issue import find_issue_data_in_comment
 from sciit.functions import serialize, deserialize, object_exists
-from sciit.regex import get_file_object_pattern
+from sciit.regex import get_file_object_pattern, PLAIN
 
 
-__all__ = ('IssueTree', 'find_issues_in_tree',)
-
-
-def find_issues_in_tree(repo, commit_tree, pattern=None):
-    """
-    Recursively traverse the tree of files specified in a commit object's tree and
-    search for patterns that identify an issue.
-
-    Args:
-        :(Repo) repo: The issue repository
-        :(CommitTree) commit_tree: The tree object of a git commit
-        :(list) pattern: a specified regex pattern to match
-
-    Returns:
-        :(list(Issues)) issues: a list of issues
-    """
-    issues = []
-    if commit_tree.type != 'submodule':
-        for file_object in commit_tree:
-            if file_object.type == 'blob':
-
-                # get file extension and set pattern
-                if pattern is None:
-                    search = get_file_object_pattern(file_object)
-                else:
-                    search = pattern
-                if search is False:
-                    continue
-
-                try:
-                    # read the data contained in that file
-                    object_contents = file_object.data_stream.read().decode('utf-8')
-                except (UnicodeDecodeError, AttributeError):
-                    continue
-
-                # search for comment blocks in file based on file type
-                comments = re.findall(search, object_contents)
-
-                # if a comment block is found in the file
-                if comments:
-                    # search for issues embedded within the comments
-                    for comment in comments:
-                        issue_data = find_issue_data_in_comment(comment)
-                        if issue_data:
-                            issue_data['filepath'] = file_object.path
-                            issue = Issue.create(repo, issue_data)
-                            issues.append(issue)
-            else:
-                # extend the list with the values to create
-                # one flat list of matches
-                issues.extend(find_issues_in_tree(
-                    repo, file_object, pattern))
-    return issues
+__all__ = ('IssueTree', )
 
 
 class IssueTree(Object):

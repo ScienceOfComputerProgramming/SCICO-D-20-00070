@@ -17,7 +17,7 @@ from git import Repo
 
 from sciit import IssueTree, IssueCommit, Issue
 from sciit.errors import EmptyRepositoryError, NoCommitsError
-from sciit.tree import find_issues_in_tree
+from sciit.commit import find_issues_in_commit
 from sciit.regex import PYTHON
 from sciit.functions import write_last_issue, get_last_issue
 from sciit.cli.functions import print_progress_bar
@@ -73,7 +73,7 @@ class IssueRepo(Repo):
             commits = list(self.iter_commits(revision))
 
             for commit in reversed(commits):
-                issues = find_issues_in_tree(self, commit.tree)
+                issues = find_issues_in_commit(self, commit)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
 
@@ -200,28 +200,13 @@ class IssueRepo(Repo):
             :Shows Progress in Shell: if repo is used with command line interface
         """
 
-        '''
-        @issue Better Build Performance
-        @description
-            Find some method to increase the speed of this algorithm for finding
-            issue data in commit trees. Check if the GitPython library has good
-            multithreading support so that we can use thread to build issues.
-            Essentially this should be done here as this is a time consuming
-            process and can lead to a waste of developer time.
-
-            Threading is a good solution here because the commits and the references
-            that are used to build them are stored as text in a series of files.
-            It does not matter what order the files are written to the issue 
-            repository cache once they contain the correct references.
-        @assigned to: nystrome
-        @priority: medium 6/10
-        '''
         start = datetime.now()
         commits_scanned = 0
 
         if len(self.heads) > 0:
             # get all commits on the all branches
-            all_commits = list(self.iter_commits('--all'))
+            # enforcing the topology order of parents to children
+            all_commits = list(self.iter_commits(['--all','--topo-order']))
             num_commits = len(all_commits)
 
             # reversed to start at the first commit
@@ -231,7 +216,7 @@ class IssueRepo(Repo):
                 self.print_commit_progress(
                     datetime.now(), start, commits_scanned, num_commits)
 
-                issues = find_issues_in_tree(self, commit.tree)
+                issues = find_issues_in_commit(self, commit)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
 
@@ -251,6 +236,23 @@ class IssueRepo(Repo):
             :NoCommitsError: if the git repository has no commits
             :GitCommandError: if the rev supplied is not valid
         """
+
+        def find_present_branches(commit_sha):
+            """
+            A function that helps find the branches that this commit is
+            present in which can be used to define where issues are present
+
+            Args:
+                :(str) commit_sha: The commit hexsha to look for
+            """
+            branches_present = self.git.execute(
+                ['git', 'branch', '--contains', commit_sha])
+            branches_present = branches_present.replace(
+                '*', '').replace(' ', '')
+            branches_present = branches_present
+            branches_present = branches_present.split('\n')
+            return branches_present
+
         if self.heads:
             history = {}
             time_format = '%a %b %d %H:%M:%S %Y %z'
@@ -261,20 +263,9 @@ class IssueRepo(Repo):
                 icommits = list(self.iter_issue_commits('--branches'))
 
             for icommit in icommits:
-                """
-                @issue specify files related to issue
-                @description
-                    It may be useful to specify the files that are related to the issue.
-                    This way when we are building the history, if those files specified
-                    are present we can then use the commit data only from those files to
-                    show the commit activity. This will show explicitly that work has been
-                    done on those files.
-                @label feature-enhancement
-                @priority medium
-                """
+                
                 for issue in icommit.issuetree.issues:
-                    in_branches = self.find_present_branches(
-                        icommit.commit.hexsha)
+                    in_branches = find_present_branches(icommit.commit.hexsha)
                     # issue first appearance in history build the general
                     # indexes needed to record complex information
                     if issue.id not in history:
@@ -309,12 +300,13 @@ class IssueRepo(Repo):
 
                         # add sets for future use filling branch status
                         history[issue.id]['open_in'] = set()
-                        history[issue.id]['filepath'] = set()
+                        history[issue.id]['filepaths'] = set()
 
                         # add lists to denote the changes made to issue description
                         # over revisions of the issue
                         history[issue.id]['descriptions'] = []
                         if 'description' in history[issue.id]:
+                            history[issue.id]['last_description'] = issue.description
                             history[issue.id]['descriptions'].append(
                                 {'change': issue.description,
                                  'author': icommit.commit.author.name,
@@ -378,13 +370,13 @@ class IssueRepo(Repo):
                         # over revisions of the issue using a diff
                         if 'description' in history[issue.id]:
                             if hasattr(issue, 'description'):
-                                if issue.description != history[issue.id]['description']:
+                                if issue.description != history[issue.id]['last_description']:
                                     diff = difflib.ndiff(
                                         issue.description.splitlines(),
                                         history[issue.id]['description'].splitlines())
                                     history[issue.id]['descriptions'][-1]['change'] = \
                                         '\n'.join(diff) + '\n'
-                                    history[issue.id]['description'] = issue.description
+                                    history[issue.id]['last_description'] = issue.description
                                     history[issue.id]['descriptions'].append(
                                         {'change': issue.description,
                                          'author': icommit.commit.author.name,
@@ -396,6 +388,7 @@ class IssueRepo(Repo):
                         # not previously found on the first occurance of the issue
                         else:
                             if hasattr(issue, 'description'):
+                                history[issue.id]['last_description'] = issue.description
                                 history[issue.id]['descriptions'].append(
                                     {'change': issue.description,
                                      'author': icommit.commit.author.name,
@@ -404,18 +397,28 @@ class IssueRepo(Repo):
                                 )
 
             # fills the open branch set with branch status using the
-            # issue trees at the head of each branch
+            # issue trees at the head of each branch depending on rev
             for head in self.heads:
-                icommit = IssueCommit(self, head.commit.hexsha)
+                if rev is not None:
+                    rev_list = self.git.execute(
+                        ['git', 'rev-list', f'{head.name}', '--'])
+                    if icommits[0].hexsha not in rev_list:
+                        continue
+                    else:
+                        icommit = icommits[0]
+                else:
+                    icommit = IssueCommit(self, head.commit.hexsha)
                 for issue in icommit.issuetree.issues:
                     if issue.id in history:
                         history[issue.id]['open_in'].add(head.name)
-                        history[issue.id]['filepath'].add(
+                        history[issue.id]['filepaths'].add(
                             issue.data['filepath'] + ' @' + head.name)
 
             # sets the issue status based on its open status
             # in other branches
             for issue in history.values():
+                if 'last_description' in issue:
+                    del issue['last_description']
                 if issue['open_in']:
                     issue['status'] = 'Open'
                 else:
@@ -432,29 +435,13 @@ class IssueRepo(Repo):
                     activity = {'commitsha': child.hexsha,
                                 'date': child.authored_datetime.strftime(time_format),
                                 'author': child.author.name,
-                                'summary': child.summary}
+                                'summary': child.summary + ' (closed)'}
                     issue['activity'].insert(0, activity)
 
         else:
             raise NoCommitsError
 
         return history
-
-    def find_present_branches(self, commit_sha):
-        """
-        A function that helps find the branches that this commit is
-        present in which can be used to define where issues are present
-
-        Args:
-            :(str) commit_sha: The commit hexsha to look for
-        """
-        branches_present = self.git.execute(
-            ['git', 'branch', '--contains', commit_sha])
-        branches_present = branches_present.replace(
-            '*', '').replace(' ', '')
-        branches_present = branches_present
-        branches_present = branches_present.split('\n')
-        return branches_present
 
     def get_all_issues(self, rev=None, paths='', **kwargs):
         """Finds all the issues in the repo 

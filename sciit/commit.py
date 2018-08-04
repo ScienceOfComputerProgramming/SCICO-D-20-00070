@@ -11,10 +11,90 @@ import hashlib
 from git import util, Object, Commit
 from git.util import hex_to_bin
 
-from sciit import IssueTree
+from sciit import IssueTree, Issue
 from sciit.functions import serialize, deserialize, object_exists
+from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
+from sciit.issue import find_issue_data_in_comment
 
-__all__ = ('IssueCommit',)
+__all__ = ('IssueCommit', 'find_issues_in_commit')
+
+
+def find_issues_in_commit(repo, commit, pattern=None):
+    """
+    Find issues in files that were changed during a commit.
+
+    Args:
+        :(Repo) repo: The issue repository
+        :(CommitTree) commit_tree: The tree object of a git commit
+        :(list) pattern: a specified regex pattern to match
+
+    Returns:
+        :(list(Issues)) issues: a list of issues
+    """
+
+    def get_blobs(tree):
+        """
+        Gets all the blobs associated to a commit tree.
+
+        Args:
+            :(CommitTree) tree: The tree object of a git commit
+
+        Returns:
+            :(dict(Blobs)) blobs: a dictionary of blobs
+        """
+        blobs = {}
+        blobs.update({x.path: x for x in tree.blobs})
+        for tree in tree.trees:
+            blobs.update(get_blobs(tree))
+        return blobs
+
+    issues = []
+    files_changed = commit.stats.files.keys()
+    blobs = get_blobs(commit.tree)
+
+    for change in files_changed:
+        # handles renaming and deleted files they wont exist
+        if change not in blobs:
+            continue
+
+        # get file extension and set pattern
+        if pattern is None:
+            search = get_file_object_pattern(blobs[change])
+        else:
+            search = pattern
+        if search is False:
+            continue
+
+        try:
+            # read the data contained in that file
+            object_contents = blobs[change].data_stream.read().decode('utf-8')
+        except (UnicodeDecodeError, AttributeError):
+            continue
+
+        # search for comment blocks in file based on file type
+        # filter comment blocks that contain issues
+        comments = re.findall(search, object_contents)
+        comments = [x for x in comments if re.search(ISSUE.ID, x) is not None]
+        for comment in comments:
+            if search == PLAIN:
+                comment = re.sub(r'^\s*#', '', comment, flags=re.M)
+            if search == CSTYLE:
+                comment = re.sub(r'^\s*\*', '', comment, flags=re.M)
+            issue_data = find_issue_data_in_comment(comment)
+            if issue_data:
+                issue_data['filepath'] = change
+                issue = Issue.create(repo, issue_data)
+                issues.append(issue)
+
+    # bring forward the open issues that had no
+    # changes made to them from all available parents
+    for parent in commit.parents:
+        icommit = IssueCommit(repo, parent.hexsha)
+        old_issues = [x for x in icommit.issuetree.issues
+                      if x.filepath not in files_changed]
+        issues.extend(old_issues)
+
+    return issues
 
 
 class IssueCommit(Object):
@@ -41,7 +121,7 @@ class IssueCommit(Object):
                 the issue tree that contains all the issue contents for this commit
 
         :note:
-            The object may be deserialised from the file system when instatiated 
+            The object may be deserialised from the file system when instatiated
             or serialized to the file system when the object is created from a factory
         """
         if len(sha) > 20:
@@ -80,8 +160,9 @@ class IssueCommit(Object):
         pattern = re.compile(r'(?:' + self.hexsha + ')(.*)')
         child_shas = pattern.findall(rev_list)[0]
         child_shas = child_shas.strip(' ').split(' ')
-        for child in child_shas:
-            children.append(Commit(self.repo, hex_to_bin(child)))
+        if child_shas[0] != '':
+            for child in child_shas:
+                children.append(Commit(self.repo, hex_to_bin(child)))
         return children
 
     @property

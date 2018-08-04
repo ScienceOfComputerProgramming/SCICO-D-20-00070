@@ -2,13 +2,21 @@
 """Module that assists with running git sciit tracker commands.
 This is in no way similar to any other git command. It compares
 all tracked issues with issues open in the current repository 
-or from the specified revision revision.
+or from the specified revision.
 
     Example:
         This module is accessed via::
 
-            $ git sciit tracker [-h] [--all] [--open] [--closed] [revision]
+            $ git sciit tracker [-h] [-a | -o | -c] [-f | -d | -n] [-s] [*revision*]
 
+                -a, --all       
+                -o, --open      
+                -c, --closed    
+                -f, --full      
+                -d, --detailed  
+                -n, --normal    
+                -s, --save      
+                    
 @author: Nystrom Edwards
 
 Created on 10 July 2018
@@ -35,6 +43,17 @@ def tracker(args):
     if not args.all and not args.closed and not args.open:
         args.open = True
 
+    # force normal if no flags supplied
+    if not args.normal and not args.detailed and not args.full:
+        args.normal = True
+
+    if args.normal:
+        view = 'normal'
+    elif args.detailed:
+        view = 'detailed'
+    elif args.full:
+        view = 'full'
+
     try:
         # open flag selected
         if args.open:
@@ -51,7 +70,7 @@ def tracker(args):
                 CPrint.bold('Issues saved to ' +
                             args.repo.issue_dir + '/HISTORY\n')
             else:
-                output = page_history_items(history)
+                output = page_history_items(history, view)
                 return output
         else:
             CPrint.bold_green('No issues found')
