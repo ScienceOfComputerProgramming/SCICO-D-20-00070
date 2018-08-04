@@ -61,24 +61,24 @@ def page_issue(issue):
     return output
 
 
-def page_history_item(item):
+def page_history_item(item, view=None):
     """Prints raw string output to less pager
 
     Args:
         :(dict) item: history_item to print to pager
     """
-    output = build_history_item(item)
+    output = build_history_item(item, view)
     page(output)
     return output
 
 
-def page_history_items(items):
+def page_history_items(items, view=None):
     """Prints raw string output to less pager
 
     Args:
         :dict(dict) items: history items to print to pager
     """
-    output = build_history_items(items)
+    output = build_history_items(items, view)
     page(output)
     return output
 

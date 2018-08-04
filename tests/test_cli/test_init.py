@@ -55,8 +55,8 @@ class TestInitRepository(TestCase):
                       sys.stdout.getvalue())
 
     @patch('sciit.repo.IssueRepo.iter_commits')
-    @patch('sciit.repo.find_issues_in_tree')
-    def test_init_reset_repo_exists_with_commits(self, tree, commits):
+    @patch('sciit.repo.find_issues_in_commit')
+    def test_init_reset_repo_exists_with_commits(self, issues, commits):
         safe_create_repo_dir('here')
         args = Mock()
         args.repo = IssueRepo('here')
@@ -65,7 +65,7 @@ class TestInitRepository(TestCase):
         commits.return_value = [self.third_commit,
                                 self.second_commit,
                                 self.third_commit]
-        tree.return_value = []
+        issues.return_value = []
         init(args)
         self.assertIn('Building repository from commits',
                       sys.stdout.getvalue())

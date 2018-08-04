@@ -9,7 +9,7 @@
 :Created: 12 July 2018
 """
 from sciit import IssueRepo, IssueTree, IssueCommit
-from sciit.tree import find_issues_in_tree
+from sciit.commit import find_issues_in_commit
 from sciit.functions import write_last_issue
 from sciit.cli.color import CPrint
 import colorama
@@ -17,7 +17,7 @@ import colorama
 colorama.init()
 repo = IssueRepo()
 commit = repo.head.commit
-issues = find_issues_in_tree(repo, commit.tree)
+issues = find_issues_in_commit(repo, commit)
 
 
 # if duplicate issues rollback commit and exit
