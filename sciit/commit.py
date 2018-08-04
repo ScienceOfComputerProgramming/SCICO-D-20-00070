@@ -90,9 +90,9 @@ def find_issues_in_commit(repo, commit, pattern=None):
     # changes made to them from all available parents
     for parent in commit.parents:
         icommit = IssueCommit(repo, parent.hexsha)
-        blah = [x for x in icommit.issuetree.issues
-                if x.filepath not in files_changed]
-        issues.extend(blah)
+        old_issues = [x for x in icommit.issuetree.issues
+                      if x.filepath not in files_changed]
+        issues.extend(old_issues)
 
     return issues
 

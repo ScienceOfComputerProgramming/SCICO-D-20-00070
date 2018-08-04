@@ -1,6 +1,26 @@
-# Version 0.4
+Version 0.5
+-----------
 
-## New Features
+New Features
+~~~~~~~~~~~~
+
+* Three new issue tracker view modes full, detailed, and normal
+* New cli command issue that is able to show tracker information for single issue
+
+
+Changes
+~~~~~~~
+
+* Fixed revisions specified to cli commands
+* Major performance updates in finding issues in past commits
+* Updated the format of the user and api documentation
+
+
+Version 0.4
+-----------
+
+New Features
+~~~~~~~~~~~~
 
 * Supports BDD `.feature` files
 * Supports `.yaml` `.yml` files
@@ -11,34 +31,41 @@
 * Tracker infers issue revision showing what has chanded on the issue over time
 * Command line argument can specify git revisions
 
-## Changes
+Changes
+~~~~~~~
 
 * Fixed arguments of command line inputs
 * All tests updated
 
-# Version 0.3.2
 
-## Changes
+Version 0.3.2
+-------------
 
-* fixed command line errors associated with empty repository objects by:
-  * adding a sync method to keep issue repository in sync with git repository
-  * used the sync method in the command line to ensure repository is up to date
-* fixed issue hooks so that they install correctly when using `git sciit init` command
-* updated hooks with sync function
-* updated hooks to deal with detached HEAD
+Changes
+~~~~~~~
 
-# Version 0.3.1
+* Fixed command line errors associated with empty repository objects by:
+  * Adding a sync method to keep issue repository in sync with git repository
+  * Used the sync method in the command line to ensure repository is up to date
+* Fixed issue hooks so that they install correctly when using `git sciit init` command
+* Updated hooks with sync function
+* Updated hooks to deal with detached HEAD
 
-## Changes
+Version 0.3.1
+-------------
 
-* fixed the colour issues for the windows style terminals caused by ANSI
-* fixed the delete issue repository issue where shutil must find 
-and appropriate command based on desktop type to recursively remove directories.
-* updated regexes to find and use a unique slug for issues
+Changes
+~~~~~~~
 
-# Version 0.3
+* Fixed the colour issues for the windows style terminals caused by ANSI
+* Fixed the delete issue repository issue where shutil must find and appropriate command based on desktop type to recursively remove directories.
+* Updated regexes to find and use a unique slug for issues
 
-## New Features
+Version 0.3
+-----------
+
+New Features
+~~~~~~~~~~~~
 
 * Project renamed to Source Control Integrated Issue Tracker (SCIIT)
 * CLI issue tracker infers complex issue information from commit history
@@ -49,9 +76,11 @@ and appropriate command based on desktop type to recursively remove directories.
 
 **Supports: '.java', '.c', '.cpp', '.cxx', '.h', '.hpp', '.hxx', '.cs', '.php', '.css', '.js', '.sql', '.scala', '.swift', '.go', '.kt', '.kts', '.htm', '.html', '.xhtml', '.m', '.hs', '.rb', and '.py' source code files**
 
-# Version 0.2
+Version 0.2
+-----------
 
-## New Features
+New Features
+~~~~~~~~~~~~
 
 * Specifies issues in source code using a particular format **python only**
 * Gets metadata for issues and store them to the file system
@@ -59,9 +88,11 @@ and appropriate command based on desktop type to recursively remove directories.
 * Prints information stored in individual integrated issue repository objects
 * CLI used to get information from the integrated issue repository
 
-# Version 0.1
+Version 0.1
+-----------
 
-## New Features
+New Features
+~~~~~~~~~~~~
 
 * Library for managing source control integrated issues on the file system
   * Manages issues within issue tress

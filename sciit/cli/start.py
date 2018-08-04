@@ -155,7 +155,7 @@ def main():
                            action='store_true')
         issue_parser.add_argument('issueid', action='store', type=str,
                                   help='The id of the issue that you are looking for')
-        issue_parser.add_argument('--save', action='store_true',
+        issue_parser.add_argument('-s', '--save', action='store_true',
                                   help='saves issue history selected to the HISTORY file in '
                                   'your issue repository directory')
         issue_parser.add_argument('revision', action='store', type=str, nargs='?',

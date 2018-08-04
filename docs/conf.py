@@ -17,7 +17,6 @@
 #
 import os
 import sys
-from sciit.cli.functions import read_man_file
 sys.path.insert(0, os.path.abspath('..'))
 
 # -- General configuration ------------------------------------------------
@@ -62,7 +61,8 @@ author = u'Nystrom Johann Edwards'
 # built documents.
 #
 # The short X.Y version.
-VERSION = read_man_file('VERSION')
+with open('../sciit/man/VERSION', 'r') as v:
+    VERSION = v.read()
 version = f'version {VERSION}'
 # The full version, including alpha/beta/rc tags.
 release = f'version {VERSION}'
