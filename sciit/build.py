@@ -210,15 +210,14 @@ def build_history_item(item, view=None):
     if view == 'full' or view == 'detailed':
         output += f'\nFound In:           '
         for branch in item['in_branches']:
-            output += branch + ', '
+            output += '\n' + ' '*20 + branch
 
     if item['status'] == 'Open':
 
         if view == 'full' or view == 'detailed':
             output += f'\nOpen In Branches:   '
             for branch in item['open_in']:
-                output += branch + ', '
-
+                output += '\n' + ' '*20 + branch
         if 'size' in item:
             output += f'\nSize:               {str(item["size"])}'
         if view == 'full' or view == 'detailed':
