@@ -66,6 +66,7 @@ class IssueRepo(Repo):
         latest_commit = commits[0].hexsha
         revision = last_issue_commit + '..' + latest_commit
         str_commits = self.git.execute(['git', 'rev-list', revision])
+        ignored_files = get_sciit_ignore(self)
 
         # uses git.execute because iter_commits generator cannot
         # correctly identify false or empty list.
@@ -73,7 +74,7 @@ class IssueRepo(Repo):
             commits = list(self.iter_commits(revision))
 
             for commit in reversed(commits):
-                issues = find_issues_in_commit(self, commit)
+                issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
 
