@@ -212,20 +212,20 @@ def build_history_item(item, view=None):
         for branch in item['in_branches']:
             output += '\n' + ' '*20 + branch
 
+    if 'size' in item:
+        output += f'\nSize:               {str(item["size"])}'
+    output += '\nFilepath:           ' + item['filepath']
+
     if item['status'] == 'Open':
 
         if view == 'full' or view == 'detailed':
             output += f'\nOpen In Branches:   '
             for branch in item['open_in']:
                 output += '\n' + ' '*20 + branch
-        if 'size' in item:
-            output += f'\nSize:               {str(item["size"])}'
         if view == 'full' or view == 'detailed':
             output += '\nFilepaths:'
             for path in item['filepaths']:
                 output += '\n' + ' '*20 + path
-        else:
-            output += '\nFilepath:           ' + item['filepath']
 
     if view == 'full':
         output += f'\n'
@@ -238,6 +238,8 @@ def build_history_item(item, view=None):
         output += f'\nCommit Activities:  {str(len(item["activity"]))}'
         for commit in item['activity']:
             output += f'\n{commit["date"]}'
+            if view == 'full':
+                output += f' | {commit["commitsha"]}'
             output += f' | {commit["author"]}'
             output += f' | {commit["summary"]}'
 

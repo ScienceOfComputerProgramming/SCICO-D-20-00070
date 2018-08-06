@@ -19,7 +19,7 @@ from sciit import IssueTree, IssueCommit, Issue
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 from sciit.commit import find_issues_in_commit
 from sciit.regex import PYTHON
-from sciit.functions import write_last_issue, get_last_issue
+from sciit.functions import write_last_issue, get_last_issue, get_sciit_ignore
 from sciit.cli.functions import print_progress_bar
 
 __all__ = ('IssueRepo', )
@@ -66,6 +66,7 @@ class IssueRepo(Repo):
         latest_commit = commits[0].hexsha
         revision = last_issue_commit + '..' + latest_commit
         str_commits = self.git.execute(['git', 'rev-list', revision])
+        ignored_files = get_sciit_ignore(self)
 
         # uses git.execute because iter_commits generator cannot
         # correctly identify false or empty list.
@@ -73,7 +74,7 @@ class IssueRepo(Repo):
             commits = list(self.iter_commits(revision))
 
             for commit in reversed(commits):
-                issues = find_issues_in_commit(self, commit)
+                issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
 
@@ -208,6 +209,7 @@ class IssueRepo(Repo):
             # enforcing the topology order of parents to children
             all_commits = list(self.iter_commits(['--all','--topo-order']))
             num_commits = len(all_commits)
+            ignored_files = get_sciit_ignore(self)
 
             # reversed to start at the first commit
             for commit in reversed(all_commits):
@@ -216,7 +218,7 @@ class IssueRepo(Repo):
                 self.print_commit_progress(
                     datetime.now(), start, commits_scanned, num_commits)
 
-                issues = find_issues_in_commit(self, commit)
+                issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
 
