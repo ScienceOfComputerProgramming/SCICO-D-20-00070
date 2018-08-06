@@ -28,7 +28,7 @@ from sciit.cli.log import log
 from sciit.cli.status import status
 from sciit.cli.tracker import tracker
 from sciit.cli.issue import issue
-from sciit.web.start import app
+from sciit.web.start import startweb
 
 
 def main():
@@ -168,7 +168,7 @@ def main():
         # responsible for launching the local web server
         web_parser = subparsers.add_parser(
             'web', description='Launches the web interface')
-        web_parser.set_defaults(func=app.run(debug=True))
+        web_parser.set_defaults(func=startweb)
 
         args = parser.parse_args()
 

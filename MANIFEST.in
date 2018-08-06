@@ -1,3 +1,5 @@
 include sciit/hooks/*
 include sciit/man/*
 include README.md
+recursive-include sciit/web/templates *
+recursive-include sciit/web/static *
