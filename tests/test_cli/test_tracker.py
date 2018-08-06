@@ -270,7 +270,6 @@ class TestStatusCommand(TestCase):
 
         output = tracker(args)
         output = self.ansi_escape.sub('', output)
-        self.assertNotIn('Filepath:', output)
         self.assertIn('Description:', output)
         self.assertIn('Filepaths:', output)
         self.assertIn('Commit Activities:', output)
@@ -296,7 +295,6 @@ class TestStatusCommand(TestCase):
 
         output = tracker(args)
         output = self.ansi_escape.sub('', output)
-        self.assertNotIn('Filepath:', output)
         self.assertIn('Descriptions:', output)
         self.assertIn('Filepaths:', output)
         self.assertIn('Commit Activities:', output)

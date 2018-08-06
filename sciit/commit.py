@@ -6,20 +6,21 @@
 """
 
 import re
+import fnmatch
 import hashlib
 
 from git import util, Object, Commit
 from git.util import hex_to_bin
 
 from sciit import IssueTree, Issue
-from sciit.functions import serialize, deserialize, object_exists
+from sciit.functions import serialize, deserialize, object_exists, get_sciit_ignore
 from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
 from sciit.issue import find_issue_data_in_comment
 
 __all__ = ('IssueCommit', 'find_issues_in_commit')
 
 
-def find_issues_in_commit(repo, commit, pattern=None):
+def find_issues_in_commit(repo, commit, pattern=None, ignored_files=None):
     """
     Find issues in files that were changed during a commit.
 
@@ -49,8 +50,13 @@ def find_issues_in_commit(repo, commit, pattern=None):
         return blobs
 
     issues = []
-    files_changed = commit.stats.files.keys()
+    files_changed = set(commit.stats.files.keys())
     blobs = get_blobs(commit.tree)
+
+    # get sciit ignore to filter where to search for issues
+    if ignored_files:
+        matches = set(ignored_files.match_files(files_changed))
+        files_changed = files_changed - matches
 
     for change in files_changed:
         # handles renaming and deleted files they wont exist
