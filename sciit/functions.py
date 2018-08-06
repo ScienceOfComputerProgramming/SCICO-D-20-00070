@@ -205,6 +205,7 @@ def get_sciit_ignore(repo):
     sciit_ignore_file = repo.working_dir + '/.sciitignore'
     if os.path.exists(sciit_ignore_file):
         with open(sciit_ignore_file, 'r') as fh:
+            fh = fh.read().splitlines()
             spec = pathspec.PathSpec.from_lines('gitignore', fh)
         return spec
     else:
