@@ -4,7 +4,7 @@ from sciit import IssueRepo
 import markdown2
 
 app = Flask(__name__)
-
+history = None
 
 @app.route("/")
 def index():
@@ -27,4 +27,4 @@ def launch(args):
     for item in history.values():
         if 'description' in item:
             item['description'] = markdown2.markdown(item['description'])
-    app.run(debug=True)
+    app.run(debug=False)
