@@ -2,13 +2,13 @@ import os
 import random
 import string
 from unittest import TestCase
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, MagicMock, patch, mock_open
 
 from git import Commit
 from git.util import hex_to_bin
 from sciit import Issue, IssueCommit, IssueRepo, IssueTree
 from sciit.commit import find_issues_in_commit
-from sciit.functions import write_last_issue
+from sciit.functions import write_last_issue, get_sciit_ignore
 from tests.external_resources import safe_create_repo_dir
 
 pattern = r'((?:#.*(?:\n\s*#)*.*)|(?:#.*)|(?:#.*$))'
@@ -427,17 +427,67 @@ class FindIssuesInCommit(TestCase):
         issues = find_issues_in_commit(self.repo, commit, pattern)
         self.assertEqual(len(issues), 5)
 
-    def test_tree_contains_no_issues_multiple_files_nested_folder(self):
-        pass
+    @patch('builtins.open', mock_open(read_data='README*'))
+    def test_commit_ignores_certain_files(self):
+        commit = Mock()
+        tree = Mock()
 
-    def test_tree_contains_multiple_issues_one_file(self):
-        pass
+        # Builds blobs in iterable objects as a list
+        mock_list = []
+        for i in range(6):
+            contents = '#@issue ' + str(i)
+            contents = contents.encode()
+            blob = Mock()
+            blob.path = 'README' + str(i)
+            blob.type = 'blob'
+            blob.mime_type = 'text'
+            blob.data_stream = Mock()
+            blob.data_stream.read = Mock(return_value=contents)
+            mock_list.append(blob)
+        mock_list[3].contents = b'This one has no issue in it'
 
-    def test_tree_contains_one_non_text_file(self):
-        pass
+        tree.blobs = mock_list
+        tree.trees = []
+        commit.tree = tree
+        commit.stats.files.keys.return_value = [
+            'README0', 'README1', 'README2']
+        commit.parents = []
 
-    def test_tree_contains_multiple_issues_multiple_files(self):
-        pass
+        # run the function with the mocked object
+        ignored_files = get_sciit_ignore(self.repo)
+        issues = find_issues_in_commit(
+            self.repo, commit, pattern, ignored_files)
+        self.assertEqual(len(issues), 0)
 
-    def test_tree_contains_multiple_issues_multiple_files_nested_folder(self):
-        pass
+    def test_commit_skip_ignore_file_does_not_exist(self):
+        commit = Mock()
+        tree = Mock()
+
+        # Builds blobs in iterable objects as a list
+        mock_list = []
+        for i in range(6):
+            contents = '#@issue ' + str(i)
+            contents = contents.encode()
+            blob = Mock()
+            blob.path = 'README' + str(i)
+            blob.type = 'blob'
+            blob.mime_type = 'text'
+            blob.data_stream = Mock()
+            blob.data_stream.read = Mock(return_value=contents)
+            mock_list.append(blob)
+        mock_list[3].contents = b'This one has no issue in it'
+
+        tree.blobs = mock_list
+        tree.trees = []
+        commit.tree = tree
+        commit.stats.files.keys.return_value = [
+            'README0', 'README1', 'README2']
+        commit.parents = []
+
+        # run the function with the mocked object
+        with patch('os.path.exists') as p:
+            p.return_value = False
+            ignored_files = get_sciit_ignore(self.repo)
+        issues = find_issues_in_commit(
+            self.repo, commit, pattern, ignored_files)
+        self.assertEqual(len(issues), 3)

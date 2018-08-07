@@ -1,3 +1,12 @@
+Version 0.6
+-----------
+
+New Features
+~~~~~~~~~~~~
+
+* Web interface for visualising issues
+* Ability to ignore issues in certain files using a .sciitignore
+
 Version 0.5
 -----------
 

@@ -25,7 +25,7 @@ setup(
     entry_points={
         'console_scripts': ['git-sciit = sciit.cli.start:main']
     },
-    zip_safe=True,
+    zip_safe=False,
     include_package_data=True,
     version=version,
     description='An application that allow issues to be managed'

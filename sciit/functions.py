@@ -10,6 +10,7 @@ the file system.
 import os
 import zlib
 import json
+import pathspec
 from datetime import datetime
 from stat import S_IREAD
 from sciit.errors import RepoObjectExistsError, RepoObjectDoesNotExistError
@@ -189,3 +190,23 @@ def get_last_issue(repo):
     sha = f.read()
     f.close()
     return sha
+
+
+def get_sciit_ignore(repo):
+    """Returns the contents of the sciit ignore file to use
+    when making commits
+
+    Args:
+        :(IssueRepo) repo: the repository to look for
+
+    Returns:
+        :(PathSpec) spec: a gitignore spec of expressions
+    """
+    sciit_ignore_file = repo.working_dir + '/.sciitignore'
+    if os.path.exists(sciit_ignore_file):
+        with open(sciit_ignore_file, 'r') as fh:
+            fh = fh.read().splitlines()
+            spec = pathspec.PathSpec.from_lines('gitignore', fh)
+        return spec
+    else:
+        return None

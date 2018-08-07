@@ -1,0 +1,73 @@
+{% extends 'base.html' %} {% block main %}
+
+<div class="container" id="main">
+    <br>
+    <h1>Your Integrated Issue Tracker</h1>
+    <br>
+    <div>
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active Open" role="tab" data-toggle="tab" href="#tab-1">Open Issues ({{ data['Num Open Issues'] }})</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link Closed" role="tab" data-toggle="tab" href="#tab-2">Closed Issues ({{ data['Num Closed Issues'] }})</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" role="tabpanel" id="tab-1">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Last Author</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for issue in history.values() if issue['status'] == 'Open' %}
+                            <tr>
+                                <td>
+                                    <a href='/{{ issue['id'] }}'>{{ issue['title'].title() }}</a>
+                                </td>
+                                <td>
+                                    <strong>{{ issue['last_author'] }}</strong>
+                                </td>
+                                <td>{{ issue['last_authored_date'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="tab-pane" role="tabpanel" id="tab-2">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Last Author</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for issue in history.values() if issue['status'] == 'Closed' %}
+                            <tr>
+                                <td>
+                                    <a href='/{{ issue['id'] }}'>{{ issue['title'].title() }}</a>
+                                </td>
+                                <td>
+                                    <strong>{{ issue['last_author'] }}</strong>
+                                </td>
+                                <td>{{ issue['last_authored_date'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
