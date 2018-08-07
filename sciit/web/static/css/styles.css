@@ -180,11 +180,7 @@
 
 .card-text {
   margin:0px;
-}
-
-.collapse p {
-  margin:0px;
-  font-size:14px;
+  font-size: 14px;
 }
 
 .aside {
@@ -194,6 +190,7 @@
 
 .sidebar p {
   font-size:smaller;
+  margin: 0px;
 }
 
 .sidebar label {
@@ -202,7 +199,8 @@
 }
 
 .sidebar hr {
-  margin-top:-10px;
+  margin-top:5px;
+  margin-bottom: 5px;
 }
 
 .description {

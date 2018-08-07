@@ -1,6 +1,7 @@
 
 from flask import Flask, render_template
 from sciit import IssueRepo
+import markdown2
 
 app = Flask(__name__)
 
@@ -23,4 +24,7 @@ def issue(issue):
 def launch(args):
     global history
     history = args.repo.build_history()
+    for item in history.values():
+        if 'description' in item:
+            item['description'] = markdown2.markdown(item['description'])
     app.run(debug=True)
