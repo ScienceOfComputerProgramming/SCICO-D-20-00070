@@ -1,0 +1,195 @@
+{% extends 'base.html' %} {% block main %}
+<div class="container" id="main">
+    <div class="row">
+        <div class="col-md-8">
+            <br>
+            <h1>{{ issue['title'].title() }}</h1>
+            <hr>
+            <p class="{{ issue['status'] }}">Status: {{ issue['status'] }}&nbsp;</p>
+            <p class="description">{{ issue['description']|safe }}</p>
+            <div role="tablist" id="accordion-1">
+                <div class="card">
+                    <div class="card-header" role="tab">
+                        <h5 class="mb-0">
+                            <a data-toggle="collapse" aria-expanded="true" aria-controls="accordion-1 .item-1" href="div#accordion-1 .item-1">Description Changes ({{ issue['descriptions']|length }})</a>
+                        </h5>
+                    </div>
+                    <div class="collapse item-1" role="tabpanel" data-parent="#accordion-1">
+                        {% for item in issue['descriptions'] %}
+                        <div class="card-body">
+                            <p class="card-text">
+                                {% for line in item['change'].splitlines() %}
+                                    {% if line.startswith('+') %}
+                                        <span class="addition">{{ line }}</span>
+                                    {% elif line.startswith('-') %}
+                                        <span class="deletion">{{ line }}</span>
+                                    {% elif line.startswith('?') %}
+                                        <span class="change">{{ line }}</span>
+                                    {% else %} 
+                                        {{ line }} 
+                                    {% endif %}
+                                {% endfor %}
+                            </p>
+                            <p class="aside">changed by: {{ item['author'] }} {{ item['date'] }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" role="tab">
+                        <h5 class="mb-0">
+                            <a data-toggle="collapse" aria-expanded="false" aria-controls="accordion-1 .item-2" href="div#accordion-1 .item-2">Commit Activities ({{ issue['activity']|length }})</a>
+                        </h5>
+                    </div>
+                    <div class="collapse item-2" role="tabpanel" data-parent="#accordion-1">
+                        <div class="card-body">
+                            {% for item in issue['activity'] %}
+                                <p class="card-text">
+                                    <strong>{{ item['commitsha'] }}</strong>
+                                </p>
+                                <p class="card-text">
+                                    <strong>date:</strong> {{ item['date'] }}</p>
+                                <p class="card-text">
+                                    <strong>author:</strong> {{ item['author'] }}</p>
+                                <p class="card-text">{{ item['summary'] }}</p>
+                                <hr>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" role="tab">
+                        <h5 class="mb-0">
+                            <a data-toggle="collapse" aria-expanded="false" aria-controls="accordion-1 .item-3" href="div#accordion-1 .item-3">Issue Revisions ({{ issue['revisions']|length }})</a>
+                        </h5>
+                    </div>
+                    <div class="collapse item-3" role="tabpanel" data-parent="#accordion-1">
+                        <div class="card-body">
+                            {% for item in issue['revisions'] %}
+                                <p class="card-text">issue sha: {{ item }}</p>
+                                <hr> 
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="sidebar">
+                <div>
+                    <label>Issue ID</label>
+                    <p>{{issue['id']}}</p>
+                    <hr>
+                </div>
+                <div>
+                    <label>Issue Sha</label>
+                    <p>{{issue['hexsha']}}</p>
+                    <hr>
+                </div>
+                <div>
+                    <label>Filepath</label>
+                    <p>{{issue['filepath']}}</p>
+                    <hr>
+                </div>
+                {% if issue['open_in'] %}
+                <div>
+                    <label>Open In Branches</label>
+                    {% for branch in issue['open_in'] %}
+                        <p>{{branch}}</p>
+                    {% endfor %}
+                    <hr>
+                </div>
+                {% endif %}
+                {% if issue['in_branches'] %}
+                <div>
+                    <label>Located In Branches</label>
+                    {% for branch in issue['in_branches'] %}
+                        <p>{{branch}}</p>
+                    {% endfor %}
+                    <hr>
+                </div>
+                {% endif %}
+                {% if issue['filepaths'] %}
+                <div>
+                    <label>Filepath in branches</label>
+                    {% for filepath in issue['filepaths'] %}
+                        <p>{{filepath}}</p>
+                    {% endfor %}
+                    <hr>
+                </div>
+                {% endif %}
+                <div>
+                    <label>Size</label>
+                    <p>{{issue['size']}} Bytes</p>
+                    <hr>
+                </div>
+                {% if 'closer' in issue %}
+                <div>
+                    <label>Closed By</label>
+                    <p>{{issue['closer']}}</p>
+                    <p>{{issue['closed_date']}}</p>
+                    <hr>
+                </div>
+                {% endif %}
+                <div>
+                    <label>Last Author</label>
+                    <p>{{issue['last_author']}}</p>
+                    <p>{{issue['last_authored_date']}}</p>
+                    <hr>
+                </div>
+                <div>
+                    <label>Creator</label>
+                    <p>{{issue['creator']}}</p>
+                    <p>{{issue['created_date']}}</p>
+                    <hr>
+                </div>
+                <div>
+                    <label>Participants</label>
+                    <p>
+                    {% for participant in issue['participants'] %}
+                        {{participant}},
+                    {% endfor %}
+                    </p>
+                    <hr>
+                </div>
+                {% if 'assignees' in issue %}
+                <div>
+                    <label>Assigned To</label>
+                    <p>{{issue['assignees']}}</p>
+                    <hr>
+                </div>
+                {% endif %}
+                {% if 'due_date' in issue %}
+                <div>
+                    <label>Due Date</label>
+                    <p>{{issue['due_date']}}</p>
+                    <hr>
+                </div>
+                {% endif %}
+                {% if 'label' in issue %}
+                <div>
+                    <label>Labels</label>
+                    <p>{{issue['label']}}</p>
+                    <hr>
+                </div>
+                {% endif %}
+                {% if 'weight' in issue %}
+                <div>
+                    <label>Weight</label>
+                    <p>{{issue['weight']}}</p>
+                    <hr>
+                </div>
+                {% endif %}
+                {% if 'priority' in issue %}
+                <div>
+                    <label>Priority</label>
+                    <p>{{issue['priority']}}</p>
+                    <hr>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
