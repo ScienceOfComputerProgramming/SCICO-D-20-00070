@@ -7,10 +7,10 @@
     <div>
         <ul class="nav nav-tabs">
             <li class="nav-item">
-                <a class="nav-link active" role="tab" data-toggle="tab" href="#tab-1">Open Issues ({{ data['Num Open Issues'] }})</a>
+                <a class="nav-link active Open" role="tab" data-toggle="tab" href="#tab-1">Open Issues ({{ data['Num Open Issues'] }})</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" role="tab" data-toggle="tab" href="#tab-2">Closed Issues ({{ data['Num Closed Issues'] }})</a>
+                <a class="nav-link Closed" role="tab" data-toggle="tab" href="#tab-2">Closed Issues ({{ data['Num Closed Issues'] }})</a>
             </li>
         </ul>
         <div class="tab-content">
@@ -28,7 +28,7 @@
                             {% for issue in history.values() if issue['status'] == 'Open' %}
                             <tr>
                                 <td>
-                                    <a href='/{{ issue['id'] }}'>{{ issue['title'] }}</a>
+                                    <a href='/{{ issue['id'] }}'>{{ issue['title'].title() }}</a>
                                 </td>
                                 <td>
                                     <strong>{{ issue['last_author'] }}</strong>
@@ -54,7 +54,7 @@
                             {% for issue in history.values() if issue['status'] == 'Closed' %}
                             <tr>
                                 <td>
-                                    <a href='/{{ issue['id'] }}'>{{ issue['title'] }}</a>
+                                    <a href='/{{ issue['id'] }}'>{{ issue['title'].title() }}</a>
                                 </td>
                                 <td>
                                     <strong>{{ issue['last_author'] }}</strong>

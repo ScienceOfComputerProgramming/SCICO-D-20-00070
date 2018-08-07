@@ -157,3 +157,55 @@
   color:whi;
 }
 
+.sidebar {
+  background:#f2f2f2;
+  padding:22px;
+}
+
+.Closed, .addition {
+  color:green;
+}
+.change {
+  color: yellow;
+}
+
+.Open, .deletion {
+  color:red;
+  margin-left:20px;
+}
+
+.card-header:first-child {
+  padding:8px;
+}
+
+.card-text {
+  margin:0px;
+}
+
+.collapse p {
+  margin:0px;
+  font-size:14px;
+}
+
+.aside {
+  text-align:right;
+  color:grey;
+}
+
+.sidebar p {
+  font-size:smaller;
+}
+
+.sidebar label {
+  font-weight:bold;
+  font-size:small;
+}
+
+.sidebar hr {
+  margin-top:-10px;
+}
+
+.description {
+  margin:20px;
+}
+
