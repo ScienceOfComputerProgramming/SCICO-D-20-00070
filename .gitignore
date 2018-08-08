@@ -4,6 +4,7 @@ dissertation/*
 ## ignore the ide files
 .vscode/
 .idea
+remote.git
 
 ## ignore built files & folders
 .coverage

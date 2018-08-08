@@ -8,10 +8,15 @@ the local git sciit web interface
 """
 import logging
 import requests
-from flask import Flask, request, Response
+import subprocess
+from flask import Flask, request, Response, jsonify
+from git import Repo
+from git.exc import NoSuchPathError
+from sciit import IssueRepo
 
 app = Flask(__name__)
 repo = None
+path = 'remote.git'
 
 
 def handle_push_event(data):
@@ -44,7 +49,7 @@ def handle_issue_events():
     """
 
 
-@app.route("/")
+@app.route('/')
 def index():
     """The single endpoint of the service handling all incoming 
     webhooks accordingly.
@@ -54,6 +59,20 @@ def index():
         return handle_push_event(request.data)
     else:
         return Response(status=500)
+
+
+@app.route('/init', methods=['POST'])
+def init():
+    global repo
+    try:
+        repo = IssueRepo(path=path)
+    except NoSuchPathError:
+        gitlab_remote = request.data
+        subprocess.run(['git', 'clone', '--bare',
+                        gitlab_remote, path], check=True)
+        repo = IssueRepo(path=path)
+        repo.build()
+    return jsonify({"message": "Issue Repository Initialized"})
 
 
 def launch(args):
@@ -66,4 +85,4 @@ def launch(args):
 
 
 if __name__ == '__main__':
-    launch(None)
+    app.run()

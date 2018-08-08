@@ -31,14 +31,17 @@ class IssueRepo(Repo):
     reference.html#module-git.repo.base>`_.
     """
 
-    def __init__(self, issue_dir=None):
+    def __init__(self, issue_dir=None, path=None):
         """Initialize a newly instanced IssueRepo
 
         Args:
             :(str) issue_dir: string representing location of issue\
             repository *default='.git/issue'*  
         """
-        super(IssueRepo, self).__init__(search_parent_directories=True)
+        if path:
+            super(IssueRepo, self).__init__(path=path)
+        else:
+            super(IssueRepo, self).__init__(search_parent_directories=True)
         if issue_dir:
             self.issue_dir = issue_dir
         else:
@@ -74,7 +77,8 @@ class IssueRepo(Repo):
             commits = list(self.iter_commits(revision))
 
             for commit in reversed(commits):
-                issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
+                issues = find_issues_in_commit(
+                    self, commit, ignored_files=ignored_files)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
 
@@ -207,7 +211,7 @@ class IssueRepo(Repo):
         if len(self.heads) > 0:
             # get all commits on the all branches
             # enforcing the topology order of parents to children
-            all_commits = list(self.iter_commits(['--all','--topo-order']))
+            all_commits = list(self.iter_commits(['--all', '--topo-order']))
             num_commits = len(all_commits)
             ignored_files = get_sciit_ignore(self)
 
@@ -218,7 +222,8 @@ class IssueRepo(Repo):
                 self.print_commit_progress(
                     datetime.now(), start, commits_scanned, num_commits)
 
-                issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
+                issues = find_issues_in_commit(
+                    self, commit, ignored_files=ignored_files)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
 
@@ -265,7 +270,7 @@ class IssueRepo(Repo):
                 icommits = list(self.iter_issue_commits('--branches'))
 
             for icommit in icommits:
-                
+
                 for issue in icommit.issuetree.issues:
                     in_branches = find_present_branches(icommit.commit.hexsha)
                     # issue first appearance in history build the general
