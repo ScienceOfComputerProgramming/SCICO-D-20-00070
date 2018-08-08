@@ -175,21 +175,21 @@ def main():
     args = parser.parse_args()
 
     # no args supplied
-    if not hasattr(args, 'func'):
-        parser.print_help()
-    else:
-        try:
-            repo = IssueRepo()
-            repo.cli = True
-            colorama.init()  # initialise colours for windows
-        except InvalidGitRepositoryError:
-            CPrint.bold(
-                'fatal: not a git repository (or any parent up to mount point /)')
-            CPrint.bold(
-                'Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
-            return
-        args.repo = repo
-        args.func(args)
+    try:
+        repo = IssueRepo()
+        repo.cli = True
+        colorama.init()  # initialise colours for windows
+        if not hasattr(args, 'func'):
+            parser.print_help()
+        else:
+            args.repo = repo
+            args.func(args)
+    except InvalidGitRepositoryError:
+        CPrint.bold(
+            'fatal: not a git repository (or any parent up to mount point /)')
+        CPrint.bold(
+            'Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
+        return
     return
 
 
