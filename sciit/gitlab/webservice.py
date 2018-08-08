@@ -8,13 +8,13 @@ the local git sciit web interface
 """
 import logging
 import requests
-from flask import Flask
+from flask import Flask, request, Response
 
 app = Flask(__name__)
 repo = None
 
 
-def handle_push_event():
+def handle_push_event(data):
     """Handle push events make to the remote git repository
 
     """
@@ -27,6 +27,8 @@ def handle_push_event():
     based on the commits received
     @label feature
     """
+    # repo.git.execute(['git', 'fetch', '--all'])
+    return '3200'
 
 
 def handle_issue_events():
@@ -47,7 +49,11 @@ def index():
     """The single endpoint of the service handling all incoming 
     webhooks accordingly.
     """
-    return str(repo.build_history())
+    event = request.headers.environ['HTTP_X_GITLAB_EVENT']
+    if event == 'Push Hook':
+        return handle_push_event(request.data)
+    else:
+        return Response(status=500)
 
 
 def launch(args):
