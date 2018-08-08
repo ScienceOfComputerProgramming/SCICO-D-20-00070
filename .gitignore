@@ -7,6 +7,7 @@ dissertation/*
 
 ## ignore built files & folders
 .coverage
+*.log
 htmlcov/
 cover/
 venv/

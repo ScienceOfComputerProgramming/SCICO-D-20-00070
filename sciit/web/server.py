@@ -12,6 +12,7 @@ import markdown2
 app = Flask(__name__)
 history = None
 
+
 @app.route("/")
 def index():
     """The homepage of the web interface that shows all the open and
