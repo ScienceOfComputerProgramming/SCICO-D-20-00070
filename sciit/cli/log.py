@@ -14,6 +14,7 @@ Created on 18 June 2018
 """
 
 from git.exc import GitCommandError
+from sciit.errors import RepoObjectDoesNotExistError
 from sciit.cli.functions import page_log
 from sciit.cli.color import CPrint
 
@@ -27,13 +28,13 @@ def log(args):
         CPrint.bold_red('Run: git scitt init')
         return
 
-    args.repo.sync()
     if args.revision:
         revision = args.revision
     else:
         revision = args.repo.head
 
     try:
+        args.repo.sync()
         all_issue_commits = list(args.repo.iter_issue_commits(revision))
         output = page_log(all_issue_commits)
     # if user enters incorrect value for revision
@@ -42,5 +43,9 @@ def log(args):
         error = error.replace('\n  stderr: \'', '')
         error = 'git sciit error ' + error
         CPrint.bold_red(error)
+        return
+    except RepoObjectDoesNotExistError as error:
+        CPrint.bold_red(error)
+        print('Solve error by rebuilding issue repository using: git sciit init -r')
         return
     return output

@@ -13,6 +13,7 @@ of issues that are currently being tracked on HEAD or revision.
 Created on 13 June 2018
 """
 from git.exc import GitCommandError
+from sciit.errors import RepoObjectDoesNotExistError
 from sciit import IssueCommit
 from sciit.cli.color import CPrint
 
@@ -30,14 +31,19 @@ def status(args):
     else:
         revision = args.repo.head
 
-    args.repo.sync()
+    
     try:
+        args.repo.sync()
         all_issues = args.repo.get_all_issues(revision)
     except GitCommandError as e:
         error = e.stderr.replace('\n\'', '')
         error = error.replace('\n  stderr: \'', '')
         error = 'git sciit error ' + error
         CPrint.bold_red(error)
+        return
+    except RepoObjectDoesNotExistError as error:
+        CPrint.bold_red(error)
+        print('Solve error by rebuilding issue repository using: git sciit init -r')
         return
 
     opened = sum(x['status'] == 'Open' for x in all_issues.values())

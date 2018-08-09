@@ -16,7 +16,7 @@ Created on 10 July 2018
 from git.exc import GitCommandError
 from sciit.cli.functions import page_history_item
 from sciit.cli.color import CPrint
-from sciit.errors import NoCommitsError
+from sciit.errors import NoCommitsError, RepoObjectDoesNotExistError
 from slugify import slugify
 
 
@@ -41,9 +41,9 @@ def issue(args):
     elif args.full:
         view = 'full'
 
-    args.repo.sync()
-    args.issueid = slugify(args.issueid)
     try:
+        args.repo.sync()
+        args.issueid = slugify(args.issueid)
         history = args.repo.build_history(args.revision)
         if args.issueid in history:
             return page_history_item(history[args.issueid], view)
@@ -63,4 +63,8 @@ def issue(args):
     except GitCommandError as error:
         error = f'git sciit error fatal: bad revision \'{args.revision}\''
         CPrint.bold_red(error)
+        return
+    except RepoObjectDoesNotExistError as error:
+        CPrint.bold_red(error)
+        print('Solve error by rebuilding issue repository using: git sciit init -r')
         return
