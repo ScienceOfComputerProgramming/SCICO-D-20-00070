@@ -14,6 +14,14 @@ from tests.external_resources import remove_existing_repo, safe_create_repo_dir
 from tests.test_cli.external_resources import second_commit, first_commit
 
 
+"""
+@issue test coverage on error
+@title Find a way to test for Keyboard Interrupt Error
+@description
+    This will help with code coverage
+"""
+
+
 class TestInitCommand(TestCase):
 
     def setUp(self):

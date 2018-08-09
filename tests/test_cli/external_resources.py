@@ -47,9 +47,11 @@ second_itree = IssueTree.create(repo, second_issues)
 
 first_sha = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
 second_sha = '622918a4c6539f853320e06804f73d1165df69d0'
+third_sha = '7a13fb71dfc40675176ce28b8ad6df9132039711'
 
 first_commit = Commit(repo, hex_to_bin(first_sha))
 second_commit = Commit(repo, hex_to_bin(second_sha))
+third_commit = Commit(repo, hex_to_bin(third_sha))
 
 first_icommit = IssueCommit.create(
     repo, first_commit, first_itree)
