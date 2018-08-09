@@ -64,25 +64,27 @@ class IssueRepo(Repo):
         are sycned with the git commits such that there is a
         issuecommit for every commit in the git repository
         """
-        last_issue_commit = get_last_issue(self)
-        commits = list(self.iter_commits('--all'))
-        latest_commit = commits[0].hexsha
-        revision = last_issue_commit + '..' + latest_commit
-        str_commits = self.git.execute(['git', 'rev-list', revision])
-        ignored_files = get_sciit_ignore(self)
+        if self.heads:
+            last_issue_commit = get_last_issue(self)
+            commits = list(self.iter_commits('--all'))
+            latest_commit = commits[0].hexsha
+            revision = last_issue_commit + '..' + latest_commit
+            str_commits = self.git.execute(['git', 'rev-list', revision])
+            ignored_files = get_sciit_ignore(self)
 
-        # uses git.execute because iter_commits generator cannot
-        # correctly identify false or empty list.
-        if str_commits != '':
-            commits = list(self.iter_commits(revision))
+            # uses git.execute because iter_commits generator cannot
+            # correctly identify false or empty list.
+            if str_commits != '':
+                commits = list(self.iter_commits(revision))
 
-            for commit in reversed(commits):
-                issues = find_issues_in_commit(
-                    self, commit, ignored_files=ignored_files)
-                itree = IssueTree.create(self, issues)
-                IssueCommit.create(self, commit, itree)
+                for commit in reversed(commits):
+                    issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
+                    itree = IssueTree.create(self, issues)
+                    IssueCommit.create(self, commit, itree)
 
-            write_last_issue(self.issue_dir, latest_commit)
+                write_last_issue(self.issue_dir, latest_commit)
+        else:
+            raise NoCommitsError
 
     def reset(self):
         """
