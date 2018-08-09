@@ -25,15 +25,10 @@ def catfile(args):
     """
     Prints the content and info of objects stored in our issue repository.
     """
-    if not args.repo.is_init():
-        CPrint.red('Repository not initialized')
-        CPrint.bold_red('Run: git scitt init')
-        return
-
     try:
         object_type = get_type_from_sha(args.repo, args.sha)
     except RepoObjectDoesNotExistError as error:
-        error = 'git sciit error fatal: ' + str(error)
+        error = f'git sciit error fatal: {error}'
         CPrint.bold_red(error)
         return
 

@@ -38,3 +38,54 @@ class TestCLIStartup(TestCase):
     def test_any_command_supplied(self, args):
         args.func = 'Function'
         start.main()
+
+    # def test_command_fails_if_no_issue_repo(self):
+    #     args = Mock()
+    #     args.repo = IssueRepo('there')
+    #     args.issueid = ''
+    #     issue(args)
+    #     self.assertIn('Repository not initialized',
+    #                   sys.stdout.getvalue())
+
+    # @patch('sciit.repo.IssueRepo.sync')
+    # def test_command_fails_if_bad_revision(self, sync):
+    #     args = Mock()
+    #     args.issueid = ''
+    #     args.repo = self.repo
+    #     args.revision = 'asdfesdasd'
+    #     issue(args)
+    #     self.assertIn('git sciit error fatal: bad revision ',
+    #                   sys.stdout.getvalue())
+
+    # @patch('sciit.repo.IssueRepo.heads')
+    # @patch('sciit.repo.IssueRepo.sync')
+    # def test_command_fails_if_no_commits(self, sync, heads):
+    #     args = Mock()
+    #     args.issueid = ''
+    #     args.revision = None
+    #     args.repo = self.repo
+    #     args.normal = args.detailed = args.full = False
+    #     args.repo.heads = []
+
+    #     issue(args)
+    #     self.assertIn('git sciit error fatal:',
+    #                   sys.stdout.getvalue())
+    #     self.assertIn('The repository has no commits.',
+    #                   sys.stdout.getvalue())
+
+    # @patch('sciit.repo.IssueRepo.heads')
+    # @patch('sciit.repo.IssueRepo.sync')
+    # def test_command_fails_if_no_commits(self, sync, heads):
+    #     args = Mock()
+    #     args.revision = self.second
+    #     args.repo = self.repo
+
+    #     args.normal = args.detailed = args.full = args.all = args.open = args.save = False
+    #     args.closed = True
+    #     args.repo.heads = []
+
+    #     tracker(args)
+    #     self.assertIn('git sciit error fatal:',
+    #                   sys.stdout.getvalue())
+    #     self.assertIn('The repository has no commits.',
+    #                   sys.stdout.getvalue())
