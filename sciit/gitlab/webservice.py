@@ -10,8 +10,9 @@ import json
 import os
 import subprocess
 import requests
+import hashlib
 
-from multiprocessing import Process
+from multiprocessing import Process, Manager
 
 from flask import Flask, Response, request
 
@@ -23,7 +24,10 @@ from sciit.cli.color import CPrint
 app = Flask(__name__)
 repo = None
 api_token = None
+api_url = None
+project_id = None
 path = 'remote.git'
+gitlab_cache = 'gitlab'
 
 
 def create_issue_note():
@@ -32,15 +36,44 @@ def create_issue_note():
     pass
 
 
-def create_issue(issue_data):
+def create_issue(issue_data, multi_list):
     """Creates a new issue in gitlab
     """
-    pass
+    issue = {}
+    issue['id'] = project_id
+    issue['title'] = issue_data['title']
+    if 'description' in issue_data:
+        issue['description'] = issue_data['description']
+    if 'label' in issue_data:
+        issue['labels'] = issue_data['label']
+    if 'due_date' in issue_data:
+        issue['due_date'] = issue_data['due_date']
+    if 'weight' in issue_data:
+        issue['weight'] = issue_data['weight']
+    # issue['created_at'] = issue_data['created_date']
+
+    r = requests.post(f'{api_url}/projects/{project_id}/issues',
+                      headers={'Private-Token': api_token},
+                      json=issue)
+    if r.status_code == 201:
+        iid = json.loads(r.content)['iid']
+        multi_list.append((issue_data['id'], iid))
+    return r.status_code
 
 
-def edit_issue(issue_data, old_data):
+def edit_issue(issue_data, pair):
     """Edits an issue in gitlab
     """
+    # get issues from gitlab
+    gitlab_issues = f'{api_url}projects/{project_id}/issues'
+    gitlab_issues = requests.get(gitlab_issues, headers={
+        'Private-Token': api_token})
+    gitlab_issues = json.loads(gitlab_issues.content)
+
+    # checks if gitlab api token was successful
+    if 'message' in gitlab_issues:
+        if '404' in gitlab_issues['message']:
+            return Response(json.dumps({"status": "Failure", "message": gitlab_issues['message']}), status=404)
     pass
 
 
@@ -67,40 +100,62 @@ def handle_push_event(data):
 
     # get the new commits pushed to the repository
     if data['before'] == '0000000000000000000000000000000000000000':
-        revision=data['after']
+        revision = data['after']
     else:
-        revision=f'{data["before"]}..{data["after"]}'
-    history=repo.build_history(revision)
+        revision = f'{data["before"]}..{data["after"]}'
+    history = repo.build_history(revision)
 
-    # get issues from gitlab
-    api=data['repository']['homepage'].rsplit('/', 1)[0].rsplit('/', 1)[0]
-    api += '/api/v4/'
-    gitlab_issues=f'{api}projects/{data["project_id"]}/issues'
-    gitlab_issues=requests.get(gitlab_issues, headers = {
-                                 'Private-Token': api_token})
-    gitlab_issues=json.loads(gitlab_issues.content)
+    issues_created = 0
+    issues_edited = 0
+    issues_total = 0
 
-    # checks if gitlab api token was successful
-    if 'message' in gitlab_issues:
-        if '404' in gitlab_issues['message']:
-            return Response(json.dumps({"status": "Failure", "message": gitlab_issues['message']}), status = 404)
+    # get last set of cached issues initially none
+    if os.path.exists(gitlab_cache):
+        with open(gitlab_cache, 'r') as issue_cache:
+            cache = json.loads(issue_cache.read())
+    else:
+        cache = None
 
-    issues_created=0
-    issues_edited=0
+    # a manager for the list of issue cache
+    man = Manager()
+    multi_list = man.list([])
+    procs = []
 
     for issue in history.values():
-        if gitlab_issues:
-            if issue['id'] in [x['iid'] for x in gitlab_issues]:
-                old_data=next(
-                    (x for x in gitlab_issues if x['iid'] == issue['iid']))
-                edit_issue(issue, old_data)
+        if cache:
+            pair = [x for x in cache if x[0] == issue['id']]
+            if pair:
                 issues_edited += 1
+                edit_issue(issue, pair[0])
+                # procs.append(
+                #     Process(target=edit_issue, args=(issue, old_data)))
+                # procs[issues_total].start()
             else:
-                create_issue(issue)
                 issues_created += 1
+                create_issue(issue, man)
+                # procs.append(Process(target=create_issue,
+                #                      args=(issue, multi_list)))
+                # procs[issues_total].start()
         else:
-            create_issue(issue)
             issues_created += 1
+            create_issue(issue, man)
+            # procs.append(Process(target=create_issue,
+            #                      args=(issue, multi_list)))
+            # procs[issues_total].start()
+        issues_total += 1
+
+    # wait for processes to finish
+    # for i in range(issues_total):
+    #     procs[i].join()
+
+    # write the changes to the cache
+    if cache:
+        cache.append([x for x in multi_list])
+    else:
+        cache = [x for x in multi_list]
+    with open(gitlab_cache, 'w') as issue_cache:
+        issue_cache.write(json.dumps(cache))
+
     return json.dumps({"status": "Success",
                        "issues_created": issues_created,
                        "issues_edited": issues_edited})
@@ -119,38 +174,44 @@ def handle_issue_events():
     """
 
 
-@app.route('/', methods = ['POST'])
+@app.route('/', methods=['POST'])
 def index():
     """The single endpoint of the service handling all incoming
     webhooks accordingly.
     """
     global repo
     global api_token
-    api_token=os.environ['GITLAB_API_TOKEN']
-    event=request.headers.environ['HTTP_X_GITLAB_EVENT']
-    data=request.get_json()
+    global api_url
+    global project_id
+
+    data = request.get_json()
+    api_token = os.environ['GITLAB_API_TOKEN']
+    api_url = data['repository']['homepage'].rsplit(
+        '/', 1)[0].rsplit('/', 1)[0] + '/api/v4/'
+    project_id = data['project_id']
+    event = request.headers.environ['HTTP_X_GITLAB_EVENT']
 
     # download and build repo
     if repo is None or not os.path.exists(path):
         if os.path.exists(path):
-            repo=IssueRepo(path = path)
+            repo = IssueRepo(path=path)
         else:
             subprocess.run(['git', 'clone', '--bare',
-                            data['project']['url'], path], check = True)
-            repo=IssueRepo(path = path)
-            repo.cli=True
+                            data['project']['url'], path], check=True)
+            repo = IssueRepo(path=path)
+            repo.cli = True
             repo.build()
 
     if event == 'Push Hook':
         return handle_push_event(data)
     else:
-        return Response({"status": "Failue", "message": f"Gitlab hook - {event} not supported"}, status = 404)
+        return Response({"status": "Failue", "message": f"Gitlab hook - {event} not supported"}, status=404)
 
 
-@app.route('/init', methods = ['POST'])
+@app.route('/init', methods=['POST'])
 def init():
     global repo
-    data=request.get_json()
+    data = request.get_json()
 
     if repo is None or os.path.exists(path):
         import stat
@@ -159,12 +220,12 @@ def init():
         def onerror(func, path, excp_info):
             os.chmod(path, stat.S_IWUSR)
             func(path)
-        shutil.rmtree(path, onerror = onerror)
+        shutil.rmtree(path, onerror=onerror)
 
     subprocess.run(['git', 'clone', '--bare',
-                    data['remote'], path], check = True)
-    repo=IssueRepo(path = path)
-    repo.cli=True
+                    data['remote'], path], check=True)
+    repo = IssueRepo(path=path)
+    repo.cli = True
     repo.build()
 
     return json.dumps({"status": "Success", "message": f"{data['remote']} Issue Repository Initialized"})
@@ -176,10 +237,10 @@ def launch(args):
     """
     global repo
     global api_token
-    repo=args.repo
+    repo = args.repo
     if 'GITLAB_API_TOKEN' in os.environ:
-        api_token=os.environ['GITLAB_API_TOKEN']
-        app.run(debug = True)
+        api_token = os.environ['GITLAB_API_TOKEN']
+        app.run(debug=True)
     else:
         CPrint.bold_red('Must specify gitlab api access token')
         CPrint.bold('Copy token to a file named \'token\' in webserver root')
@@ -187,6 +248,6 @@ def launch(args):
 
 
 if __name__ == '__main__':
-    args=type('args', (), {})
-    args.repo=None
+    args = type('args', (), {})
+    args.repo = None
     launch(args)

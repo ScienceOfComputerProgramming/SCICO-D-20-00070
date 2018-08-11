@@ -4,7 +4,6 @@ dissertation/*
 ## ignore the ide files
 .vscode/
 .idea
-remote.git
 
 ## ignore built files & folders
 .coverage
@@ -24,6 +23,8 @@ docs/*.rst
 ## ignore cache files
 *.pyc
 test.py
+gitlab
+remote.git
 
 ## ignore test folders
 tests/here
