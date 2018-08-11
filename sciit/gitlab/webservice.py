@@ -6,12 +6,14 @@ the local git sciit web interface
 :@author: Nystrom Edwards
 :Created: 07 August 2018
 """
-import logging
-import requests
+import json
+import os
 import subprocess
-from flask import Flask, request, Response, jsonify
+
+import requests
+from flask import Flask, Response, jsonify, request
 from git import Repo
-from git.exc import NoSuchPathError
+
 from sciit import IssueRepo
 
 app = Flask(__name__)
@@ -29,10 +31,15 @@ def handle_push_event(data):
     The webservice must be able to handle push events to the gitlab
     remote server such that if there are new issues in the codebase
     it will reach out to the gitlab api to create those new issues
-    based on the commits received
+    based on the commits received.
+
+    Communicate with gitlab api to create and or update the issues
+    based on what was pushed to the remote.
     @label feature
     """
-    # repo.git.execute(['git', 'fetch', '--all'])
+    repo.git.execute(['git', 'fetch', '--all'])
+    repo.sync()
+
     return '3200'
 
 
@@ -49,14 +56,28 @@ def handle_issue_events():
     """
 
 
-@app.route('/')
+@app.route('/', methods=['POST'])
 def index():
     """The single endpoint of the service handling all incoming 
     webhooks accordingly.
     """
+    global repo
     event = request.headers.environ['HTTP_X_GITLAB_EVENT']
+    data = request.get_json()
+
+    # download and build repo
+    if repo is None or not os.path.exists(path):
+        if os.path.exists(path):
+            repo = IssueRepo(path=path)
+        else:
+            subprocess.run(['git', 'clone', '--bare',
+                            data['project']['url'], path], check=True)
+            repo = IssueRepo(path=path)
+            repo.cli = True
+            repo.build()
+
     if event == 'Push Hook':
-        return handle_push_event(request.data)
+        return handle_push_event(data)
     else:
         return Response(status=500)
 
@@ -64,15 +85,24 @@ def index():
 @app.route('/init', methods=['POST'])
 def init():
     global repo
-    try:
-        repo = IssueRepo(path=path)
-    except NoSuchPathError:
-        gitlab_remote = request.data
-        subprocess.run(['git', 'clone', '--bare',
-                        gitlab_remote, path], check=True)
-        repo = IssueRepo(path=path)
-        repo.build()
-    return jsonify({"message": "Issue Repository Initialized"})
+    data = request.get_json()
+
+    if repo is None or os.path.exists(path):
+        import stat
+        import shutil
+
+        def onerror(func, path, excp_info):
+            os.chmod(path, stat.S_IWUSR)
+            func(path)
+        shutil.rmtree(path, onerror=onerror)
+
+    subprocess.run(['git', 'clone', '--bare',
+                    data['remote'], path], check=True)
+    repo = IssueRepo(path=path)
+    repo.cli = True
+    repo.build()
+
+    return jsonify({"message": f"{data['remote']} Issue Repository Initialized"})
 
 
 def launch(args):
