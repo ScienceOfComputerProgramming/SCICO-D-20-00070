@@ -11,8 +11,11 @@ import os
 import subprocess
 import requests
 import hashlib
+import re
+import dateutil.parser as dateparser
 
 from multiprocessing import Process, Manager
+from threading import Thread
 
 from flask import Flask, Response, request
 
@@ -48,8 +51,6 @@ def create_issue(issue_data, multi_list):
         issue['labels'] = issue_data['label']
     if 'due_date' in issue_data:
         issue['due_date'] = issue_data['due_date']
-    if 'weight' in issue_data:
-        issue['weight'] = issue_data['weight']
     # issue['created_at'] = issue_data['created_date']
 
     r = requests.post(f'{api_url}/projects/{project_id}/issues',
@@ -58,23 +59,44 @@ def create_issue(issue_data, multi_list):
     if r.status_code == 201:
         iid = json.loads(r.content)['iid']
         multi_list.append((issue_data['id'], iid))
-    return r.status_code
 
 
 def edit_issue(issue_data, pair):
     """Edits an issue in gitlab
     """
-    # get issues from gitlab
-    gitlab_issues = f'{api_url}projects/{project_id}/issues'
-    gitlab_issues = requests.get(gitlab_issues, headers={
+    # get issue from gitlab
+    url = f'{api_url}projects/{project_id}/issues/{pair[1]}'
+    gitlab_issue = requests.get(url, headers={
         'Private-Token': api_token})
-    gitlab_issues = json.loads(gitlab_issues.content)
+    gitlab_issue = json.loads(gitlab_issue.content)
 
-    # checks if gitlab api token was successful
-    if 'message' in gitlab_issues:
-        if '404' in gitlab_issues['message']:
-            return Response(json.dumps({"status": "Failure", "message": gitlab_issues['message']}), status=404)
-    pass
+    # find changes to issue
+    issue = {}
+    if 'due_date' in issue_data:
+        date = dateparser.parse(
+            issue_data['due_date']).strftime('%Y-%m-%d')
+    if gitlab_issue['title'] != issue_data['title']:
+        issue['title'] = issue_data['title']
+    if 'description' in issue_data:
+        if gitlab_issue['description'] != re.sub(r'^\n', '', issue_data['description']):
+            issue['description'] = issue_data['description']
+    if 'label' in issue_data:
+        if len(gitlab_issue['labels']) == 1:
+            if gitlab_issue['labels'][0] != issue_data['label']:
+                issue['labels'] = issue_data['label']
+        elif ', '.join(gitlab_issue['label']) != issue_data['label']:
+            issue['labels'] = issue_data['label']
+    if 'due_date' in issue_data:
+        if gitlab_issue['due_date'] != date:
+            issue['due_date'] = issue_data['due_date']
+    if gitlab_issue['state'] != 'closed':
+        if issue_data['status'] == 'Closed':
+            issue['state_event'] = 'close'
+
+    # update issue if changes
+    if issue:
+        requests.put(url, headers={'Private-Token': api_token},
+                     json=issue)
 
 
 def handle_push_event(data):
@@ -86,13 +108,10 @@ def handle_push_event(data):
     """
     @issue handle push events
     @description
-    The webservice must be able to handle push events to the gitlab
-    remote server such that if there are new issues in the codebase
-    it will reach out to the gitlab api to create those new issues
-    based on the commits received.
-
-    Communicate with gitlab api to create and or update the issues
-    based on what was pushed to the remote.
+    To complete the feature we must now scan through the issue revisions and
+    the commit activity to add notes to the issue. Also research on putting 
+    into a subprocess so that the hooks do not take too long too respond to
+    gilab.
     @label feature
     """
     repo.git.execute(['git', 'fetch', '--all'])
@@ -105,10 +124,6 @@ def handle_push_event(data):
         revision = f'{data["before"]}..{data["after"]}'
     history = repo.build_history(revision)
 
-    issues_created = 0
-    issues_edited = 0
-    issues_total = 0
-
     # get last set of cached issues initially none
     if os.path.exists(gitlab_cache):
         with open(gitlab_cache, 'r') as issue_cache:
@@ -120,45 +135,41 @@ def handle_push_event(data):
     man = Manager()
     multi_list = man.list([])
     procs = []
+    issues_total = 0
 
     for issue in history.values():
         if cache:
             pair = [x for x in cache if x[0] == issue['id']]
             if pair:
-                issues_edited += 1
-                edit_issue(issue, pair[0])
-                # procs.append(
-                #     Process(target=edit_issue, args=(issue, old_data)))
-                # procs[issues_total].start()
+                procs.append(
+                    Process(target=edit_issue, args=(issue, pair[0])))
+                procs[issues_total].start()
             else:
-                issues_created += 1
-                create_issue(issue, man)
-                # procs.append(Process(target=create_issue,
-                #                      args=(issue, multi_list)))
-                # procs[issues_total].start()
+                procs.append(Process(target=create_issue,
+                                     args=(issue, multi_list)))
+                procs[issues_total].start()
         else:
-            issues_created += 1
-            create_issue(issue, man)
-            # procs.append(Process(target=create_issue,
-            #                      args=(issue, multi_list)))
-            # procs[issues_total].start()
+            procs.append(Process(target=create_issue,
+                                 args=(issue, multi_list)))
+            procs[issues_total].start()
         issues_total += 1
 
-    # wait for processes to finish
-    # for i in range(issues_total):
-    #     procs[i].join()
+    # wait for subprocesses to finish
+    for i in range(issues_total):
+        procs[i].join()
 
     # write the changes to the cache
+    multi_list = [x for x in multi_list]
     if cache:
-        cache.append([x for x in multi_list])
+        if multi_list:
+            cache.extend(multi_list)
     else:
-        cache = [x for x in multi_list]
+        cache = multi_list
     with open(gitlab_cache, 'w') as issue_cache:
         issue_cache.write(json.dumps(cache))
 
     return json.dumps({"status": "Success",
-                       "issues_created": issues_created,
-                       "issues_edited": issues_edited})
+                       "message": "Your issue was updated"})
 
 
 def handle_issue_events():
