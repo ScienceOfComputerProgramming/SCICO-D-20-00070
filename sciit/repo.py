@@ -291,7 +291,8 @@ class IssueRepo(Repo):
                         # add lists of information for the latest revision and activity
                         history[issue.id]['revisions'] = []
                         revision = {'issuesha': issue.hexsha,
-                                    'date': author_date}
+                                    'date': author_date,
+                                    'author': icommit.commit.author.name}
                         history[issue.id]['revisions'].append(revision)
                         history[issue.id]['activity'] = []
                         activity = {'commitsha': icommit.hexsha,
@@ -358,7 +359,8 @@ class IssueRepo(Repo):
                             if changes:
                                 changes.remove('hexsha')
                                 history[issue.id]['revisions'][-1]['changes'] = changes
-                                revision = {'issuesha': issue.hexsha, 'date': author_date}
+                                revision = {'issuesha': issue.hexsha, 'date': author_date,
+                                            'author': icommit.commit.author.name}
                                 history[issue.id]['revisions'].append(revision)
 
                         # if the previous issue had other issue information

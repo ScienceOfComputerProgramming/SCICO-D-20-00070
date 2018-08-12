@@ -33,10 +33,35 @@ path = 'remote.git'
 gitlab_cache = 'gitlab'
 
 
-def create_issue_note():
+def activity_note(data):
+    note = {}
+    note['body'] = f'work on sciit issue done in commit {data["commitsha"]}'
+    note['created_at'] = data["date"]
+    return note
+
+
+def revision_note(data):
+    if 'changes' not in data:
+        return {}
+    note = {}
+    note['body'] = f'changes made to issue: {data["changes"]}'
+    note['created_at'] = data["date"]
+    return note
+
+
+def create_issue_note(data, iid, note_type):
     """Creats a new issue note for gitlab issues
     """
-    pass
+    if note_type == 'activity':
+        note = activity_note(data)
+    elif note_type == 'revision':
+        note = revision_note(data)
+
+    if note:
+        url = f'{api_url}/projects/{project_id}/issues/{iid}/notes'
+        requests.post(url,
+                      headers={'Private-Token': api_token},
+                      json=note)
 
 
 def create_issue(issue_data, multi_list):
@@ -51,7 +76,7 @@ def create_issue(issue_data, multi_list):
         issue['labels'] = issue_data['label']
     if 'due_date' in issue_data:
         issue['due_date'] = issue_data['due_date']
-    # issue['created_at'] = issue_data['created_date']
+    issue['created_at'] = issue_data['created_date']
 
     r = requests.post(f'{api_url}/projects/{project_id}/issues',
                       headers={'Private-Token': api_token},
@@ -59,6 +84,12 @@ def create_issue(issue_data, multi_list):
     if r.status_code == 201:
         iid = json.loads(r.content)['iid']
         multi_list.append((issue_data['id'], iid))
+
+        # create notes for the issue based on commit activity and revisions
+        for activity in issue_data['activity']:
+            create_issue_note(activity, iid, 'activity')
+        for revision in issue_data['revisions']:
+            create_issue_note(revision, iid, 'revision')
 
 
 def edit_issue(issue_data, pair):
