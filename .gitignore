@@ -23,6 +23,8 @@ docs/*.rst
 ## ignore cache files
 *.pyc
 test.py
+gitlab
+remote.git
 
 ## ignore test folders
 tests/here

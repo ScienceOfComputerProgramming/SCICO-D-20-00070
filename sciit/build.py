@@ -6,7 +6,6 @@ issue tracker information needed for showing to the user.
 
 Created on 29 July 2018
 """
-import re
 from sciit.cli.color import Color
 
 
@@ -45,22 +44,6 @@ def build_log(icommits):
     output = ''
     for icommit in icommits:
         output += build_log_item(icommit)
-    return output
-
-
-def build_clean_log(icommits):
-    """Builds a string representation of a list of issue commits for log
-    to the terminal without the ANSI color codes
-
-    Args:
-        :list(IssueCommit) icommits: commits to build string from
-
-    Returns:
-        :(str): string representation of issue commit for log
-    """
-    output = build_log(icommits)
-    ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
-    output = ansi_escape.sub('', output)
     return output
 
 
@@ -145,22 +128,6 @@ def build_issue(issue):
     return output
 
 
-def build_clean_issue(issue):
-    """Builds a string representation of issue for showing
-    to the terminal without ANSI color codes
-
-    Args:
-        :(Issue) issue: issue to build string from
-
-    Returns:
-        :(str): string representation of issue
-    """
-    output = build_issue(issue)
-    ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
-    output = ansi_escape.sub('', output)
-    return output
-
-
 def build_history_item(item, view=None):
     """Builds a string representation of a issue history item for showing
     to the terminal with ANSI color codes
@@ -231,7 +198,11 @@ def build_history_item(item, view=None):
         output += f'\n'
         output += f'\nIssue Revisions:    {str(len(item["revisions"]))}'
         for revision in item['revisions']:
-            output += '\n' + revision
+            output += '\n' + revision['issuesha']
+            if 'changes' in revision:
+                output += ' changes: '
+                for change in revision['changes']:
+                    output += f'{change}, '
 
     if view == 'full' or view == 'detailed':
         output += f'\n'
@@ -253,8 +224,6 @@ def build_history_item(item, view=None):
                         output += '\n' + Color.green(line)
                     elif line.startswith('-'):
                         output += '\n' + Color.red(line)
-                    elif line.startswith('?'):
-                        output += '\n' + Color.yellow(line)
                     else:
                         output += '\n' + line
                 output += f'\n\n'
@@ -290,20 +259,4 @@ def build_history_items(items, view=None):
     output = ''
     for item in items.values():
         output += build_history_item(item, view)
-    return output
-
-
-def build_clean_history_items(items):
-    """Builds a string representation of a dict of history items
-    for showing to the terminal without ANSI color codes
-
-    Args:
-        :dict(dict) items: history items to build string from
-
-    Returns:
-        :(str): string representation of history items
-    """
-    output = build_history_items(items)
-    ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
-    output = ansi_escape.sub('', output)
     return output

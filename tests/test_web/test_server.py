@@ -8,8 +8,7 @@ from git import Commit
 from git.util import hex_to_bin
 
 from sciit import IssueRepo, IssueCommit, IssueTree, Issue
-from sciit.web.server import app
-from sciit.web.server import launch
+from sciit.web.server import app, launch
 
 from tests.external_resources import safe_create_repo_dir
 
@@ -37,7 +36,7 @@ class TestWebServerStartup(TestCase):
                  'weight': '4',
                  'priority': 'high',
                  'filepath': 'README.md'}]
-        
+
         cls.issues = []
         for d in data:
             cls.issues.append(Issue.create(cls.repo, d))
@@ -63,17 +62,19 @@ class TestWebServerStartup(TestCase):
         mhead.name = 'master'
         args.repo.heads = [mhead]
         icommits.return_value = [self.first_icommit]
-        launch(args)        
+        launch(args)
         pass
 
     @patch('sciit.web.server.history')
     def test_index_page(self, history):
-        history = {'issue-1': {'status': 'Open'}, 'issue-2' : {'status':'Closed'}}
+        history = {'issue-1': {'status': 'Open'},
+                   'issue-2': {'status': 'Closed'}}
         response = self.app.get('/', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
 
     @patch('sciit.web.server.history')
     def test_issue_page(self, history):
-        history = {'issue-1': {'status': 'Open'}, 'issue-2' : {'status':'Closed'}}
+        history = {'issue-1': {'status': 'Open'},
+                   'issue-2': {'status': 'Closed'}}
         response = self.app.get('/issue-1', follow_redirects=True)
         self.assertEqual(response.status_code, 200)

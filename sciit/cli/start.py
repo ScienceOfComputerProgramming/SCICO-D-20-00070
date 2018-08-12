@@ -17,7 +17,8 @@ import argparse
 import sys
 import colorama
 
-from git.exc import InvalidGitRepositoryError
+from git.exc import InvalidGitRepositoryError, GitCommandError
+from sciit.errors import RepoObjectDoesNotExistError, NoCommitsError
 
 from sciit import IssueRepo
 from sciit.cli.catfile import catfile
@@ -183,14 +184,34 @@ def main():
             parser.print_help()
         else:
             args.repo = repo
-            args.func(args)
+            if args.func == init:
+                args.func(args)
+            else:
+                if not args.repo.is_init():
+                    CPrint.red('Repository not initialized')
+                    CPrint.bold_red('Run: git scitt init')
+                    return
+                else:
+                    args.func(args)
+        return
     except InvalidGitRepositoryError:
         CPrint.bold(
             'fatal: not a git repository (or any parent up to mount point /)')
         CPrint.bold(
             'Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
         return
-    return
+    except NoCommitsError as error:
+        error = f'git sciit error fatal: {str(error)}'
+        CPrint.bold_red(error)
+        return
+    except GitCommandError as error:
+        error = f'git sciit error fatal: bad revision \'{args.revision}\''
+        CPrint.bold_red(error)
+        return
+    except RepoObjectDoesNotExistError as error:
+        CPrint.bold_red(error)
+        print('Solve error by rebuilding issue repository using: git sciit init -r')
+        return
 
 
 def start():

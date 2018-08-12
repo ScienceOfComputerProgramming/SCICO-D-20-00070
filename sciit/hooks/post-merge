@@ -10,13 +10,24 @@
 """
 from sciit import IssueRepo, IssueCommit
 from sciit.cli.color import CPrint
+from sciit.errors import RepoObjectDoesNotExistError
 import colorama
 
 colorama.init()
 repo = IssueRepo()
-repo.sync()
-icommit = IssueCommit(repo, repo.head.commit.binsha)
 
+if not repo.is_init():
+    CPrint.bold_red('error: Issue Repository not setup')
+    print('Solve error by building issue repository using: git sciit init')
+    exit(127)
+
+repo.sync()
+try:
+    icommit = IssueCommit(repo, repo.head.commit.binsha)
+except RepoObjectDoesNotExistError as error:
+    CPrint.bold_red(error)
+    print('Solve error by rebuilding issue repository using: git sciit init -r')
+    exit(127)
 # dealing with a detached head
 try:
     location = repo.head.ref.name
