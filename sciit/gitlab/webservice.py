@@ -14,7 +14,7 @@ import hashlib
 import re
 import dateutil.parser as dateparser
 
-from multiprocessing import Process, Manager
+from multiprocessing import Manager
 from threading import Thread
 
 from flask import Flask, Response, request
@@ -33,25 +33,27 @@ path = 'remote.git'
 gitlab_cache = 'gitlab'
 
 
-def activity_note(data):
-    note = {}
-    note['body'] = f'work on sciit issue done in commit {data["commitsha"]}'
-    note['created_at'] = data["date"]
-    return note
-
-
-def revision_note(data):
-    if 'changes' not in data:
-        return {}
-    note = {}
-    note['body'] = f'changes made to issue: {data["changes"]}'
-    note['created_at'] = data["date"]
-    return note
-
-
 def create_issue_note(data, iid, note_type):
-    """Creats a new issue note for gitlab issues
+    """Creates a new issue note for gitlab issues
     """
+    def activity_note(data):
+        """Returns an activity note format
+        """
+        note = {}
+        note['body'] = f'work on sciit issue done in commit {data["commitsha"]}'
+        note['created_at'] = data["date"]
+        return note
+
+    def revision_note(data):
+        """Returns a revision note format
+        """
+        if 'changes' not in data:
+            return {}
+        note = {}
+        note['body'] = f'changes made to issue: {data["changes"]}'
+        note['created_at'] = data["date"]
+        return note
+
     if note_type == 'activity':
         note = activity_note(data)
     elif note_type == 'revision':
@@ -91,6 +93,15 @@ def create_issue(issue_data, multi_list):
         for revision in issue_data['revisions']:
             create_issue_note(revision, iid, 'revision')
 
+        # if closed during its history
+        if issue_data['status'] == 'Closed':
+            issue = {}
+            issue['state_event'] = 'close'
+            issue['updated_at'] = issue_data['activity'][0]['date']
+            requests.put(f'{api_url}projects/{project_id}/issues/{iid}',
+                         headers={'Private-Token': api_token},
+                         json=issue)
+
 
 def edit_issue(issue_data, pair):
     """Edits an issue in gitlab
@@ -123,8 +134,15 @@ def edit_issue(issue_data, pair):
     if gitlab_issue['state'] != 'closed':
         if issue_data['status'] == 'Closed':
             issue['state_event'] = 'close'
+            issue['updated_at'] = issue_data['activity'][0]['date']
 
-    # update issue if changes
+    # create notes for the issue based on commit activity and revisions
+    for activity in issue_data['activity']:
+        create_issue_note(activity, pair[1], 'activity')
+    for revision in issue_data['revisions']:
+        create_issue_note(revision, pair[1], 'revision')
+
+    # update issue if changed
     if issue:
         requests.put(url, headers={'Private-Token': api_token},
                      json=issue)
@@ -136,71 +154,66 @@ def handle_push_event(data):
     Args:
         :(dict) data: data given in request webhook
     """
-    """
-    @issue handle push events
-    @description
-    To complete the feature we must now scan through the issue revisions and
-    the commit activity to add notes to the issue. Also research on putting 
-    into a subprocess so that the hooks do not take too long too respond to
-    gilab.
-    @label feature
-    """
-    repo.git.execute(['git', 'fetch', '--all'])
-    repo.sync()
+    def worker(data):
+        repo.git.execute(['git', 'fetch', '--all'])
+        repo.sync()
 
-    # get the new commits pushed to the repository
-    if data['before'] == '0000000000000000000000000000000000000000':
-        revision = data['after']
-    else:
-        revision = f'{data["before"]}..{data["after"]}'
-    history = repo.build_history(revision)
-
-    # get last set of cached issues initially none
-    if os.path.exists(gitlab_cache):
-        with open(gitlab_cache, 'r') as issue_cache:
-            cache = json.loads(issue_cache.read())
-    else:
-        cache = None
-
-    # a manager for the list of issue cache
-    man = Manager()
-    multi_list = man.list([])
-    procs = []
-    issues_total = 0
-
-    for issue in history.values():
-        if cache:
-            pair = [x for x in cache if x[0] == issue['id']]
-            if pair:
-                procs.append(
-                    Process(target=edit_issue, args=(issue, pair[0])))
-                procs[issues_total].start()
-            else:
-                procs.append(Process(target=create_issue,
-                                     args=(issue, multi_list)))
-                procs[issues_total].start()
+        # get the new commits pushed to the repository
+        if data['before'] == '0000000000000000000000000000000000000000':
+            revision = data['after']
         else:
-            procs.append(Process(target=create_issue,
-                                 args=(issue, multi_list)))
-            procs[issues_total].start()
-        issues_total += 1
+            revision = f'{data["before"]}..{data["after"]}'
+        history = repo.build_history(revision)
 
-    # wait for subprocesses to finish
-    for i in range(issues_total):
-        procs[i].join()
+        # get last set of cached issues initially none
+        if os.path.exists(gitlab_cache):
+            with open(gitlab_cache, 'r') as issue_cache:
+                cache = json.loads(issue_cache.read())
+        else:
+            cache = None
 
-    # write the changes to the cache
-    multi_list = [x for x in multi_list]
-    if cache:
-        if multi_list:
-            cache.extend(multi_list)
-    else:
-        cache = multi_list
-    with open(gitlab_cache, 'w') as issue_cache:
-        issue_cache.write(json.dumps(cache))
+        # a manager for the list of issue cache
+        man = Manager()
+        multi_list = man.list([])
+        procs = []
+        issues_total = 0
+
+        for issue in history.values():
+            if cache:
+                pair = [x for x in cache if x[0] == issue['id']]
+                if pair:
+                    procs.append(
+                        Thread(target=edit_issue, args=(issue, pair[0])))
+                    procs[issues_total].start()
+                else:
+                    procs.append(Thread(target=create_issue,
+                                        args=(issue, multi_list)))
+                    procs[issues_total].start()
+            else:
+                procs.append(Thread(target=create_issue,
+                                    args=(issue, multi_list)))
+                procs[issues_total].start()
+            issues_total += 1
+
+        # wait for subprocesses to finish
+        for i in range(issues_total):
+            procs[i].join()
+
+        # write the changes to the cache
+        multi_list = [x for x in multi_list]
+        if cache:
+            if multi_list:
+                cache.extend(multi_list)
+        else:
+            cache = multi_list
+        with open(gitlab_cache, 'w') as issue_cache:
+            issue_cache.write(json.dumps(cache))
+
+    t = Thread(target=worker, args=(data,))
+    t.start()
 
     return json.dumps({"status": "Success",
-                       "message": "Your issue was updated"})
+                       "message": "Your issues were updated"})
 
 
 def handle_issue_events():
