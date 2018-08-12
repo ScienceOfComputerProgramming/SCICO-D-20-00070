@@ -198,7 +198,11 @@ def build_history_item(item, view=None):
         output += f'\n'
         output += f'\nIssue Revisions:    {str(len(item["revisions"]))}'
         for revision in item['revisions']:
-            output += '\n' + revision
+            output += '\n' + revision['issuesha']
+            if 'changes' in revision:
+                output += ' changes: '
+                for change in revision['changes']:
+                    output += f'{change}, '
 
     if view == 'full' or view == 'detailed':
         output += f'\n'

@@ -78,7 +78,8 @@ class IssueRepo(Repo):
                 commits = list(self.iter_commits(revision))
 
                 for commit in reversed(commits):
-                    issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
+                    issues = find_issues_in_commit(
+                        self, commit, ignored_files=ignored_files)
                     itree = IssueTree.create(self, issues)
                     IssueCommit.create(self, commit, itree)
 
@@ -274,6 +275,8 @@ class IssueRepo(Repo):
             for icommit in icommits:
 
                 for issue in icommit.issuetree.issues:
+                    author_date = icommit.commit.authored_datetime.strftime(
+                        time_format)
                     in_branches = find_present_branches(icommit.commit.hexsha)
                     # issue first appearance in history build the general
                     # indexes needed to record complex information
@@ -281,20 +284,18 @@ class IssueRepo(Repo):
                         history[issue.id] = issue.data
                         history[issue.id]['size'] = issue.size
                         history[issue.id]['creator'] = icommit.commit.author.name
-                        history[issue.id]['created_date'] = \
-                            icommit.commit.authored_datetime.strftime(
-                            time_format)
+                        history[issue.id]['created_date'] = author_date
                         history[issue.id]['last_author'] = icommit.commit.author.name
-                        history[issue.id]['last_authored_date'] = \
-                            icommit.commit.authored_datetime.strftime(
-                            time_format)
+                        history[issue.id]['last_authored_date'] = author_date
 
                         # add lists of information for the latest revision and activity
                         history[issue.id]['revisions'] = []
-                        history[issue.id]['revisions'].append(issue.hexsha)
+                        revision = {'issuesha': issue.hexsha,
+                                    'date': author_date}
+                        history[issue.id]['revisions'].append(revision)
                         history[issue.id]['activity'] = []
                         activity = {'commitsha': icommit.hexsha,
-                                    'date': icommit.commit.authored_datetime.strftime(time_format),
+                                    'date': author_date,
                                     'author': icommit.commit.author.name,
                                     'summary': icommit.commit.summary}
                         history[issue.id]['activity'].append(activity)
@@ -319,7 +320,7 @@ class IssueRepo(Repo):
                             history[issue.id]['descriptions'].append(
                                 {'change': issue.description,
                                  'author': icommit.commit.author.name,
-                                 'date': icommit.commit.authored_datetime.strftime(time_format)
+                                 'date': author_date
                                  }
                             )
 
@@ -332,16 +333,14 @@ class IssueRepo(Repo):
                         # creator
                         history[issue.id]['size'] += issue.size
                         history[issue.id]['creator'] = icommit.commit.author.name
-                        history[issue.id]['created_date'] = \
-                            icommit.commit.authored_datetime.strftime(
-                            time_format)
+                        history[issue.id]['created_date'] = author_date
                         history[issue.id]['participants'].add(
                             icommit.commit.author.name)
                         history[issue.id]['in_branches'].update(in_branches)
 
                         # update the activity of the issue
                         activity = {'commitsha': icommit.commit.hexsha,
-                                    'date': icommit.commit.authored_datetime.strftime(time_format),
+                                    'date': author_date,
                                     'author': icommit.commit.author.name,
                                     'summary': icommit.commit.summary}
                         history[issue.id]['activity'].append(activity)
@@ -352,15 +351,15 @@ class IssueRepo(Repo):
                         # finally: add the new revision to the list
                         if issue.hexsha not in history[issue.id]['revisions']:
                             last_revision = history[issue.id]['revisions'][-1]
-                            last_issue_revision = Issue(self, last_revision)
+                            last_issue_revision = Issue(
+                                self, last_revision['issuesha'])
                             changes = [x for x, v in last_issue_revision.data.items()
                                        if v not in issue.data.values()]
-                            history[issue.id]['revisions'][-1] = history[issue.id]['revisions'][-1] + ' ~'
-                            for change in changes:
-                                if change != 'hexsha':
-                                    history[issue.id]['revisions'][-1] += f' {change},'
-                            history[issue.id]['revisions'][-1] += ' changed'
-                            history[issue.id]['revisions'].append(issue.hexsha)
+                            if changes:
+                                changes.remove('hexsha')
+                                history[issue.id]['revisions'][-1]['changes'] = changes
+                                revision = {'issuesha': issue.hexsha, 'date': author_date}
+                                history[issue.id]['revisions'].append(revision)
 
                         # if the previous issue had other issue information
                         # not previously found on the first occurance of the issue
@@ -389,7 +388,7 @@ class IssueRepo(Repo):
                                     history[issue.id]['descriptions'].append(
                                         {'change': issue.description,
                                          'author': icommit.commit.author.name,
-                                         'date': icommit.commit.authored_datetime.strftime(time_format)
+                                         'date': author_date
                                          }
                                     )
 
@@ -401,7 +400,7 @@ class IssueRepo(Repo):
                                 history[issue.id]['descriptions'].append(
                                     {'change': issue.description,
                                      'author': icommit.commit.author.name,
-                                     'date': icommit.commit.authored_datetime.strftime(time_format)
+                                     'date': author_date
                                      }
                                 )
 
