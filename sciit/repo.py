@@ -311,7 +311,7 @@ class IssueRepo(Repo):
 
                         # add sets for future use filling branch status
                         history[issue.id]['open_in'] = set()
-                        history[issue.id]['filepaths'] = set()
+                        history[issue.id]['filepaths'] = []
 
                         # add lists to denote the changes made to issue description
                         # over revisions of the issue
@@ -421,8 +421,8 @@ class IssueRepo(Repo):
                 for issue in icommit.issuetree.issues:
                     if issue.id in history:
                         history[issue.id]['open_in'].add(head.name)
-                        history[issue.id]['filepaths'].add(
-                            issue.data['filepath'] + ' @' + head.name)
+                        filepath = {'branch': head.name, 'filepath': issue.data['filepath']}
+                        history[issue.id]['filepaths'].append(filepath)
 
             # sets the issue status based on its open status
             # in other branches

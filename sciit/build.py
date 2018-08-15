@@ -192,7 +192,8 @@ def build_history_item(item, view=None):
         if view == 'full' or view == 'detailed':
             output += '\nFilepaths:'
             for path in item['filepaths']:
-                output += '\n' + ' '*20 + path
+                output += '\n' + ' '*20 + \
+                    path['filepath'] + ' @' + path['branch']
 
     if view == 'full':
         output += f'\n'
