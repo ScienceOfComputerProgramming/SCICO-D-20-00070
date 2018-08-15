@@ -12,12 +12,12 @@ def create_issue_note(CONFIG, data, iid, note_type):
         """Returns an activity note format
         """
         note = {}
-        note['body'] = f'work on sciit issue done in commit {data["commitsha"]}'
+        note['body'] = f'mentioned in commit {data["commitsha"]} -- `SCIIT`'
         note['created_at'] = data["date"]
         return note
 
     def revision_note(data):
-        """Returns a revision note format
+        """Returns a revision note format   
         """
         if 'changes' not in data:
             return {}
@@ -38,6 +38,16 @@ def create_issue_note(CONFIG, data, iid, note_type):
                       json=note)
 
 
+def format_description(CONFIG, data):
+    data['description'] = re.sub(r'^\n', '', data['description'])
+    output = data['description']
+    output += '\n\n\n`SCIIT locations`'
+    for path in data['filepaths']:
+        output += f'\n\n[{path["filepath"]} @{path["branch"]}]' + \
+            f'({CONFIG.project_url}/blob/{path["branch"]}/{path["filepath"]})'
+    return output
+
+
 def create_issue(CONFIG, issue_data, multi_list):
     """Creates a new issue in gitlab
     """
@@ -45,7 +55,7 @@ def create_issue(CONFIG, issue_data, multi_list):
     issue['id'] = CONFIG.project_id
     issue['title'] = issue_data['title']
     if 'description' in issue_data:
-        issue['description'] = issue_data['description']
+        issue['description'] = format_description(CONFIG, issue_data)
     if 'label' in issue_data:
         issue['labels'] = issue_data['label']
     if 'due_date' in issue_data:
@@ -92,8 +102,9 @@ def edit_issue(CONFIG, issue_data, pair):
     if gitlab_issue['title'] != issue_data['title']:
         issue['title'] = issue_data['title']
     if 'description' in issue_data:
-        if gitlab_issue['description'] != re.sub(r'^\n', '', issue_data['description']):
-            issue['description'] = issue_data['description']
+        description = format_description(CONFIG, issue_data)
+        if gitlab_issue['description'] != description:
+            issue['description'] = description
     if 'label' in issue_data:
         if len(gitlab_issue['labels']) == 1:
             if gitlab_issue['labels'][0] != issue_data['label']:

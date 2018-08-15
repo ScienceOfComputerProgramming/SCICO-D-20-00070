@@ -17,6 +17,7 @@ from git import Repo
 from sciit import IssueRepo
 from sciit.cli.color import CPrint
 from sciit.gitlab.push import handle_push_event
+from sciit.gitlab.webissue import handle_issue_event
 
 app = Flask(__name__)
 
@@ -26,21 +27,9 @@ class CONFIG:
     api_token = None
     api_url = None
     project_id = None
+    project_url = None
     path = 'remote.git'
     gitlab_cache = 'gitlab'
-
-
-def handle_issue_events():
-    """Handle issue events made in the gitlab issue tracker
-    """
-    """
-    @issue handle issue events
-    @description
-    Handles the events where issues are created/updated/deleted from
-    the gitlab issue tracker such that we are able to use the gitlab
-    api to create commits and change files with our issue syntax.
-    @label feature
-    """
 
 
 @app.route('/', methods=['POST'])
@@ -54,7 +43,8 @@ def index():
     CONFIG.api_token = os.environ['GITLAB_API_TOKEN']
     CONFIG.api_url = data['repository']['homepage'].rsplit(
         '/', 1)[0].rsplit('/', 1)[0] + '/api/v4/'
-    CONFIG.project_id = data['project_id']
+    CONFIG.project_id = data['project']['id']
+    CONFIG.project_url = data['project']['web_url']
     event = request.headers.environ['HTTP_X_GITLAB_EVENT']
 
     # download and build repo
@@ -70,6 +60,8 @@ def index():
 
     if event == 'Push Hook':
         return handle_push_event(CONFIG, data)
+    elif event == 'Issue Event':
+        return handle_issue_event(CONFIG, data)
     else:
         return Response({"status": "Failue", "message": f"Gitlab hook - {event} not supported"}, status=404)
 
