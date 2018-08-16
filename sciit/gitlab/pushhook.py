@@ -3,7 +3,7 @@ import os
 from multiprocessing import Manager
 from threading import Thread
 
-from sciit.gitlab.issues import create_issue, edit_issue
+from sciit.gitlab.issueapi import create_issue, edit_issue
 
 
 def handle_push_event(CONFIG, data):

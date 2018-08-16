@@ -41,11 +41,10 @@ def create_issue_note(CONFIG, data, iid, note_type, last=None):
                       json=note)
 
 
-def format_description(CONFIG, data):
-    data['description'] = re.sub(r'^\n', '', data['description'])
-    output = data['description']
+def format_description(CONFIG, issue):
+    output = issue['description']
     output += '\n\n\n`SCIIT locations`'
-    for path in data['filepaths']:
+    for path in issue['filepaths']:
         output += f'\n* [{path["filepath"]} @{path["branch"]}]' + \
             f'({CONFIG.project_url}/blob/{path["branch"]}/{path["filepath"]})'
     return output
@@ -74,7 +73,7 @@ def create_issue(CONFIG, issue_data, multi_list):
 
         # create notes for the issue based on commit activity and revisions
         for activity in issue_data['activity']:
-            if len(issue_data['activity'] > 1):
+            if len(issue_data['activity']) > 1:
                 if activity == issue_data['activity'][0]:
                     create_issue_note(CONFIG, activity, iid,
                                       'activity', last=True)
@@ -131,7 +130,7 @@ def edit_issue(CONFIG, issue_data, pair):
 
     # create notes for the issue based on commit activity and revisions
     for activity in issue_data['activity']:
-        if len(issue_data['activity'] > 1):
+        if len(issue_data['activity']) > 1:
             if activity == issue_data['activity'][0]:
                 create_issue_note(CONFIG, activity, pair[1],
                                   'activity', last=True)

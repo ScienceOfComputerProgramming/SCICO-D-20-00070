@@ -16,8 +16,8 @@ from git import Repo
 
 from sciit import IssueRepo
 from sciit.cli.color import CPrint
-from sciit.gitlab.push import handle_push_event
-from sciit.gitlab.webissue import handle_issue_event
+from sciit.gitlab.pushhook import handle_push_event
+from sciit.gitlab.issuehook import handle_issue_event
 
 app = Flask(__name__)
 
