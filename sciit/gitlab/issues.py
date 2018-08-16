@@ -5,14 +5,17 @@ import dateutil.parser as dateparser
 import requests
 
 
-def create_issue_note(CONFIG, data, iid, note_type):
+def create_issue_note(CONFIG, data, iid, note_type, last=None):
     """Creates a new issue note for gitlab issues
     """
-    def activity_note(data):
+    def activity_note(data, last=None):
         """Returns an activity note format
         """
         note = {}
-        note['body'] = f'mentioned in commit {data["commitsha"]} -- `SCIIT`'
+        if last:
+            note['body'] = f'closed on commit {data["commitsha"]} -- `SCIIT`'
+        else:
+            note['body'] = f'mentioned in commit {data["commitsha"]} -- `SCIIT`'
         note['created_at'] = data["date"]
         return note
 
@@ -27,7 +30,7 @@ def create_issue_note(CONFIG, data, iid, note_type):
         return note
 
     if note_type == 'activity':
-        note = activity_note(data)
+        note = activity_note(data, last)
     elif note_type == 'revision':
         note = revision_note(data)
 
@@ -43,7 +46,7 @@ def format_description(CONFIG, data):
     output = data['description']
     output += '\n\n\n`SCIIT locations`'
     for path in data['filepaths']:
-        output += f'\n\n[{path["filepath"]} @{path["branch"]}]' + \
+        output += f'\n* [{path["filepath"]} @{path["branch"]}]' + \
             f'({CONFIG.project_url}/blob/{path["branch"]}/{path["filepath"]})'
     return output
 
@@ -71,7 +74,14 @@ def create_issue(CONFIG, issue_data, multi_list):
 
         # create notes for the issue based on commit activity and revisions
         for activity in issue_data['activity']:
-            create_issue_note(CONFIG, activity, iid, 'activity')
+            if len(issue_data['activity'] > 1):
+                if activity == issue_data['activity'][0]:
+                    create_issue_note(CONFIG, activity, iid,
+                                      'activity', last=True)
+                else:
+                    create_issue_note(CONFIG, activity, iid, 'activity')
+            else:
+                create_issue_note(CONFIG, activity, iid, 'activity')
         for revision in issue_data['revisions']:
             create_issue_note(CONFIG, revision, iid, 'revision')
 
@@ -121,7 +131,14 @@ def edit_issue(CONFIG, issue_data, pair):
 
     # create notes for the issue based on commit activity and revisions
     for activity in issue_data['activity']:
-        create_issue_note(CONFIG, activity, pair[1], 'activity')
+        if len(issue_data['activity'] > 1):
+            if activity == issue_data['activity'][0]:
+                create_issue_note(CONFIG, activity, pair[1],
+                                  'activity', last=True)
+            else:
+                create_issue_note(CONFIG, activity, pair[1], 'activity')
+        else:
+            create_issue_note(CONFIG, activity, pair[1], 'activity')
     for revision in issue_data['revisions']:
         create_issue_note(CONFIG, revision, pair[1], 'revision')
 

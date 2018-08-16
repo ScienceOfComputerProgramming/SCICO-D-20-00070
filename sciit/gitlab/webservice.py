@@ -52,7 +52,7 @@ def index():
         if os.path.exists(CONFIG.path):
             CONFIG.repo = IssueRepo(path=CONFIG.path)
         else:
-            subprocess.run(['git', 'clone', '--bare',
+            subprocess.run(['git', 'clone', '--mirror',
                             data['project']['url'], CONFIG.path], check=True)
             CONFIG.repo = IssueRepo(path=CONFIG.path)
             CONFIG.repo.cli = True
@@ -60,7 +60,7 @@ def index():
 
     if event == 'Push Hook':
         return handle_push_event(CONFIG, data)
-    elif event == 'Issue Event':
+    elif event == 'Issue Hook':
         return handle_issue_event(CONFIG, data)
     else:
         return Response({"status": "Failue", "message": f"Gitlab hook - {event} not supported"}, status=404)
@@ -99,8 +99,9 @@ def launch(args):
         CONFIG.api_token = os.environ['GITLAB_API_TOKEN']
         app.run(debug=True)
     else:
-        CPrint.bold_red('Must specify gitlab api access token')
-        CPrint.bold('Copy token to a file named \'token\' in webserver root')
+        CPrint.bold_red(
+            'Must specify gitlab api access token as environment variable')
+        CPrint.bold('Set token to environment variable GITLAB_API_TOKEN')
         exit(127)
 
 
