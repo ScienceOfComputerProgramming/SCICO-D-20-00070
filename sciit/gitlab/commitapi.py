@@ -1,11 +1,14 @@
 import json
 import mimetypes
+import os
 import re
 
 import requests
 from slugify import slugify
-from sciit.regex import get_file_object_pattern, ISSUE
+
 from sciit.gitlab.issueapi import format_description
+from sciit.regex import (CSTYLE, HASKELL, HTML, ISSUE, MATLAB, PLAIN, PYTHON,
+                         get_file_object_pattern)
 
 
 class FileObject():
@@ -18,27 +21,54 @@ class FileObject():
         self.mime_type = self.mime_type[0]
 
 
-def update_issue_source(issue, contents):
+def get_leading_char(pattern):
+    if pattern in (PYTHON, HTML, MATLAB, HASKELL):
+        return ''
+    elif pattern == CSTYLE:
+        return '*'
+    elif pattern == PLAIN:
+        return '#'
 
-    file_object = FileObject(issue['filepath'])
+
+def update_issue_source(issue, contents):
+    if 'filepath' in issue:
+        file_object = FileObject(issue['filepath'])
+    else:
+        issue['id'] = slugify(issue['title'])
+        file_object = FileObject('issues.txt')
     pattern = get_file_object_pattern(file_object)
     match_issue = re.findall(ISSUE.ID, contents)
-    for match in match_issue:
+    for i, match in enumerate(match_issue):
         if slugify(match) == issue['id']:
+            # if match found with this id then replace the tilte and description changed
             title_replace = f'(@[Ii]ssue[ _-]*(?:id|number|slug)* *[=:;>]*(?:{match})(?:.|[\r\n])*?(?:@[Ii]ssue[ _-])* *[Tt]itle *[=:;>]*)(.*)'
-            description_replace = f'(@[Ii]ssue[ _-]*(?:id|number|slug)* *[=:;>]*(?:{match})(?:.|[\r\n])*?@(?:[Ii]ssue[ _-]*)*[Dd]escription *[=:;>]*)(.*(?:.|[\r\n])*?)(\n[\s]*@|$)'
+            description_replace = f'(@[Ii]ssue[ _-]*(?:id|number|slug)* *[=:;>]*(?:{match})(?:.|[\r\n])*?@(?:[Ii]ssue[ _-]*)*[Dd]escription *[=:;>]*)(.*(?:.|[\r\n])*?)((?:.*$)|(?:.*@|$))'
+            description_padding = f'([\t| ]+)@(?:[Ii]ssue[ _-]*)*[Dd]escription'
+            description_padding = re.findall(description_padding, contents)[i]
+
+            # check the file pattern to add leading char
+            leading_char = get_leading_char(pattern)
+            issue['description'] = re.sub(
+                f'\n', f'\n{leading_char}{description_padding} ', issue['description'])
             contents = re.sub(title_replace, r'\1' + issue['title'], contents)
-            # TODO split the desciption lines by \n and add the # or *
             contents = re.sub(description_replace, r'\1' +
-                              f'\n{issue["description"]}' + r'\3', contents)
+                              f'\n{leading_char}{description_padding} {issue["description"]}\n' +
+                              r'\3', contents)
     return contents
 
 
 def create_commit(CONFIG, issue, commit):
-    with open(CONFIG.gitlab_cache, 'r') as gl_cache:
-        cache = json.loads(gl_cache.read())
 
-    pair = [x for x in cache if x[1] == issue['iid']]
+    if os.path.exists(CONFIG.gitlab_cache):
+        with open(CONFIG.gitlab_cache, 'r') as gl_cache:
+            cache = json.loads(gl_cache.read())
+            pair = [x for x in cache if x[1] == issue['iid']]
+    else:
+        pair = []
+        cache = []
+
+    remove_formatting = re.compile(
+        r'(?:\n\n\n)*`SCIIT locations`(?:.*(?:.|[\r\n])*)')
 
     if pair:
         history = CONFIG.repo.build_history()
@@ -46,8 +76,6 @@ def create_commit(CONFIG, issue, commit):
         new_issue = old_issue
         new_issue['title'] = issue['title']
         new_issue['description'] = format_description(CONFIG, new_issue)
-        remove_formatting = re.compile(
-            r'(?:\n\n\n)*`SCIIT locations`(?:.*(?:.|[\r\n])*)')
         if new_issue['description'] != issue['description']:
             new_issue['description'] = remove_formatting.sub(
                 '', issue['description'])
@@ -59,7 +87,6 @@ def create_commit(CONFIG, issue, commit):
                 '', new_issue['description'])
     else:
         new_issue = issue
-        del new_issue['iid']
 
     if 'filepath' in new_issue:
         # update file with new commit info
@@ -76,21 +103,51 @@ def create_commit(CONFIG, issue, commit):
              "content": updated_source}
         ]
     else:
-        # create a file with this issue info
-        content = 'content'
+
         commit['branch'] = 'master'
         commit['commit_message'] = f'Creating issue \'{new_issue["title"]}\''
         commit['actions'] = [
-            {"file_path": 'issues.txt',
-             "content": content}
+            {"file_path": 'issues.txt'}
         ]
         r = requests.get(f'{CONFIG.project_url}/raw/master/issues.txt', headers={
             'Private-Token': CONFIG.api_token})
         if r.status_code == 404:
+            # create a file with this issue info
+            new_issue['description'] = remove_formatting.sub(
+                '', issue['description'])
+            content = f'#***\n# @issue {slugify(new_issue["title"])}\n' + \
+                f'# @title {new_issue["title"]}\n' + \
+                f'# @description:\n' + \
+                f'{new_issue["description"]}\n' + \
+                f'#***'
+            content = update_issue_source(new_issue, content)
+            commit['actions'][0]['content'] = content
             commit['actions'][0]['action'] = 'create'
         else:
-            commit['actions'][0]['action'] = 'update'
+            if pair:
+                # update the issue existing in issues.txt
+                source = r.content.decode()
+                updated_source = update_issue_source(new_issue, source)
+                commit['actions'][0]['content'] = updated_source
+                commit['actions'][0]['action'] = 'update'
+            else:
+                # add new issue to issues.txt
+                source = r.content.decode()
+                new_issue['description'] = remove_formatting.sub(
+                    '', issue['description'])
+                source += f'\n\n#***\n# @issue {slugify(new_issue["title"])}\n' + \
+                    f'# @title {new_issue["title"]}\n' + \
+                    f'# @description:\n' + \
+                    f'{new_issue["description"]}\n' + \
+                    f'#***'
+                updated_source = update_issue_source(new_issue, source)
+                commit['actions'][0]['content'] = updated_source
+                commit['actions'][0]['action'] = 'update'
 
     r = requests.post(f'{CONFIG.api_url}/projects/{CONFIG.project_id}/repository/commits', headers={
         'Private-Token': CONFIG.api_token}, json=commit)
-    pass
+
+    if not pair:
+        cache.append((issue['id'], issue['iid']))
+        with open(CONFIG.gitlab_cache, 'w') as gl_cache:
+            gl_cache.write(json.dumps(cache))

@@ -24,6 +24,9 @@ def handle_issue_event(CONFIG, data):
         # check if the hook was triggered by gitlab interface and not
         # the api requests made in the push hooks
         if delta > timedelta(seconds=5):
+            CONFIG.repo.git.execute(['git', 'fetch', '--all'])
+            CONFIG.repo.sync()
+
             issue = {}
             issue['iid'] = data['object_attributes']['iid']
             issue['title'] = data['object_attributes']['title']
