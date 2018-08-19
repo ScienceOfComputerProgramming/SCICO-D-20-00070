@@ -117,7 +117,7 @@ def create_commit(CONFIG, issue, commit):
                 '', issue['description'])
             content = f'#***\n# @issue {slugify(new_issue["title"])}\n' + \
                 f'# @title {new_issue["title"]}\n' + \
-                f'# @description:\n' + \
+                f'# @description\n' + \
                 f'{new_issue["description"]}\n' + \
                 f'#***'
             content = update_issue_source(new_issue, content)
@@ -137,7 +137,7 @@ def create_commit(CONFIG, issue, commit):
                     '', issue['description'])
                 source += f'\n\n#***\n# @issue {slugify(new_issue["title"])}\n' + \
                     f'# @title {new_issue["title"]}\n' + \
-                    f'# @description:\n' + \
+                    f'# @description\n' + \
                     f'{new_issue["description"]}\n' + \
                     f'#***'
                 updated_source = update_issue_source(new_issue, source)
