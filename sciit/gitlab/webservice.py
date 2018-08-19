@@ -53,7 +53,7 @@ def index():
             CONFIG.repo = IssueRepo(path=CONFIG.path)
         else:
             subprocess.run(['git', 'clone', '--mirror',
-                            data['project']['url'], CONFIG.path], check=True)
+                            data['project']['git_http_url'], CONFIG.path], check=True)
             CONFIG.repo = IssueRepo(path=CONFIG.path)
             CONFIG.repo.cli = True
             CONFIG.repo.build()
