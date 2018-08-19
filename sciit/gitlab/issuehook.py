@@ -18,7 +18,7 @@ def handle_issue_event(CONFIG, data):
 
             # check if the hook was triggered by gitlab interface and not
             # the api requests made in the push hooks
-            if delta < timedelta(seconds=5):
+            if delta < timedelta(seconds=1):
                 CONFIG.repo.git.execute(['git', 'fetch', '--all'])
                 CONFIG.repo.sync()
 

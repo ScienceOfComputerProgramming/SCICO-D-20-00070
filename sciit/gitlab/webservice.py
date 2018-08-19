@@ -80,7 +80,7 @@ def init():
             func(path)
         shutil.rmtree(CONFIG.path, onerror=onerror)
 
-    subprocess.run(['git', 'clone', '--bare',
+    subprocess.run(['git', 'clone', '--mirror',
                     data['remote'], CONFIG.path], check=True)
     CONFIG.repo = IssueRepo(path=CONFIG.path)
     CONFIG.repo.cli = True
