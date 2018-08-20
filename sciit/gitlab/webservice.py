@@ -53,7 +53,7 @@ def index():
             CONFIG.repo = IssueRepo(path=CONFIG.path)
         else:
             subprocess.run(['git', 'clone', '--mirror',
-                            data['project']['git_http_url'], CONFIG.path], check=True)
+                            data['project']['url'], CONFIG.path], check=True)
             CONFIG.repo = IssueRepo(path=CONFIG.path)
             CONFIG.repo.cli = True
             CONFIG.repo.build()
@@ -64,6 +64,11 @@ def index():
         return handle_issue_event(CONFIG, data)
     else:
         return Response({"status": "Failue", "message": f"Gitlab hook - {event} not supported"}, status=404)
+
+
+@app.route('/status', methods=['GET'])
+def status():
+    return json.dumps({"status": "running", "message": "The SCIIT-GitLab integration service is operational"})
 
 
 @app.route('/init', methods=['POST'])
@@ -97,7 +102,7 @@ def launch(args):
     CONFIG.repo = args.repo
     if 'GITLAB_API_TOKEN' in os.environ:
         CONFIG.api_token = os.environ['GITLAB_API_TOKEN']
-        app.run(debug=True)
+        app.run(host='0.0.0.0', port=5000)
     else:
         CPrint.bold_red(
             'Must specify gitlab api access token as environment variable')
