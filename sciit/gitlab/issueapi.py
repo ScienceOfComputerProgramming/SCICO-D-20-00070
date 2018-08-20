@@ -1,5 +1,6 @@
 import json
 import re
+import logging
 
 import dateutil.parser as dateparser
 import requests
@@ -35,6 +36,8 @@ def create_issue_note(CONFIG, data, iid, note_type, last=None):
         note = revision_note(data)
 
     if note:
+
+        logging.info(f'{note_type} added')
         url = f'{CONFIG.api_url}/projects/{CONFIG.project_id}/issues/{iid}/notes'
         requests.post(url,
                       headers={'Private-Token': CONFIG.api_token},
@@ -128,6 +131,12 @@ def edit_issue(CONFIG, issue_data, pair):
             issue['state_event'] = 'close'
             issue['updated_at'] = issue_data['activity'][0]['date']
 
+    # update issue if changed
+    if issue:
+        logging.info(f'{issue_data["id"]} has been updated')
+        requests.put(url, headers={'Private-Token': CONFIG.api_token},
+                     json=issue)
+
     # create notes for the issue based on commit activity and revisions
     for activity in issue_data['activity']:
         if len(issue_data['activity']) > 1:
@@ -140,8 +149,3 @@ def edit_issue(CONFIG, issue_data, pair):
             create_issue_note(CONFIG, activity, pair[1], 'activity')
     for revision in issue_data['revisions']:
         create_issue_note(CONFIG, revision, pair[1], 'revision')
-
-    # update issue if changed
-    if issue:
-        requests.put(url, headers={'Private-Token': CONFIG.api_token},
-                     json=issue)

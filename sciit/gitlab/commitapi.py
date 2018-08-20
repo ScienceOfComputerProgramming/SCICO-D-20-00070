@@ -2,6 +2,7 @@ import json
 import mimetypes
 import os
 import re
+import logging
 
 import requests
 from slugify import slugify
@@ -44,7 +45,9 @@ def update_issue_source(issue, contents):
             title_replace = f'(@[Ii]ssue[ _-]*(?:id|number|slug)* *[=:;>]*(?:{match})(?:.|[\r\n])*?(?:@[Ii]ssue[ _-])* *[Tt]itle *[=:;>]*)(.*)'
             description_replace = f'(@[Ii]ssue[ _-]*(?:id|number|slug)* *[=:;>]*(?:{match})(?:.|[\r\n])*?@(?:[Ii]ssue[ _-]*)*[Dd]escription *[=:;>]*)(.*(?:.|[\r\n])*?)((?:.*$)|(?:.*@|$))'
             description_padding = f'([\t| ]+)@(?:[Ii]ssue[ _-]*)*[Dd]escription'
-            description_padding = re.findall(description_padding, contents)[i]
+            description_padding = re.findall(description_padding, contents)
+            if description_padding:
+                description_padding = description_padding[i]
 
             # check the file pattern to add leading char
             leading_char = get_leading_char(pattern)
@@ -54,6 +57,7 @@ def update_issue_source(issue, contents):
             contents = re.sub(description_replace, r'\1' +
                               f'\n{leading_char}{description_padding} {issue["description"]}\n' +
                               r'\3', contents)
+    logging.info('Updated source code file')
     return contents
 
 
@@ -63,9 +67,11 @@ def create_commit(CONFIG, issue, commit):
         with open(CONFIG.gitlab_cache, 'r') as gl_cache:
             cache = json.loads(gl_cache.read())
             pair = [x for x in cache if x[1] == issue['iid']]
+            logging.info('Cache exists')
     else:
         pair = []
         cache = []
+        logging.info('No cache exists')
 
     remove_formatting = re.compile(
         r'(?:\n\n\n)*`SCIIT locations`(?:.*(?:.|[\r\n])*)')
@@ -123,6 +129,7 @@ def create_commit(CONFIG, issue, commit):
             content = update_issue_source(new_issue, content)
             commit['actions'][0]['content'] = content
             commit['actions'][0]['action'] = 'create'
+            logging.info('Creating new issues.txt file')
         else:
             if pair:
                 # update the issue existing in issues.txt
@@ -146,8 +153,10 @@ def create_commit(CONFIG, issue, commit):
 
     r = requests.post(f'{CONFIG.api_url}/projects/{CONFIG.project_id}/repository/commits', headers={
         'Private-Token': CONFIG.api_token}, json=commit)
+    logging.info(f'commit created on {CONFIG.path}')
 
     if not pair:
         cache.append((issue['id'], issue['iid']))
         with open(CONFIG.gitlab_cache, 'w') as gl_cache:
             gl_cache.write(json.dumps(cache))
+            logging.info(f'New entry in cache {issue["id"]}')

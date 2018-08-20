@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import datetime, timezone, timedelta
 
 import dateutil.parser as dateparser
@@ -22,7 +23,9 @@ def handle_issue_event(CONFIG, data):
             delta = now - edited
         # check if the hook was triggered by gitlab interface and not
         # the api requests made in the push hooks
-        if delta < timedelta(seconds=1):
+
+        logging.debug(f'seconds past = {delta.seconds}')
+        if delta < timedelta(seconds=5):
             CONFIG.repo.git.execute(['git', 'fetch', '--all'])
             CONFIG.repo.sync()
 
@@ -36,6 +39,7 @@ def handle_issue_event(CONFIG, data):
 
     t = Thread(target=worker, args=(CONFIG, data))
     t.start()
+    logging.info('worker thread launched')
 
     return json.dumps({"status": "Success",
                        "message": "Your issues were commited to gitlab"})

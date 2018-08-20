@@ -24,7 +24,7 @@ docs/*.rst
 *.pyc
 test.py
 gitlab
-remote.git
+*.git/
 
 ## ignore test folders
 tests/here

@@ -9,8 +9,9 @@ the local git sciit web interface
 import json
 import os
 import subprocess
-
+import logging
 import requests
+
 from flask import Flask, Response, request
 from git import Repo
 
@@ -28,8 +29,16 @@ class CONFIG:
     api_url = None
     project_id = None
     project_url = None
-    path = 'remote.git'
-    gitlab_cache = 'gitlab'
+    path = None
+    gitlab_cache = None
+
+
+def get_logger():
+    global CONFIG
+    logging.basicConfig(format='%(levelname)s:[%(asctime)s]cl %(message)s',
+                        datefmt='%m/%d/%Y %I:%M:%S %p',
+                        filename=CONFIG.path + '.log',
+                        level=logging.INFO)
 
 
 @app.route('/', methods=['POST'])
@@ -45,7 +54,10 @@ def index():
         '/', 1)[0].rsplit('/', 1)[0] + '/api/v4/'
     CONFIG.project_id = data['project']['id']
     CONFIG.project_url = data['project']['web_url']
+    CONFIG.path = data['project']['url'].rsplit('/', 1)[1]
+    CONFIG.gitlab_cache = CONFIG.path + '.cache'
     event = request.headers.environ['HTTP_X_GITLAB_EVENT']
+    get_logger()
 
     # download and build repo
     if CONFIG.repo is None or not os.path.exists(CONFIG.path):
@@ -55,8 +67,10 @@ def index():
             subprocess.run(['git', 'clone', '--mirror',
                             data['project']['url'], CONFIG.path], check=True)
             CONFIG.repo = IssueRepo(path=CONFIG.path)
-            CONFIG.repo.cli = True
             CONFIG.repo.build()
+
+    logging.info(f'received a {event} event')
+    logging.info(f'using repository: {CONFIG.path}')
 
     if event == 'Push Hook':
         return handle_push_event(CONFIG, data)
@@ -68,6 +82,7 @@ def index():
 
 @app.route('/status', methods=['GET'])
 def status():
+    get_logger()
     return json.dumps({"status": "running", "message": "The SCIIT-GitLab integration service is operational"})
 
 
@@ -88,7 +103,6 @@ def init():
     subprocess.run(['git', 'clone', '--mirror',
                     data['remote'], CONFIG.path], check=True)
     CONFIG.repo = IssueRepo(path=CONFIG.path)
-    CONFIG.repo.cli = True
     CONFIG.repo.build()
 
     return json.dumps({"status": "Success", "message": f"{data['remote']} Issue Repository Initialized"})
