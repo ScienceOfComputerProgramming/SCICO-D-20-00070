@@ -192,13 +192,18 @@ def build_history_item(item, view=None):
         if view == 'full' or view == 'detailed':
             output += '\nFilepaths:'
             for path in item['filepaths']:
-                output += '\n' + ' '*20 + path
+                output += '\n' + ' '*20 + \
+                    path['filepath'] + ' @' + path['branch']
 
     if view == 'full':
         output += f'\n'
         output += f'\nIssue Revisions:    {str(len(item["revisions"]))}'
         for revision in item['revisions']:
-            output += '\n' + revision
+            output += '\n' + revision['issuesha']
+            if 'changes' in revision:
+                output += ' changes: '
+                for change in revision['changes']:
+                    output += f'{change}, '
 
     if view == 'full' or view == 'detailed':
         output += f'\n'
