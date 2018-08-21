@@ -53,6 +53,7 @@ def update_issue_source(issue, contents):
             leading_char = get_leading_char(pattern)
             issue['description'] = re.sub(
                 f'\n', f'\n{leading_char}{description_padding} ', issue['description'])
+            issue['description'].replace('[] ', '')
             contents = re.sub(title_replace, r'\1' + issue['title'], contents)
             contents = re.sub(description_replace, r'\1' +
                               f'\n{leading_char}{description_padding} {issue["description"]}\n' +

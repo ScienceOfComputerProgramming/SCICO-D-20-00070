@@ -14,6 +14,7 @@ import requests
 
 from flask import Flask, Response, request
 from git import Repo
+from datetime import datetime, timezone, timedelta
 
 from sciit import IssueRepo
 from sciit.cli.color import CPrint
@@ -31,6 +32,8 @@ class CONFIG:
     project_url = None
     path = None
     gitlab_cache = None
+    last_push_hook = None
+    last_issue_hook = None
 
 
 def get_logger():
@@ -73,16 +76,36 @@ def index():
     logging.info(f'using repository: {CONFIG.path}')
 
     if event == 'Push Hook':
-        return handle_push_event(CONFIG, data)
+
+        CONFIG.last_push_hook = datetime.now(timezone.utc)
+        if CONFIG.last_issue_hook:
+            delta = CONFIG.last_push_hook - CONFIG.last_issue_hook
+            if delta < timedelta(seconds=10):
+                return json.dumps({"status": "Rejected",
+                                   "message": "This request originated from an Issue Hook"})
+            else:
+                return handle_push_event(CONFIG, data)
+        else:
+            return handle_push_event(CONFIG, data)
+
     elif event == 'Issue Hook':
-        return handle_issue_event(CONFIG, data)
+
+        CONFIG.last_issue_hook = datetime.now(timezone.utc)
+        if CONFIG.last_issue_hook:
+            delta = CONFIG.last_issue_hook - CONFIG.last_push_hook
+            if delta < timedelta(seconds=10):
+                return json.dumps({"status": "Rejected",
+                                   "message": "This request originated from an Push Hook"})
+            else:
+                return handle_issue_event(CONFIG, data)
+        else:
+            return handle_issue_event(CONFIG, data)
     else:
         return Response({"status": "Failue", "message": f"Gitlab hook - {event} not supported"}, status=404)
 
 
 @app.route('/status', methods=['GET'])
 def status():
-    get_logger()
     return json.dumps({"status": "running", "message": "The SCIIT-GitLab integration service is operational"})
 
 
