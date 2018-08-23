@@ -91,7 +91,7 @@ def index():
     elif event == 'Issue Hook':
 
         CONFIG.last_issue_hook = datetime.now(timezone.utc)
-        if CONFIG.last_issue_hook:
+        if CONFIG.last_push_hook:
             delta = CONFIG.last_issue_hook - CONFIG.last_push_hook
             if delta < timedelta(seconds=10):
                 return json.dumps({"status": "Rejected",
