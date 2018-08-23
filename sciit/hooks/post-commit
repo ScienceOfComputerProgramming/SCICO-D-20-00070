@@ -12,14 +12,25 @@ from sciit import IssueRepo, IssueTree, IssueCommit
 from sciit.commit import find_issues_in_commit
 from sciit.functions import write_last_issue, get_sciit_ignore
 from sciit.cli.color import CPrint
+from sciit.functions import RepoObjectDoesNotExistError
 import colorama
 
 colorama.init()
 repo = IssueRepo()
+
+if not repo.is_init():
+    CPrint.bold_red('error: Issue Repository not setup')
+    print('Solve error by building issue repository using: git sciit init')
+    exit(127)
+
 ignored_files = get_sciit_ignore(repo)
 commit = repo.head.commit
-issues = find_issues_in_commit(repo, commit, ignored_files=ignored_files)
-
+try:
+    issues = find_issues_in_commit(repo, commit, ignored_files=ignored_files)
+except RepoObjectDoesNotExistError as error:
+    CPrint.bold_red(error)
+    print('Solve error by rebuilding issue repository using: git sciit init -r')
+    exit(127)
 
 # if duplicate issues rollback commit and exit
 if len(set(issues)) != len(issues):

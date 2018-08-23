@@ -53,5 +53,6 @@ def init(args):
             return
     else:
         CPrint.green('Issue repository already setup')
+        print('Use -r or --reset flag to force reset and rebuild of repository')
 
     return

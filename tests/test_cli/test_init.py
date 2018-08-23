@@ -11,28 +11,23 @@ from git.util import hex_to_bin
 from sciit import IssueRepo
 from sciit.cli.init import init
 from tests.external_resources import remove_existing_repo, safe_create_repo_dir
+from tests.test_cli.external_resources import second_commit, first_commit
 
 
-class TestInitRepository(TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        first_commit = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
-        second_commit = '622918a4c6539f853320e06804f73d1165df69d0'
-        third_commit = '7a13fb71dfc40675176ce28b8ad6df9132039711'
-        repo = IssueRepo()
-        cls.first_commit = Commit(repo, hex_to_bin(first_commit))
-        cls.second_commit = Commit(repo, hex_to_bin(second_commit))
-        cls.third_commit = Commit(repo, hex_to_bin(third_commit))
+class TestInitCommand(TestCase):
 
     def setUp(self):
         self.held, sys.stdout = sys.stdout, StringIO()
 
+    @classmethod
+    def tearDownClass(cls):
+        remove_existing_repo('there')
+
     @patch('sciit.repo.IssueRepo.heads')
     def test_init_reset(self, heads):
-        remove_existing_repo('here')
+        remove_existing_repo('there')
         args = Mock()
-        args.repo = IssueRepo('here')
+        args.repo = IssueRepo('there')
         args.reset = True
         heads.return_value = []
         init(args)
@@ -41,9 +36,9 @@ class TestInitRepository(TestCase):
 
     @patch('sciit.repo.IssueRepo.iter_commits')
     def test_init_reset_repo_exists_no_commits(self, commits):
-        safe_create_repo_dir('here')
+        safe_create_repo_dir('there')
         args = Mock()
-        args.repo = IssueRepo('here')
+        args.repo = IssueRepo('there')
         args.reset = True
         commits.return_value = []
         init(args)
@@ -57,26 +52,25 @@ class TestInitRepository(TestCase):
     @patch('sciit.repo.IssueRepo.iter_commits')
     @patch('sciit.repo.find_issues_in_commit')
     def test_init_reset_repo_exists_with_commits(self, issues, commits):
-        safe_create_repo_dir('here')
+        safe_create_repo_dir('there')
         args = Mock()
-        args.repo = IssueRepo('here')
+        args.repo = IssueRepo('there')
         args.repo.cli = True
         args.reset = True
-        commits.return_value = [self.third_commit,
-                                self.second_commit,
-                                self.third_commit]
+        commits.return_value = [second_commit,
+                                first_commit]
         issues.return_value = []
         init(args)
         self.assertIn('Building repository from commits',
                       sys.stdout.getvalue())
-        self.assertIn('3/3 commits:',
+        self.assertIn('2/2 commits:',
                       sys.stdout.getvalue())
 
     @patch('sciit.repo.IssueRepo.heads')
     def test_init_with_no_commits(self, heads):
-        remove_existing_repo('here')
+        remove_existing_repo('there')
         args = Mock()
-        args.repo = IssueRepo('here')
+        args.repo = IssueRepo('there')
         args.reset = False
         heads.return_value = []
         init(args)
@@ -88,9 +82,9 @@ class TestInitRepository(TestCase):
                       sys.stdout.getvalue())
 
     def test_init_repo_exists(self):
-        safe_create_repo_dir('here')
+        safe_create_repo_dir('there')
         args = Mock()
-        args.repo = IssueRepo('here')
+        args.repo = IssueRepo('there')
         args.reset = False
         init(args)
         self.assertIn('Issue repository already setup',

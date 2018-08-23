@@ -7,6 +7,7 @@ dissertation/*
 
 ## ignore built files & folders
 .coverage
+*.log
 htmlcov/
 cover/
 venv/
@@ -22,6 +23,8 @@ docs/*.rst
 ## ignore cache files
 *.pyc
 test.py
+gitlab
+*.git/
 
 ## ignore test folders
 tests/here

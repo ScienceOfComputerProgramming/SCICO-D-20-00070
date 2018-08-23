@@ -152,7 +152,6 @@ def cache_history(issue_dir, history):
 
     # convert item paths to sets
     for item in history.values():
-        item['filepaths'] = list(item['filepaths'])
         item['participants'] = list(item['participants'])
         item['in_branches'] = list(item['in_branches'])
         item['open_in'] = list(item['open_in'])
