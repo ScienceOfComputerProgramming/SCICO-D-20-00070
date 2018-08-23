@@ -25,6 +25,9 @@ app = Flask(__name__)
 
 
 class CONFIG:
+    """An object containing all the necessary information about
+    the configuration of the webservice.
+    """
     repo = None
     api_token = None
     api_url = None
@@ -37,6 +40,9 @@ class CONFIG:
 
 
 def get_logger():
+    """Initialises the logger for the webservice that allows for the logging
+    of webservice events
+    """
     global CONFIG
     logging.basicConfig(format='%(levelname)s:[%(asctime)s]cl %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p',
@@ -52,6 +58,8 @@ def index():
     global CONFIG
 
     data = request.get_json()
+
+    #set configuration items
     CONFIG.api_token = os.environ['GITLAB_API_TOKEN']
     CONFIG.api_url = data['repository']['homepage'].rsplit(
         '/', 1)[0].rsplit('/', 1)[0] + '/api/v4/'
@@ -62,7 +70,7 @@ def index():
     event = request.headers.environ['HTTP_X_GITLAB_EVENT']
     get_logger()
 
-    # download and build repo
+    # download, build and set issue repo
     if CONFIG.repo is None or not os.path.exists(CONFIG.path):
         if os.path.exists(CONFIG.path):
             CONFIG.repo = IssueRepo(path=CONFIG.path)
@@ -106,11 +114,16 @@ def index():
 
 @app.route('/status', methods=['GET'])
 def status():
+    """An endpoint to check the status of the webservice to determine its running state
+    without making any changes
+    """
     return json.dumps({"status": "running", "message": "The SCIIT-GitLab integration service is operational"})
 
 
 @app.route('/init', methods=['POST'])
 def init():
+    """An endpoint that can be used to initialise the sciit repository
+    """
     global CONFIG
     data = request.get_json()
 

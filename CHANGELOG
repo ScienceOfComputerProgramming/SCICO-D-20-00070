@@ -1,3 +1,14 @@
+Version 1.0
+-----------
+
+New Features
+~~~~~~~~~~~~
+
+* Added integration with gitlab
+* Issues in sciit when pushed creates issues in gitlab
+* Issues in gitlab when created/edited creates commits with sciit issues
+* A webservice that handles gitlab issue integration
+
 Version 0.6
 -----------
 
