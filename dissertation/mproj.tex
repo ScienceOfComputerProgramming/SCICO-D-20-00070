@@ -20,7 +20,7 @@
 \begin{document}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{Source Control Integrated Issue Tracking}
+\title{Source Control Integrated Issue Tracking - The Next Generation of Issue Tracking}
 \author{Nystrom Johann Edwards}
 \date{7th September, 2018}
 \maketitle
@@ -28,11 +28,9 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-There are many tools required for engineering large and complex software products. There are also many areas in which they overlap. This project investigates and proposes a tool as a solution for the overlapping qualities of source code version control systems and issue tracking in software project development. 
+Two areas in which software engineering tools overlap are in issue tracking and source code version control. Maintaining both systems is cumbersome and can reduce productivity if focus is constantly switched from developing code to maintaining the issue tracker. This project investigates combining both tools to reduce the friction between both activities. It shows that the next generation of issue tracking can utilise the power of the source code version control systems such that developers can work on one source of truth. The combined benefit provides an accurate description of the state of any software project. Using the Source Control Integrated Issue Tracking (SCIIT) system aims to eliminate the friction by providing an extension to the version control system that manages issues embedded within the source code. Developers are now able to update issue metadata, track progress and inspect the relationships between their issues and source code.  
 
-Present state of the art software project issue tracking tools, such as GitHub, GitLab, and JIRA store issues in a database alongside the version control repository that contains the project's source code. This creates friction in development efforts because software developers must remember to keep both the issue tracker and the version control repository up to date as progress is made on completing tasks.
-
-In the next generation of issue tracking we utilise the power of the version control system to conduct issue tracking such that developers can work on one source of truth. Using a Source Control Integrated Issue Tracking system aims to eliminate friction by providing an extension to the version control system that manages issues embedded within the source code. Developers are now able to update issue metadata, track progress and inspect the relationships between their issues and source code.  %Issues co-exist with commits as objects that are tracked. 
+Keywords: Issue Tracking, Source Code Version Control, Embedded Issues 
 \end{abstract}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -62,6 +60,8 @@ Finally, I would like to thank my colleagues at the university that helped in th
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Introduction}\label{intro}
 
+%Present state of the art software project issue tracking tools, such as GitHub, GitLab, and JIRA store issues in a database alongside the version control repository that contains the project's source code. This creates friction in development efforts because software developers must remember to keep both the issue tracker and the version control repository up to date as progress is made on completing tasks.
+
 There are many tools used by software engineers in order to create high quality, high performance and maintainable software products. These tools are used by various levels within an organisation in order to coordinate efforts to this end. As such, they are exposed to a wide range of persons collaborating to meet this goal.
 
 Issue tracking systems is at the fore front of collaborating tools when it comes to software development. Bertram argues that it is used by various groups of persons in order to have a common point of knowledge when it comes to the product that is being developed \cite{Bertram:2010}. For developers in particular the issue tracking system is used as a means to store information on development tasks. Tasks may include, the development of a new feature, the discovery of a bug, the preparation for a release, among others. When progress is made on these tasks it is recorded in the tracker and it provides key information to managers and the team what has taken place.
@@ -78,7 +78,7 @@ We propose to introduce developers to an extension of the version control system
 
 \section{Implementation}
 
-
+\section{Challenges}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Evaluation}\label{evaluation}
 
@@ -92,7 +92,7 @@ We propose to introduce developers to an extension of the version control system
 
 \appendix % first appendix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{First appendix}
+\chapter{Development}
 
 \section{Section of first appendix}
 
