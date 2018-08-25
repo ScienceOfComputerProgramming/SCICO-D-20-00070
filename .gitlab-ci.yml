@@ -3,7 +3,7 @@ docs-dissertation:
   image: aergus/latex
   script:
     - cd dissertation
-    - latexmk -pdf
+    - latexmk -pdf -shell-escape
   artifacts:
     paths:
       - dissertation/*.pdf
