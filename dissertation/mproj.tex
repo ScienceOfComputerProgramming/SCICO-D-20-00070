@@ -76,26 +76,45 @@ Finally, I would like to thank my colleagues at the university that helped in th
 
 \pagenumbering{arabic}
 \section{Background}
-Issue Tracking Systems (ITS) are at the forefront of collaborating tools for software development. Bertram (2010) argues that it is used by various groups of persons invloved in order to have a common point of knowledge on the product \cite{Bertram:2010}. Developers use the ITS as a means to store information on development tasks. Tasks include, the development of a new feature, the discovery of a bug, the preparation for a release, among others. When task progress is made it is recorded in the ITS which then provides key information to managers and the team what has taken place.
 
-%find a refernce for VCS over ITS priority
-Version Control Systems (VCS) also has collaboration, however, at its core, it is the working progress of the entire development history of the software product. The two systems are useful where one is related to the product as a working growing artifact and the other as a planning and knowledge base on segments of the software product. However, during development work on VCS takes priority as it is a major part of daily activites and is critical to the release cycle whereas work on ITS is views as a non priority task.
+Issue Tracking Systems (ITS) are at the forefront of collaborating tools for software development. Bertram (2010) argues that it is used by various groups in order to have a common point of knowledge on the product \cite{Bertram:2010}. Developers use issues and track them as a means to build up information on development tasks. Issues are the development of a new feature, the discovery of a bug, the preparation for a release, among others. When issue progress is made it is recorded in the ITS which then provides key information to managers and the team.
+
+% find a refernce for VCS over ITS priority
+
+Version Control Systems (VCS) also has collaboration. However, at its core, it is the working progress of the entire development history of source code for the software product. The product's code is managed in a VCS repository as a series of changes called commits. The VCS controls the entire collection of commits for a repository allowing changes to be created, restored, revised, or deviated, among others. Developers create commits in a VCS repository that represent progress made on the code and behaviour of the software product.
+
+
+The two systems are to be used in together. One is related to the product as a working growing artifact (VCS) and the other as a planning and knowledge base on segments of the software product (ITS). However, during development, priority is placed on commits to the VCS repository as it is a major part of daily activites and is a representation of an evolving software product. Work on ITS is viewed as a non priority task and ususally falls behind code development.
+
+
 
 \section{The Problem}
+
+The friciton between the development actvities comes from the fact that ITS activities lag behind creating and commiting code. Both activities are critical to the development of high quality software. Most software projects fail due to the lack of planning and monitoring of software development activities and the ITS is the core system for managing such information. It provides details for development work and progress made on software.
+
 
 
 \section{Objectives}
 
+The objective of this project is to reduce the friction between developing code and maintaining an issue tracker by creating a new system that integrates both activities. Objectives of the system are as follows:
+
+\begin{enumerate}
+  \item To allow developers to focus on writing code
+  \item To embed issues into source code
+  \item To track issues along with code commits
+  \item To use commit information to inform on issue progress
+  \item To be a lightweight alternative to traditional ITS
+\end{enumerate}
+
+
 \section{Contribution}
 
-Integrating the two systems would potentially provide the benefit of keeping track of both types of critical information in a format that does not duplicate work efforts. We propose to introduce developers to a new system of version control that allows the tracking of issues embedded into source code. It is expected that a tool such as this will allow developers to remain highly collaborative on issues and productive on writing code into version control thereby reducing the friction of maintaining two systems and switching focus during development.
-
-The Source Control Integrate Issue Tracker (SCIIT) System will be the first of its kind and through its adoption, analysis and use it can potententially create a new paradigm for software project management and development.
+This project introduces a new system to reduce the friction between software development and issue tracking activities. The Source Control Integrate Issue Tracker (SCIIT) System created is a novel system that integrates the VCS and ITS. Issues are embedded into the source code of a software product and tracked alongside commits in a VCS repository. It thereby allows developers to remain collaborative on issues and productive on writing code into version control. Evaluation of SCIIT shows that it impacts both software development and issue tracking. It can potententially create a new paradigm for the way we manage and create software.
 
 
 \section{Structure}
 
-This report will present the problems faced by developers and the literature surrounding the issue. It will present some of related products that make claims of addressing the issue and show that there has been no breakthough in this area. It shows how such a system should be designed and what are the considerations necessary to truly integrate them. It outlines the implementation of the system to achieve satisfactory perfomance while reducing the problem. It provides an evaluation of the solution for correctness, accuracy and industry impact. Finally it concludes with future work that can be done to improve on the design.
+This report will present the problems faced by developers and the literature surrounding the issue. It will present some of related products addressing the issue and show that there has been no breakthough in this area. It shows how such a system should be designed and what considerations are necessary to truly integrate them. It outlines the implementation of the system to achieve satisfactory perfomance while reducing the problem. It evaluates the solution for correctness, accuracy and impact. It concludes with future work that can be done to improve on the design.
 
 %Present state of the art software project issue tracking tools, such as GitHub, GitLab, and JIRA store issues in a database alongside the version control repository that contains the project's source code. This creates friction in development efforts because software developers must remember to keep both the issue tracker and the version control repository up to date as progress is made on completing tasks.
 
@@ -133,8 +152,6 @@ Where other project have been marketed as intergated, SCIIT will truly be a nove
 
 \section{Key Concerns}
 
-
-\section{Objectives}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -216,7 +233,7 @@ As a result of the previous designs, a Source Control Integrated Issue Tracking 
 \caption{SCIIT ITS to VCS Filesystem Design}
 \label{fig:sciit-filesystem}
 \centering
-\includegraphics[width=10cm]{sciit-filesystem}
+\includegraphics[width=12cm]{sciit-filesystem}
 \end{figure}
 
 Figure \ref{fig:sciit-filesystem} shows that every commit made in Git generates an issue commit that contains references to all the changes made to those issues. This therefore poses a change in the traditional management of issues. If an issue is changed by editing the issue data embedded in the soruce code as a comment then a new issue object is created and assigned to a new issue tree. Changes to the references of an issue object over time can now be associated with a change in the issue. The issue tracker also intuitively determines if issues are closed by removing references to an issue that has been deleted from the embedded comment.
@@ -243,7 +260,7 @@ Although branching and merging, pushing and pulling are the main mechanisims all
 \caption{Distributed Issue Tracking}
 \label{fig:distributed-issue-tracking}
 \centering
-\includegraphics[width=10cm]{distributed-issue-tracking}
+\includegraphics[width=12cm]{distributed-issue-tracking}
 \end{figure}
 
 Figure \ref{fig:distributed-issue-tracking} shows a practical example of the distributed ITS. At point 1 a new issue is added for the first time into the orange branch. Commits that follow this keep the reference the to issue created here until a user modifies the embedded issue information or removes it from the source code. When branching to green, issue 1 remains open in both branches. At point 2 another issue is created. Here there are two issues open on the green branch and one open on the orange. The purple branch inherits both issues from the green branch. At point 3, developers make the decision to merge issue 2 into the orange branch. At point 4, both issue 1 and 2 are closed by deleting the embedding from the source code. Here there are no issues on the purple branch. At point 5, developers decide that the work has actually been completed and resolves the merge conflict by deleting the two issue embeddings from the source code. This shows the distributred nature of issues.
@@ -263,7 +280,7 @@ Figure \ref{fig:sciit-software-arch} shows the software architecture of SCIIT. T
 \caption{SCIIT Software Architecture}
 \label{fig:sciit-software-arch}
 \centering
-\includegraphics[width=10cm]{sciit-software-arch}
+\includegraphics[width=12cm]{sciit-software-arch}
 \end{figure}
 
 
@@ -371,8 +388,12 @@ They are now less burdened with the resposibility of diligently maintaining an I
 
 
 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Evaluation}\label{evaluation}
+
+
 
 This chapter begins by presenting the evaluation strategy. The remainder outlines the products merits and/or drawbacks as it relates to the reduction of friction between issue tracking and development, the impact to issue tracking practices, the impact to softare development in VCS, the feedback test users and the robustness of the product as identified through software testing. 
 
@@ -383,7 +404,7 @@ The product is evaluated by a process called Dogfooding. In progammer jargon, th
 Alongside this, user testing is conducted with three students and the supervisor. Important points from feedback is discussed in the user feedback section. The software is also evaluated based on the stated objectives and the benefits and drawbacks of the design of the system.
 
 
-\section{Reduction of Friction}
+\section{Reduction of Friction in Development}
 
 SCIIT provides a great contribution to reducing the friction between ITS and VCS developer activities. It allows for developers to be able to focus on the task of writing code and creating commits. In the background to this process SCIIT tracks revisions to issues and its references to commits. This way work can be done on an issue without need to manually update some ITS.
 
@@ -393,7 +414,9 @@ When the need to change details of an issue arrises the developer does not need 
 
 Additionally, since the issues are stored as embeddings within the source code, a clone of the repository will give a full copy of the issue history. This works well for new developers joining the team and does not require team leaders to setup two account for access to the codebase and access to issues. The issues are self conatined withing the code of the relevant project. This quality can also be useful in open source projects where the issues can be transferred during project forks. Finally, it saves the space and infrastructure required to maintain traditional ITS. 
 
-Developers will embedded an issue once and be productive implementing code to acheive the task. Once they are done they will commit the final changes, and merge into a suitable branch, and decide whether to delete the embedding.
+By maintaining issues in this manner we can see that a significant step has been taken to reduce the friction between the two development activities of maintaining the ITS and VCS. Developer now need only concern themselves with pulling, and pushing code to the repository where the issue tracker will seemlessly build, track and maintain issues in the background.
+
+This does not mean that developers are not resposible for looking at the embedded issues and performing the work required to implement them. However, it allows them to work in an environment with one point of contact. The design of SCIIT allows for developers to trod along writing code and to care for the issue tracking process. Additionally the issue tracker will now be up to date with the state of each revision of the source code.
 
 
 \section{Impact on Issue Tracking Practices}
@@ -418,35 +441,40 @@ Commit messages in SCIIT are used as the basis for the log of work done on an is
 
 Branching strategies are currently used to primarily manage the way in which software is merged. There are many theories for branching strategies and they help developers to follow a particular workflow when creating code so that their changes can be quickly integrated without significant problems. SCIIT is particularly designed to be useful to feature branching. This is where a developer creates a new branch of code from the main development brach in order to implement a new software feature. When work is done the feature is merged into the development branch or testing branch for integration testing and validation with the other code of the software product.
 
-In SCIIT feature branching allows users to create their issues at the beginning of that branch and work on that issue till completion. Additionally, any branches from this feature branch can be considered to be related to this issue and also means that work done here contributes to the issue related to that feature. At the conclusion of the feature branch the issue can be closed and merged. SCIIT's influence on feature branching allows issues to remain in their own development line and is logically seperate from other types of work.
+In SCIIT feature branching allows users to create their issues at the beginning of that branch and work on that issue till completion. Additionally, any branches from this feature branch can be considered to be related to this issue and also means that work done here contributes to the issue related to that feature. At the conclusion of the feature branch the issue can be closed and merged. SCIIT's influence on feature branching allows issues to remain in their own development line and is logically seperate from other types of work. This can be seen apparent in Figure \ref{fig:distributed-issue-tracking}
 
 These areas are potentially affected by SCIIT and is a practical improvement to the workflow of developers. It encourages best practices and workflows that are industry standard. This however may not work well for all developer teams as some prefer to adopt their own style of developing. Futher use of the product in various different developer envirionments is required in order to assertain any wider impact on development and VCS practices that SCIIT may have.
 
+
+
 \section{User Feedback}
 
+This section describes the user experiences when using the SCIIT system. In particular it will cover its ease of use, how well it displays issues and its benefits and drawbacks.
 
-% the impact on git workflows
+\subsection{Ease of Use}
 
-% the impact on non developer use
+\subsection{Interfaces for Viewing Issues}
 
-% the impact on global software engineering
+\subsection{Benefits and Drawbacks}
 
-
-% These three hooks ensure that the ITS issues stays in reference to the VCS commits. It also shows that the end user does not need to be concerend about
-
-%for eval section ==>> 
-
-
-% highlight the benefits achieved by the design
-
-%for eval section ==>> By maintaining issues in this manner we can see that a significant step has been taken to reduce the friction between the two development activities of maintaining the ITS and VCS. Developer now need only concern themselves with pulling, and pushing code to the repository where the issue tracker will seemlessly build, track and maintain issues in the background. This does not mean that developers are not resposible for looking at the embedded issues and performing the task it requires to implement them. However, it allows them to work in an environment with one point of contact. The design of SCIIT allows for developers to trod along writing code and to care for the issue tracking process. Additionally the issue tracker will now be up to date with the state of each revision of the source code.
 
 \section{Software Testing} % should I bother having a testing section
 
-This section describes in detail the testing strategy that was used to verify the design and validity of the system output. The software is tested after the implementation of each desired feature. The test suite utilises many mocks in order to mask the dependancies on other code in the system. Each test that required access to the full Git repository is mocked out such that the test suite would finish running in sufficient time.
+This section describes in detail the testing strategy that was used to verify the design and validity of the system output. The software is tested after the implementation of each desired feature this allows for regression testing with features already implemented. The test suite also utilises many mocks which mask the dependancies on other code in the system. Each test that requires access to the full Git repository is mocked out such that the test suite would finish running in sufficient time. Lastly, continuous integration (CI) practices are used to run the test suite each time code is commited.
+
+All modules of the software, except the intergration webservice, were throughly tested with unit and integration tests at the time of writing. However, the integration webservice tests are live to confirm its functionality. The test suite for the application is modular. The library, command line and web interfaces we all tested separately and a TestCase is made for each method within the modules. Each TestCase contains atomic tests that verify the functionality of the method by checking valid and invalid senarios of operation, errors thrown, and boundary conditions. Currently the test suite consists of 142 tests providing 98\% code coverage and verifies the stability of the application. 
+
+During development CI practicices were used to test regression of the application. Regression is where new fuctionality added breaks with well structured behaviour of methods. CI is where the entire test suite is run on every push to the remote repository. GitLab's CI is used since it offers the ability to send notificaitons on failed test cases. In these situations the applicaiton can be imediately updated to ensure that functionality is maintained.
+
+This complete testing framework ensures that the SCIIT system developed conforms to the designs set out. This however does not mean that SCIIT is entirely free from bugs. More wide spread used of the system will uncover more bugs as users may try operations with the system that does not conform with its design intention. However, at its current release the system is stable for distribution and use.
 
 
-The system's software tests verify that functional and integration units opperate as designed. During testing any unexpected behaviour encounted caused changes to the broken functions to ensure that the final product did not contain any bugs.
+\section{Summary}
+
+The SCIIT system introduces changes into the way developers conduct software development practices since ITS and VCS are integrated. This is an emergent property and continued use and adoption will inform changes to development workflows as a result. Continued use of the system will provide more insight and evaluation however it is thoroughly tested and has a stable release for distribution.
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Conclusion}\label{conclusion}
@@ -454,6 +482,9 @@ The system's software tests verify that functional and integration units opperat
 This project shows that Issue Tracking Systems can be successfully embedded into Version Control Systems to reduce the friction between them during the software development process. The solution is a Source Control Integrated Issue Tracking (SCIIT) system that saves issues alongside commits together in a distributed VCS.
 
 \section{Future Work}
+
+
+
 \appendix % first appendix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{CLI Cheatsheet}
