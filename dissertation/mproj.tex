@@ -2,8 +2,6 @@
 \usepackage{graphicx}
 \graphicspath{ {./images/} }
 
-
-\usepackage{url}
 \usepackage{fancyvrb}
 \usepackage[final]{pdfpages}
 \usepackage{times}
@@ -22,16 +20,6 @@
 \newenvironment{code}{\captionsetup{type=listing}}{}
 \SetupFloatingEnvironment{listing}{name=Code Snippet}
 
-% for alternative page numbering use the following package
-% and see documentation for commands
-%\usepackage{fancyheadings}
-
-
-% other potentially useful packages
-%\uspackage{amssymb,amsmath}
-%\usepackage{url}
-%\usepackage{fancyvrb}
-%\usepackage[final]{pdfpages}
 
 \begin{document}
 
@@ -77,7 +65,7 @@ Finally, I would like to thank my colleagues at the university that helped in th
 \pagenumbering{arabic}
 \section{Background}
 
-Issue Tracking Systems (ITS) are at the forefront of collaborating tools for software development. Bertram (2010) argues that it is used by various groups in order to have a common point of knowledge on the product \cite{Bertram:2010}. Developers track issues them as a means to build up information on development tasks. Issues as development tasks are new features, bug fixes, preparations for releases, refactorings of old code, or any other such task. When developer work on the task or issue progress is made it is recorded in the ITS which provides vital information to managers and the team.
+Issue Tracking Systems (ITS) are at the forefront of collaborating tools for software development. Developers track issues as a means to build up information on development tasks. Issues are development tasks that define work done for creating new features, fixing bugs, preparing for releases, refactoring old code, or any other such task. When developer work on the task or issue progress is made it is recorded in the ITS which provides vital information to managers and the team.
 
 % find a refernce for VCS over ITS priority
 
@@ -114,7 +102,7 @@ This project introduces a new system to reduce the friction between maintaining 
 
 \section{Structure}
 
-This report will present the problems faced by developers and the literature surrounding the issue. It will present some of related products addressing the issue and show that there has been no breakthough in this area. It shows how such a system should be designed and what considerations are necessary to truly integrate them. It outlines the implementation of the system to achieve satisfactory perfomance while reducing the problem. It evaluates the solution for correctness, accuracy and impact. It concludes with future work that can be done to improve on the design.
+This report will present the problems faced by developers and its literature. It discusses related products that try addressing the problem and show that there has been no breakthough in this area. It illustrates how such a system should be designed and what considerations are necessary. It outlines steps taken in the implementation of the system to achieve satisfactory perfomance. It evaluates the solution for correctness, accuracy, usability and its impact. It concludes with future work that can be done to improve the design.
 
 %Present state of the art software project issue tracking tools, such as GitHub, GitLab, and JIRA store issues in a database alongside the version control repository that contains the project's source code. This creates friction in development efforts because software developers must remember to keep both the issue tracker and the version control repository up to date as progress is made on completing tasks.
 
@@ -124,9 +112,49 @@ This report will present the problems faced by developers and the literature sur
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Analysis}\label{analysis}
 
+This section looks at the problem in more detail and gives the literature to support the need for developing a system that maintains the current value of an ITS. It also looks at current products and how they are used to address the problem. It concludes by discussing the key concerns that they solution must address.
+
 %Has the student surveyed relevant literature and existing software products? Has he/she captured the requirements? Has he/she analysed the problem, and devised a suitable approach for solving the problem?
 
-% talk about the problems faced by developers maintaining both
+
+\section{Literature Survey}  % or literature servey
+
+%talk about issue tracking where did it come from
+
+Software development teams always relied on some method for storing and caloguing development work. Bug Tracking Systems were developed out of the need to track information for maintenance purposes. According to Delugach \cite{Delugach:2007}, bug tracking contained process models of bug reporting. At this time, systems required large amounts of information on the category, description, steps to reproduce, and effect of bugs on software. They also required development teams to assign persons for triage, update the status, and comment on methods used to resolve the issue.
+
+In their research, Fan et. al. \cite{Fan:2017} asserts that these overheads were reduced during the rise of open source projects and the popular introduction of GitHub. In this era, bugs were rebranded as issues to be solved by the large scale collaboration of developers. They denote issues as a lightweight method for providing information on a problem and now were also used as a way to request new features. Issues would now contain a title, a text descripition and a label.
+
+Since then Issue Tracking Systems have continually evolved and are now extensively used not only for maintenance but the development of software products. Organisations use ITS to record many different tasks during development. In fact, Bertram et. al. \cite{Bertram:2010} states that they have become a general knowledege repository of all development tasks and all project stakeholders use the system for determining the health of the projcet.
+
+These stakeholders include developers, managers, end users, production staff and others that steer the success of the software project. Developers however are the drivers of submitting information into the system for others to consume. However they gradualy viewed working with the system a burden. In a survey of 20 Mozilla developers, Baysal et. al. \cite{Baysal:2013}, discovered that the main challenge for them were what they termed "Situational Awareness" of issues in the ITS.
+
+In general, developers try to stay focused on the task at hand. Work to be done in the ITS can become quite large on software projects and awareness on what to be done next, what has been done, and the status of issues developers are working on are sometimes conflated. Baysal et. al. \cite{Baysal:2013} concluded that there was a need for ITS to be able to provide a developer-centric focus. This runs parallel to Zimmerman et. al. \cite{Zimmerman:2009} proposal that in order to improve ITS they must be a tool that meets developers needs by offering up information that is relevant to their work.
+
+% talk about what persons have done in order to reduce friction
+Many researchers have looked into improving ITS to support the needs of developers. Some have succeded in creating of such systems for research use but they have not become commonplace in the software development arena. Additionally, the friction of maintaining the two systems still existed. The development of code and the maintainence of issues were still tasks that occured in two different environments. 
+
+% moving into GSD
+
+ITS have improved the software development process however other paradigm shifts also place burden on it. One such area is Global Software Development (GSD) were there is intense research. Researchers in this area look into the qualities of software products and processes that are affected by globally distributed development teams. Collaboration and communication which is essential in the planning and execution of any project is massively affected by GSD.
+
+Begel and Nagappan \cite{Begel:2008}, outlines the major problems of GSD which are "inadequate communication, knowlege management, and project process management." The coordination of these work products are difficult to maintain for global teams and as such they turn to the use of non traditional methods to achieve their goals or the abstain from the process.
+
+In order to engage them in the process, integrated tools are needed encourage increased collaboration and communication. This will allow the development process to become simpler as a part of the developers daily routine. ITS is one tool used in this area. Version Control Systems (VCS) and the source core repositories they manage is another. It manages the source code artifacts produced by developers and keep a history of the changes that were made to the codebase over time.
+
+Fauzi et. al. \cite{Fauzi:2010} postulates that in GSD teams become unaware of the work that is taking place on other sites. This leads to delays in making modifications to the software products as they do not have the information from other sites to make informed decisions. They also allude to the fact that there are no formal processes to address "lack of coordination and group awareness." These combined problems can lead to a breakdown of control over software project management.
+
+VCS possess the capabilites to address the problems found in ITS and in GSD. 
+% moving into VCS
+
+
+% reiterate the benefit of both systems
+
+
+
+Increasingly, ITS is being used as a software project management tool in order to 
+% talk about the problems faced by developers in using an issue tracking system JUST:2008
+
 
 % talk about the proiority of one over the other
 
@@ -136,19 +164,18 @@ This report will present the problems faced by developers and the literature sur
 
 % talk about what is required in order to aliviate the friction while maintaining productivity
 
-\section{Literature Survey}  % or literature servey
-
-% talk about what persons have done in order to reduce friction
 
 \section{Related Products}
 
-There are many products on the software market that claim to integrate aspects of the VCS with the ITS. Some boldly claim that they are indeed integrated. Reasearch however suggests that those products while able to draw reference from the VCS, are not designed as an integrated product. There are many products claiming such, however, we will focus on GitLab and Fossil as guiding examples.
+There are many products on the market that claim to integrate aspects of the VCS with the ITS. Reasearch however suggests that those products while able to draw reference from the VCS, are not designed as an integrated product. There are many products claiming such, however, we will focus on GitLab, JIRA and Fossil as guiding examples.
 
-GitLab does provide users some integration with its ITS and VCS. Using hastag references within commit messages, developers can mention work done on an issue. This method is cumbersome as it forces developers to remember issue id numbers and does not eliminate or reduce the need for them to access the ITS to view changes to the issue description, comments and disscussions on the issue itself.
+GitLab does provide users some integration with its ITS. Using hastag references within commit messages, developers can mention work done on an issue. This method is cumbersome as it forces developers to remember issue id numbers and does not eliminate or reduce the need for them to access the ITS to view changes to the issue description, comments and disscussions on the issue itself.
 
-Fossil boasts that it is a Distributed VCS with and integrated bug tracker. This claim is somewhat correct as the entire product is simply one executable binary. The bug tracker however is centralised sqlite database of immuatble issues access and managed through a local web interface. There is no way to link commit progress with bugs and the bug tracker itself is no different from others.
+JIRA
 
-Where other project have been marketed as intergated, SCIIT will truly be a novel solution. 
+Fossil boasts that it is a Distributed VCS with and integrated bug tracker. This claim is somewhat correct as the entire product is simply one executable binary. The bug tracker however is a centralised sqlite database of immuatble issues accessed and managed through a local web interface. There is no way to link commits in version control with progress on bugs. The bug tracker is no different from traditional ITS.
+
+Where other project have been marketed as intergated, SCIIT will truly be a novel solution that embeds the ITS into the VCS. 
 
 \section{Key Concerns}
 
@@ -233,7 +260,7 @@ As a result of the previous designs, a Source Control Integrated Issue Tracking 
 \caption{SCIIT ITS to VCS Filesystem Design}
 \label{fig:sciit-filesystem}
 \centering
-\includegraphics[width=12cm]{sciit-filesystem}
+\includegraphics[width=10cm]{sciit-filesystem}
 \end{figure}
 
 Figure \ref{fig:sciit-filesystem} shows that every commit made in Git generates an issue commit that contains references to all the changes made to those issues. This therefore poses a change in the traditional management of issues. If an issue is changed by editing the issue data embedded in the soruce code as a comment then a new issue object is created and assigned to a new issue tree. Changes to the references of an issue object over time can now be associated with a change in the issue. The issue tracker also intuitively determines if issues are closed by removing references to an issue that has been deleted from the embedded comment.
@@ -260,7 +287,7 @@ The design concept gets compounded in merging senarios. In such events, develope
 \caption{Distributed Issue Tracking}
 \label{fig:distributed-issue-tracking}
 \centering
-\includegraphics[width=12cm]{distributed-issue-tracking}
+\includegraphics[width=15cm]{distributed-issue-tracking}
 \end{figure}
 
 Figure \ref{fig:distributed-issue-tracking} shows a practical example of the distributed ITS. At point 1 a new issue is added for the first time into the orange branch. Commits that follow this keep the reference the to issue created here until a user modifies the embedded issue information or removes it from the source code. When branching to green, issue 1 remains open in both branches. At point 2 another issue is created. Here there are two issues open on the green branch and one open on the orange. The purple branch inherits both issues from the green branch. At point 3, developers make the decision to merge issue 2 into the orange branch. At point 4, both issue 1 and 2 are closed by deleting the embedding from the source code. Here there are no issues on the purple branch. At point 5, developers decide that the work has actually been completed and resolves the merge conflict by deleting the two issue embeddings from the source code. This shows the distributred nature of issues.
@@ -278,7 +305,7 @@ Figure \ref{fig:distributed-issue-tracking} shows a practical example of the dis
 \caption{SCIIT Software Architecture}
 \label{fig:sciit-software-arch}
 \centering
-\includegraphics[width=12cm]{sciit-software-arch}
+\includegraphics[width=10cm]{sciit-software-arch}
 \end{figure}
 
 
@@ -332,7 +359,7 @@ The last mechanism of SCIIT is its interface channels. There are three interface
 \begin{figure}
 \centering
   \caption{Tracker View in Terminal}
-  \includegraphics[width=16cm]{sciit-tracker-shot}
+  \includegraphics[width=15cm]{sciit-tracker-shot}
   \label{fig:sciit-tracker-shot}
 \end{figure}
 
@@ -523,6 +550,6 @@ These additional features will make the SCIIT system more robust and attune to t
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % it is fine to change the bibliography style if you want
-\bibliographystyle{plain}
+\bibliographystyle{acm}
 \bibliography{mproj}
 \end{document}
