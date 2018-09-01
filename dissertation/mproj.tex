@@ -120,65 +120,67 @@ This section looks at the problem in more detail and gives the literature to sup
 \section{Literature Survey}  % or literature servey
 
 %talk about issue tracking where did it come from
+An outline of the history of Issue Tracking Systems shows why they are relevant to software development. Throughout history, development teams rely on systems for storing and caloguing development work. Many systems exist that support software project management but ITS evolved from Bug Tracking Systems which manages information for software maintenance purposes. 
 
-Software development teams always relied on some method for storing and caloguing development work. Bug Tracking Systems were developed out of the need to track information for maintenance purposes. According to Delugach \cite{Delugach:2007}, bug tracking contained process models of bug reporting. At this time, systems required large amounts of information on the category, description, steps to reproduce, and effect of bugs on software. They also required development teams to assign persons for triage, update the status, and comment on methods used to resolve the issue.
+According to Delugach \cite{Delugach:2007}, bug tracking contains process models for bug reporting. These systems require several pieces of information on the category, description, steps to reproduce, and effect of bugs on software. They also require development teams to assign persons for triage, to update the status, and to comment on steps taken to resolve the issue. Delugach shows processes of Bugzilla and Trac that are quite cumbersome. They include many steps and move the problem through various status which require developers to input information at each stage. Developers, however, prefer simple processes to get the job done.
 
-In their research, Fan et. al. \cite{Fan:2017} asserts that these overheads were reduced during the rise of open source projects and the popular introduction of GitHub. In this era, bugs were rebranded as issues to be solved by the large scale collaboration of developers. They denote issues as a lightweight method for providing information on a problem and now were also used as a way to request new features. Issues would now contain a title, a text descripition and a label.
+In their research, Fan et. al. \cite{Fan:2017} asserts that these overheads are reduced during the rise of open source projects and the popular introduction of GitHub. In this era, bugs are rebranded as issues to be solved by the large scale collaboration of developers. They denote issues as a lightweight method for providing information on a problem and now are also used as a way to request new features. Issues simply contain a title, a text descripition and a label. This paradigm shift allows for a simpler process to manage development work.
 
-Since then Issue Tracking Systems have continually evolved and are now extensively used not only for maintenance but the development of software products. Organisations use ITS to record many different tasks during development. In fact, Bertram et. al. \cite{Bertram:2010} states that they have become a general knowledege repository of all development tasks and all project stakeholders use the system for determining the health of the projcet.
+Since then ITS continually evolved and are now extensively used not only for maintenance but also the active development of software products. Organisations use ITS to record many different tasks during development. In fact, Bertram et. al. \cite{Bertram:2010} states that they are a general knowledege repository of all development tasks and all project stakeholders use the system for determining the health of the project.
 
-These stakeholders include developers, managers, end users, production staff and others that steer the success of the software project. Developers however are the drivers of submitting information into the system for others to consume. However they gradualy viewed working with the system a burden. In a survey of 20 Mozilla developers, Baysal et. al. \cite{Baysal:2013}, discovered that the main challenge for them were what they termed "Situational Awareness" of issues in the ITS.
+These stakeholders include developers, managers, end users, production staff and others that steer the success of the software project. Bertram et. al. asserts that these stakeholders utilize the information stored in the ITS to create reports, gain knowledge, assess progress, assgin priority and other software project management activity. This signifies that information stored in ITS is critical to software success.
 
-In general, developers try to stay focused on the task at hand. Work to be done in the ITS can become quite large on software projects and awareness on what to be done next, what has been done, and the status of issues developers are working on are sometimes conflated. Baysal et. al. \cite{Baysal:2013} concluded that there was a need for ITS to be able to provide a developer-centric focus. This runs parallel to Zimmerman et. al. \cite{Zimmerman:2009} proposal that in order to improve ITS they must be a tool that meets developers needs by offering up information that is relevant to their work.
+The developers however are the drivers to submit information into the system for others to consume. But, they increasingly view working with the system as a burden. In a survey of 20 Mozilla developers using Bugzilla ITS, Baysal et. al. \cite{Baysal:2013} discovered that the main challenge for them is "Situational Awareness" of issues.
+
+In general, developers try to stay focused on the task at hand. Work tasks identified in the ITS grow quite large and awareness on what to be done next, what has been done, and the status of issues developers are working on are sometimes lost. Baysal et. al. \cite{Baysal:2013} concluded that there was a need for ITS to be able to provide a developer-centric focus. This runs parallel to Zimmerman et. al. \cite{Zimmermann:2009} proposal that in order to improve ITS, the tool must meet developers need by offering up information that is relevant to their work.
 
 % talk about what persons have done in order to reduce friction
-Many researchers have looked into improving ITS to support the needs of developers. Some have succeded in creating of such systems for research use but they have not become commonplace in the software development arena. Additionally, the friction of maintaining the two systems still existed. The development of code and the maintainence of issues were still tasks that occured in two different environments. 
+Many researchers have looked into improving ITS to support the needs of developers. Some have succeded in creating of such systems. Correa and Sureka's \cite{Correa:2013} integrates issues with stackoverflow to provide better leads on problem solving. This provides developers with the knowledge they need to implement solutions and be more productive. Kshirsagar and Chandre \cite{Kshirsagar:2015} creates middleware for ITS that detects and reduces duplicate issues. Additionally, for similar issues, it automatically assigns them to developers that have work on similar past issues. These contributions are successful implementations that are developer-centric.
+
+Not doubt these contributions are valuable, however, their use is not commonplace in the software development arena. Additionally, the friction of maintaining the two systems still exists as they still require developers to explicitly input issue information and continually check on issue status. The development of code and the maintainence of issues were still tasks that occured in two different environments. 
 
 % moving into GSD
 
-ITS have improved the software development process however other paradigm shifts also place burden on it. One such area is Global Software Development (GSD) were there is intense research. Researchers in this area look into the qualities of software products and processes that are affected by globally distributed development teams. Collaboration and communication which is essential in the planning and execution of any project is massively affected by GSD.
+ITS have improved over the years however other paradigm shifts also place burden on the software development process. Another such area is Global Software Development (GSD) were there is intense research. Researchers in this area look into the qualities of software products and processes that are affected by globally distributed development teams. Collaboration and communication which is essential in the planning and execution of any project is massively affected by GSD.
 
-Begel and Nagappan \cite{Begel:2008}, outlines the major problems of GSD which are "inadequate communication, knowlege management, and project process management." The coordination of these work products are difficult to maintain for global teams and as such they turn to the use of non traditional methods to achieve their goals or the abstain from the process.
-
-In order to engage them in the process, integrated tools are needed encourage increased collaboration and communication. This will allow the development process to become simpler as a part of the developers daily routine. ITS is one tool used in this area. Version Control Systems (VCS) and the source core repositories they manage is another. It manages the source code artifacts produced by developers and keep a history of the changes that were made to the codebase over time.
+Begel and Nagappan \cite{Begel:2008}, outlines the major problems of GSD which are "inadequate communication, knowlege management, and project process management." The coordination of these works are difficult to maintain for global teams and as such they turn to the use of non traditional methods to achieve their goals or they tend to abstain. These alternatives are mostly chaotic approaches and cause difficulties in software project management.
 
 Fauzi et. al. \cite{Fauzi:2010} postulates that in GSD teams become unaware of the work that is taking place on other sites. This leads to delays in making modifications to the software products as they do not have the information from other sites to make informed decisions. They also allude to the fact that there are no formal processes to address "lack of coordination and group awareness." These combined problems can lead to a breakdown of control over software project management.
 
-VCS possess the capabilites to address the problems found in ITS and in GSD. 
+In order to engage developers in the process, integrated tools are needed encourage increased collaboration and communication. This will allow the development process to become simpler as a part of the developers daily routine. Version Control Systems (VCS) and the source core repositories they manage is one such tool. It manages the source code artifacts produced by developers and keep a history of the changes that were made to the codebase over time. This allows global teams to work on one codebase which allows all those collaborating on code to see the entire scope of development. 
+
 % moving into VCS
 
+VCS provide a robust framework for developing code. Prior technologies such as Subversion relied on a centralised structure for version control. In a client-server model code would be checked in and out of the server but check in processes had high potential to create issues merging changed between more than one developer. Git made the process easier by allowing branches of code and merges of branches to be a simpler process to resolve.
+
+Bertino \cite{Bertino:2012} illustrates by research that Git has significant performance gains over other types of VCS. It allows developer to have a local copy of the full codebase which makes merging code safer and more efficient. Bertino also shows that the ability to ignore binary and other generated files to make Git repositories much smaller. All these files can be build by the mission critical code which is stored in the VCS. This creates for a much more efficient development ecosystem where problems arrising from buggy development code can be easily reverted. Developers can work in thier own self contained branches until code has been tested. These and many other advantages made Git a prime target for widely successful open source projects with many globally distributed collaboraing developers.
+
+In a related study Brindescu et. al. \cite{Brindescu:2014} investigates the impact of Git on developer activities. They show that developers an more comfortable with making branches and working on code on thier own than they would checking out form a centralised system. This allows for the rapid development of features and contribution to code. The authors also make several behavioural observations that all point to developers contributing frequent small commits, working on series of commits in a branch that are related to issues referenced by an ITS, and provide higher quailty commit changes.
 
 % reiterate the benefit of both systems
+Both VCS and ITS are critical tools in the software process. They both require active attention to be useful. Developers however spend most of thier time focusing on developing code using VCS as producing code is the ultimate goal of the process. All other tasks run parallel to supporting this goal.
 
+For development of the next generation of issue trackers, Just et. al. \cite{Just:2008} illustrate that successful products will address "the quality of information in issues, communication between developers, reduction of work for developers, and automation." Embedding the ITS into VCS will provide the capabilites to address the problems found in ITS and in GSD. It will be robost way of building up a knowlege base. It will securely store changes over time. It will encourage collaboration and communication in a global team environment. It will be a central focus of developers. By embedding overlapping traits of the ITS with VCS, developers can uniquely utilise an integrated system that meets the needs of both maintaining issue tracking information and developing code. 
 
-
-Increasingly, ITS is being used as a software project management tool in order to 
-% talk about the problems faced by developers in using an issue tracking system JUST:2008
-
-
-% talk about the proiority of one over the other
-
-% talk about the overlapping qualities of both systems
-
-% talk about the potential benefits
-
-% talk about what is required in order to aliviate the friction while maintaining productivity
 
 
 \section{Related Products}
 
-There are many products on the market that claim to integrate aspects of the VCS with the ITS. Reasearch however suggests that those products while able to draw reference from the VCS, are not designed as an integrated product. There are many products claiming such, however, we will focus on GitLab, JIRA and Fossil as guiding examples.
+There are many products on the market that integrate aspects of the ITS with the VCS. Reasearch however suggests that those products while able to draw reference from the VCS, are not designed as an integrated product. There are many related commercial products, however, we will focus on GitLab, Redmine, JIRA and Fossil as examples. As for open source products we shall look at Bugs Everywhere.
 
-GitLab does provide users some integration with its ITS. Using hastag references within commit messages, developers can mention work done on an issue. This method is cumbersome as it forces developers to remember issue id numbers and does not eliminate or reduce the need for them to access the ITS to view changes to the issue description, comments and disscussions on the issue itself.
+\subsection{Commercial Products}
 
-JIRA
+GitLab, Redmine and JIRA all provide users some integration with its ITS. Using hastag references within commit messages, developers can mention work done on an issue. This method is cumbersome as it forces developers to remember issue id numbers and does not eliminate or reduce the need for them to access the ITS to view changes to the issue description, comments and disscussions on the issue itself.
 
-Fossil boasts that it is a Distributed VCS with and integrated bug tracker. This claim is somewhat correct as the entire product is simply one executable binary. The bug tracker however is a centralised sqlite database of immuatble issues accessed and managed through a local web interface. There is no way to link commits in version control with progress on bugs. The bug tracker is no different from traditional ITS.
+Fossil is marketed as a Distributed VCS with and integrated bug tracker. The entire product is simply one executable binary. The bug tracker however is a centralised sqlite database of immuatble issues accessed and managed through a local web interface. The ITS also linked using hastag references in commit messages.
 
-Where other project have been marketed as intergated, SCIIT will truly be a novel solution that embeds the ITS into the VCS. 
+\subsection{Open Source Products}
+
+In the open source domain Bugs Everywhere is described as a distributed ITS. Although development on the product has ceased since 2013, contributors have been able to create distributed issues. However, they are not attached to commits. These issues are also not embedded into the source code of the repository but stored in a similar manner and structure as distributed VCS. A command line utility is used to manage the ITS. It still does not do a sufficent job at reducing friction.
 
 \section{Key Concerns}
 
+Based on the problems identified in literature and the shortcomings of related products, this project intends to address the key concerns regarding the issue.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -219,8 +221,8 @@ Since the architecture is based on the assigning and changing of references or p
 After understanding the architecture of Git, the next step of integration is to find a way to store issues alongside commits. This is achieved by embedding the issue and its related information into the source code of the software project files as a block comment. The only mandatory requirement for embedding and issue is to provide an issue id using an \textbf{\textit{@issue}} flag. All other information can be optional or supplied in later commits. Code Snippet \ref{snip:embedded-issue} shows the format of an issue with all optional information in a python code block.
 
 \begin{code}
-\label{snip:embedded-issue}
 \captionof{listing}{Example of an embbed issue in python}
+\label{snip:embedded-issue}
 \begin{minted}{python}
 """
     @issue signin
