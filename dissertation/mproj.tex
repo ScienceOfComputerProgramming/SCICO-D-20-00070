@@ -180,7 +180,17 @@ In the open source domain Bugs Everywhere is described as a distributed ITS. Alt
 
 \section{Key Concerns}
 
-Based on the problems identified in literature and the shortcomings of related products, this project intends to address the key concerns regarding the issue.
+Based on the problems outlined in literature and the shortcomings of related products, this project intends to address the key concerns regarding reducing friction between issue tracking and developing code while maintaining the collaborative quality of issue trackers. The following is a list of concerns:
+
+\begin{enumerate}
+  \item The embedded ITS must do as little as possible to distract the developer from creating code. Valuable information about the development of an issue must be automated and drawn from the commits in the VCS.
+  \item The embedded ITS must be able to allow developers to collaborate on issues within a distributed environment.
+  \item The embedded ITS must not impead the benefits of the VCS which are to allow developed to easily branch, merger and contribute to code.
+  \item The embeded ITS must not impact on the functionality of the VCS and as such the VCS should be able to opperate without the embedded ITS.
+  \item The embedded ITS must provide suituational awareness on the progress made on issues, what branch it is currently, who is participant on its development, detailed log of work done on the issue, the changes to the issue over time and other status information.
+  \item Issues in the ITS must be related to segments of code where the work must be implemented. This provides the developer with a level of focus on what must be done within that file or piece of source code.
+\end{enumerate}
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
