@@ -45,7 +45,7 @@ Keywords: Issue Tracking, Version Control System, Embedded Issues, Source Code, 
 
 I would like to thank my supervisor, Dr Timothy Storer for exposing me to new software engineering possibilities through this project, for his advice and mentoring on creating a new and useful software tool, and most importantly for assistance in making the difficult decisions on design choices.
 
-I would like to thank my wife Virginia for her support and encouragement throughout my programme and all her efforts to ensure that it was completed with great success. I would not have gotten this far without her valuable insight into my projects, her motivational speeches and her uplifting presence.
+I would like to thank my wife Virginia for her support and encouragement throughout my programme and all her efforts to ensure that it was completed with great success. I would not have gotten this far without her support, her motivational speeches and her uplifting presence.
 
 I am especially grateful to my sister Zophia who has financed my programme and has always believed in supported and encouraged my software development talent. She will always be one of my greatest supporters.
 
@@ -396,13 +396,28 @@ The information inferred does not need to be explicitly entered into the issue t
 
 Since the SCIIT system is first of its kind, there are some challenges associated with its design and development. This section outlines the significant design and development challenges.
 
-The first major challenge concerns Git as a lightweight system that involves single threaded file access operations. When building the issue repository from past commits, SCIIT traverses each file object scans its contents to determine if an issue is present or not. This is a time-consuming process and is restricted to a single thread. With multiple threads, the system  encounters I/O errors, especially since there is a high likelihood that the same file may be accessed at the same time.
+The first major challenge concerns extracting issues embedded in source code. This involves use of a series of regular expressions. These expressions look at the raw string representation of the source code that is stored in a commit and extracts issue inforation. The first step in the process is to create regular expressions for extracting the block comments based on the programming language of the source file. The second step is to check the block comments for the presence of the \textbf{\textit{@issue}} flag. Once this is found the issue information can be extracted. The regular experssions used for each step of the process is very long and complicated and took some many testing iterations to ensure validity. Many updates to them were made over the development of the project.
 
-This limits the performance of SCITT to build issues from past commits on repositories that consist of a high number of commits such as the Linux Open Source Project or Tensorflow. The performance also suffers based on the commit/merge strategy that the developer teams are using since some strategies can have commits that contain a larger tree of file changes that other strategies may not implement.
+The second major challenge concerns the allocation of IDs to the issues in the issue tracker. There were two options. The first option is to allow the system to assign issue IDs to all issues in the tracker once created. This option however was difficult to implement and provided a processing and I/O overhead. The process involved: reading the last generated ID from the disk; incrementing the ID for use in the new issue; saving the new issue to the disk and saving the new issue ID to the disk. These operations are costly in situations where there are many issues to be stored in one commit.
 
-This also affects the performance of building the issue tracker history as each object must be read in a single thread and added the issue tracker history object. For vast repositories, it can take some time for the issue tracker to be built which can reduce the productivity of the developer. The GitLab integration web service helps to reduce this problem. However, developer teams may use other remote hosting solutions for which integration services have not yet been created. This is the major challenge of the project and its design.
+The most appropriate approach to this challenge is to give developer control of the issue IDs to be used. This optimises the disk access during commits and allows for the developers to explicitly specify the issue. A drawback of this approach is the need to check commits for duplicate issue IDs that are sepcified throughout all the source code files of the project. This ensures that there are no two issues in different files with the same issue ID. The system will then warn the user of a conflict of issue IDs and where the conflicts are located.
 
-The second major challenge concerns the use of GitLab API calls within the web service interface. GitLab Webhooks are a part of the main functionality of the website. For example, utilising the GitLab Commits API triggers a Push Webhook. As such, during development special care needs to be taken to verify the dates of receiving GitLab webhooks with the internal web service time. If a Webhook was triggered and came in within seconds of another, they would be ignored as it would have originated from API calls within the web service. In the web service handling Issue Hooks generated requests for handling Push Hook and vice versa. If this was not carefully handled internally, then the web service would send infinately looping requests, unnecessarily creating GitLab Issues and commits on remote the repository.
+The third major challenge concerns the single threaded file access operations used in Git. When building the issue repository from past commits or building the issue tracker, SCIIT traverses each commit and scans its related file object contents (blobs) to get issue information. This is a time-consuming process and is restricted to a single thread because of the architecture of Git. SCIIT encounters I/O errors if multiple threads are used since there is a high likelihood that the same file may be accessed at the same time due to the referencing of the issue commit objects to commits. Although the system will benefit from extracting information for two or more commits at a time, I/O operations and access does allow it to be possible. 
+
+\begin{figure}[t]
+\centering
+  \caption{Screenshot of initialising issue repository from past commits}
+  \includegraphics[width=14cm]{sciit-init}
+  \label{fig:sciit-init}
+\end{figure}
+
+This limits the performance of SCITT to build issues from past commits on repositories that consist of a high number of commits such as the Linux Open Source Project (781,903 commits) or even smaller repoitories such as Tensorflow (39,390 commits). The performance also suffers based on the commit/merge strategy that the developer teams are using since some strategies can have commits that contain a larger tree of file changes that other strategies may not implement. As an average baseline, SCIIT takes 15 seconds to scan 1000 commits. Figure \ref{fig:sciit-init} shows the building of the issue repository from the VueJS git repository containing, at the time of writing, 5716 commits.
+
+This problem also affects the performance of building the issue tracker history as each object must be read in a single thread while traversing the issue commit revisions. For vast repositories, it can take some time for the issue tracker to be built which can reduce the productivity of the developer. One way around this challenge is to provide a revision to the building of the issue tracker that limits the building of the full issue tracker. Here only the information required by the revision is used.
+
+The GitLab integration web service helps to reduce this problem. It does this by storing the issue tracker information between revisions specified by the lastest commit a developer has when pushing to a remote repository and the last commit on the remote repository. In a typical workflow, this is a series of commits that are made on a new branch. The state of the issue tracker between small revisions of commits can now be safely stored in a centralised manner. It must be noted, however, that developer teams may use other remote hosting solutions for which integration services have not yet been created.
+
+The last major challenge concerns the use of GitLab API calls within the web service interface. GitLab Webhooks are a part of the main functionality of the website. For example, utilising the GitLab Commits API triggers a Push Webhook. As such, during development special care needs to be taken to verify the dates of receiving GitLab webhooks with the internal web service time. If a Webhook was triggered and came in within seconds of another, they would be ignored as it would have originated from API calls within the web service. In the web service handling Issue Hooks generated requests for handling Push Hook and vice versa. If this was not carefully handled internally, then the web service would send infinately looping requests, unnecessarily creating GitLab Issues and commits on remote the repository.
 
 \section{Summary}
 
@@ -412,16 +427,25 @@ The implementation of the system ensures that developers are less burdened with 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Evaluation}\label{evaluation}
 
-This chapter begins by presenting the evaluation strategy. The remainder outlines SCIIT’s merits and drawbacks as it relates to the reduction of friction between maintaining issue trackers and developing code, the impact on issue tracking practices, the impact on developing code using VCS, the feedback from test users and the robustness of the product as identified through software testing. 
+This chapter begins by presenting the evaluation strategy. The remainder outlines user feedback, the impact on issue tracking practices, the impact on developing code using VCS and the robustness of the product as identified through software testing. 
 
 \section{Evaluation Strategy}
 
-SCIIT is evaluated by a process called Dogfooding. In programmer jargon, this is where developers use the product during development to determine useful features to include or to determine fixes to unintended bugs before distribution. It provides high levels of feedback that are rapidly included in future releases.
+SCIIT is evaluated by a process called Dogfooding. In programmer jargon, this is where developers use the product during development to determine useful features to include or to determine fixes to unintended bugs before distribution. It provides high levels of feedback that are rapidly included in future releases. It is worth noting that dogfooding also applied to the development of SCIIT. It is used as the ITS for development work of this project.
 
-Alongside this, user testing is conducted with three students and the supervisor. Essential points from feedback are discussed in the user feedback section. The software is also evaluated based on the stated objectives and the benefits and drawbacks of the design of the system.
+Within dogfooding, user testing is conducted for a period of 5 weeks with three students and the supervisor. During this period, users are able to use the software for tracking issues in their own development projects and report feedback. Each tester uses SCIIT in their individual development work and as such user feedback does not include information on team environments. Due to the scope of this project and its impacts on development practices more user and group testing will be required in the future. 
+
+Essential points from feedback are discussed in the user feedback section. The software is also evaluated based on the stated objectives and the benefits and drawbacks of the design of the system.
 
 
-\section{Reduction of Friction}
+\section{User Feedback}
+
+This section describes the user experiences when using the SCIIT system. In particular, it will cover feedback on merits and drawbacks relating to the reduction of friction between maintaining issue trackers and developing code, its ease of use, how well it displays issues.
+
+
+\subsection{Reduction of Friction}
+
+% rephrase this section with comments from sarthak and quy
 
 SCIIT provides a significant contribution to reducing the friction between maintaining issue trackers and developing code. It allows for developers to be able to focus on the task of writing code and creating commits. In the background to this process, SCIIT tracks revisions to issues and its references to commits. This way work can be done on an issue without the need to manually update some ITS.
 
@@ -434,6 +458,21 @@ Additionally, since the issues are stored as embeddings within the source code, 
 By maintaining issues in this manner, the system shows that a significant step has been taken to reduce the friction between the two development activities of maintaining the ITS and VCS. The developer now needs only concern themselves with pulling and pushing code to the repository where the issue tracker will seamlessly build, track and maintain issues in the background.
 
 This does not mean that developers are not responsible for looking at the embedded issues and performing the work required to implement them. However, it allows them to work in an environment with one point of contact. The design of SCIIT allows for developers to trod along writing code and to care for the issue tracking process. Additionally, the issue tracker will now be up to date with the state of each revision of the source code.
+
+\subsection{Ease of Use}
+
+Test users find the application easy to install and use. They note the ease of creating and managing issues by embedding the information into the source code. The status messages shown after commits on the command line are useful for them to maintain awareness and confirm the status of issues at each commit. This is provided by the Git Hooks. They noticed that they did not need to expressly comment on each activity as the commit messages were used.
+
+\subsection{Interfaces for Viewing Issues}
+
+As for interfaces, most users found that the web interface provided by the application was very basic in providing information. The web interface was simple enough to use, but it did not provide them with the quality that they were accustomed to. They stated however that the command line interface was straightforward to use and liked the fact that the tracker command had three different detail levels. This way they were able to decide on what level of detail was required when viewing the issues.
+
+\subsection{Benefits and Drawbacks}
+
+The most commented on drawback is the local web interface. Many users would have liked more control over the issues at this point to be able to edit descriptions and other metadata. Since the issues are embedded into source code, it was difficult to provide this function. Another stated drawback was the need to have comments on an issue.
+
+The most highlighted benefit was the capability of continuing developing code while issue information is built up over commits. They found that they did not need to remember issue numbers as this was internally tracked. They also liked the fact that they could embed and move the issue to segments of code where the development work is taking place. They mentioned it as helpful in providing a quick glance on what needed to be done without leaving the code editor.
+
 
 
 \section{Impact on Issue Tracking Practices}
@@ -461,25 +500,6 @@ Branching strategies are currently used to primarily manage the way in which sof
 In SCIIT feature branching allows users to create their issues at the beginning of that branch and work on that issue till completion. Additionally, any branches from this feature branch can be considered to be related to this issue and also means that work done here contributes to the issue related to that feature. At the conclusion of the feature branch, the issue can be closed and merged. SCIIT’s influence on feature branching allows issues to remain in their own development line and is logically separate from other types of work. This can be seen apparent in Figure \ref{fig:distributed-issue-tracking}.
 
 These areas are potentially affected by SCIIT and are a practical improvement to the workflow of developers. It encourages best practices and workflows that are industry standard. This, however, may not work well for all developer teams as some prefer to adopt their own style of developing. Further use of the product in various different developer environments is required in order to ascertain any broader impact on development and VCS practices that SCIIT may have.
-
-
-\section{User Feedback}
-
-This section describes the user experiences when using the SCIIT system. In particular, it will cover its ease of use, how well it displays issues and its benefits and drawbacks.
-
-\subsection{Ease of Use}
-
-Test users find the application easy to install and use. They note the ease of creating and managing issues by embedding the information into the source code. The status messages shown after commits on the command line are useful for them to maintain awareness and confirm the status of issues at each commit. This is provided by the Git Hooks. They noticed that they did not need to expressly comment on each activity as the commit messages were used.
-
-\subsection{Interfaces for Viewing Issues}
-
-As for interfaces, most users found that the web interface provided by the application was very basic in providing information. The web interface was simple enough to use, but it did not provide them with the quality that they were accustomed to. They stated however that the command line interface was straightforward to use and liked the fact that the tracker command had three different detail levels. This way they were able to decide on what level of detail was required when viewing the issues.
-
-\subsection{Benefits and Drawbacks}
-
-The most commented on drawback is the local web interface. Many users would have liked more control over the issues at this point to be able to edit descriptions and other metadata. Since the issues are embedded into source code, it was difficult to provide this function. Another stated drawback was the need to have comments on an issue.
-
-The most highlighted benefit was the capability of continuing developing code while issue information is built up over commits. They found that they did not need to remember issue numbers as this was internally tracked. They also liked the fact that they could embed and move the issue to segments of code where the development work is taking place. They mentioned it as helpful in providing a quick glance on what needed to be done without leaving the code editor.
 
 
 \section{Software Testing} % should I bother having a testing section
