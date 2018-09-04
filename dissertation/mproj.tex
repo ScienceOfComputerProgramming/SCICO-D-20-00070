@@ -9,7 +9,7 @@
 \usepackage[newfloat]{minted}
 \setminted[python]{fontsize=\footnotesize}
 
-
+\usepackage[hidelinks]{hyperref}
 \usepackage{tcolorbox}
 \usepackage{caption}
 \usepackage{subcaption}
@@ -58,7 +58,6 @@ Finally, I would like to thank my colleagues at the university that helped in th
 
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Introduction}\label{intro}
 
@@ -73,7 +72,7 @@ The two systems are used in the development process. The VCS is related to the p
 
 
 
-\section{The Problem}
+\section{Problem}
 
 The friction between the development activities comes from the fact that maintaining the issue tracker lags behind developing code. Developing and delivering code is a priority in order to meet customer deadlines and thus issue tracking work can be neglected. The planning and monitoring of software development activities, however, indicates software project health. As such, and in modern software projects, the ITS is the core system for managing healthy projects. Eliminating or reducing the friction between maintaining the issue tracker and developiing code can therefore lead to better software project health and a higher quality software product.
 
@@ -93,7 +92,7 @@ The objective of this project is to reduce the friction between maintaining the 
 
 \section{Contribution}
 
-This project introduces a new system to reduce the friction between maintaining an issue tracker and developing code. The Source Control Integrate Issue Tracker (SCIIT) System created is a novel system that embeds an ITS into a VCS. Issues are embedded into the source code of a software product and tracked alongside commits in a VCS repository. It thereby allows developers to remain collaborative on issues and productive on writing code into version control. Evaluation of SCIIT shows that it impacts both software development and issue tracking. It can potentially create a new paradigm for the way developers manage and create software.
+This project introduces a new system to reduce the friction between maintaining an issue tracker and developing code. The Source Control Integrate Issue Tracker (SCIIT) System created is a novel system that embeds an ITS into a VCS. Issues are embedded into the source code of a software product and tracked alongside commits in a VCS repository. It thereby allows developers to remain collaborative on issues and productive on writing code into version control. Evaluation of SCIIT shows that it impacts both software development and issue tracking. It can potentially create a new paradigm for the way developers manage and create software. The code can be accessed at \href{https://www.gitlab.com/nystrome/sciit}{https://www.gitlab.com/nystrome/sciit}.
 
 
 \section{Structure}
@@ -197,16 +196,13 @@ Based on the problems outlined in literature and the shortcomings of related pro
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Design}\label{design}
+\chapter{Design {\&} Implementation}\label{design}
 
 This chapter discusses the two main categories of design decisions necessary to embed an ITS into a VCS. Firstly, is the choice of VCS which is critical for the success of the integration and must contain options allowing it to be extended and manipulated. Secondly, is the design for embedding an ITS that give the ability to leverage the versioning functions of the VCS. Next, the chapter discusses the resulting distributed ITS which differs from traditional centralised design. Then it ends with a layout of the software architecture.
 
-\section{The Git Version Control System}
+\section{Git Version Control System}
 
 For this project, it is necessary to pick a VCS that is easily extended. Git, the open source VCS, is used as the backbone of the new system. As the most popular open source VCS technology to date, it offers the opportunity to attain vast amounts of information on its internal mechanisms in order to extend it to include custom functionalities such as an ITS. The documentation of Git and the wide variety of related products, articles and examples gives insight into how it is extended. A discussion on its revision control architecture sheds insight on what can be manipulated.
-
-
-\subsection{Git's Version Control Architecture}
 
 Git’s architecture as described in Gregory's article \cite{BehindGit}, is primarily based on a series of references or pointers to objects which are updated when new changes to files are checked in to the VCS. In Git, each revision of a group of files is called a commit. In each commit, files are stored as a compressed version of the entire file contents (called blobs) and maintaina folder structure by trees. When new commits (additions, modification and deletions) are found, Git, saves the compressed blobs to its objects directory and creates a new reference by hashing the blob’s contents. These references are known as SHA references.
 
@@ -215,9 +211,9 @@ To keep track of the blobs, Git assigns references of them to trees which repres
 Since the architecture is based on the assigning and changing of references or pointers, an ITS can be embedded into VCS by assigning references and pointers to objects containing issue information. This way each commit will reference a group of issues. The next section discusses how this can be achieved and how to embed the information in the source code.
 
 
-\section{Integrating an Issue Tracker System}
+\section{Embedded Issue Tracking System}
 
-\subsection{Embedding Issues into Source Code}
+\subsection{Issues within Source Code}
 
 After understanding the architecture of Git, the next step of integration is to find a way to store issues alongside commits. This is achieved by embedding the issue and its related information into the source code of the software project files as a block comment. The only mandatory requirement for embedding an issue is to provide an issue ID using an \textbf{\textit{@issue}} flag. All other information is optional and can be supplied in later commits. Code Snippet \ref{snip:embedded-issue} shows the format of an issue with all optional information in a python code block.
 
@@ -241,9 +237,7 @@ After understanding the architecture of Git, the next step of integration is to 
 \end{code}
 
 
-
-
-\subsection{Issue Repository and References}
+\subsection{Issue Object References}
 
 Issues embedded into source code can now be extracted into each local copy of a repository. To achieve this, SCIIT follows the same principle of using references for issues as Git does for commit objects. However, references are assigned to issue objects differently. When a commit is created, the system reads the changes to the source code in that commit and identifies the existence of embedded issues. The contents or information of the embedded issue is extracted and used to form its SHA reference. All the issues identified are then cached to a separate issue repository on the file system for quicker access.
 
@@ -252,7 +246,7 @@ All issue references that are identified belonging to that commit are then colle
 Each individual issue tree reference is then referenced to a unique object called an issue commit. For all intents and purposes, they contain the reference to a Git commit and a reference to an issue tree. This way they represent the embedding of the ITS into the VCS creating one system that manages both activities.
 
 
-\subsection{The Integrated System}
+\subsection{System Integration}
 
 As a result of the previous designs, a Source Control Integrated Issue Tracking (SCIIT) System can now be adequately used to represent the complex relationships between the management of issues and the state of the software project. Figure \ref{fig:sciit-filesystem} shows how SCIIT embeds the ITS into the Git VCS on the file system as a series of references when commits are created. Green arrows represent revised or new objects tracked by the system. Black arrows represent unchanged objects that are referenced in following commits.
 
@@ -269,7 +263,7 @@ Figure \ref{fig:sciit-filesystem} shows that every commit made in Git generates 
 
 Changes to the references of an issue object over time can now be associated with a change in the issue. This is a factor that is taken into account when building the issue tracker history. The issue tracker also intuitively determines if issues are closed by removing references to an issue that has been deleted from the embedded comment. If the issue is no longer in the issue tree at the tip of any Git branch then the issue is closed. This is discussed in futher detail in the next section.
 
-\section{SCIIT's Distributed ITS}
+\subsection{Distributed Issues}
 
 As a result of embedding the ITS into a distributed VCS such as Git, the ITS is also has a distributed structure. In Git, the distributed structure involves the use of branching in which two different series of commits have deviated from one previous commit. Developers can spawn and work in new branches that are parallel to others. When complete they merge their changes with other branches. There are also remote Git repositories on servers where commits on branches are pushed and pulled to and from the local machine.
 
@@ -290,7 +284,7 @@ At point 1, a new issue is added for the first time into the orange branch. Comm
 At point 5, developers are faced with a decision conflict. They must decide if the work has actually been completed and whether to resolve the merge conflict by deleting the two issue embeddings from the source code, keeping one issue, keeping both issues, editing either or both of the issue information. These decision choices are supported by the Git diff tool which shows the revisions of both the orange and purple branch side by side. The Git diff tool shows the developer the the conflicting areas of the source code where the orange branch contains the embeddings and the purple branch does not. In a distributed team working on this repository, this point gives the team the ability to decide on the final status of the issue. This example illustrates the distributed nature of issues in SCIIT.
 
 
-\section{Software Architecture}
+\section{The Software Architecture}
 
 \begin{figure}[h!]
 \caption{SCIIT Software Architecture}
@@ -299,39 +293,26 @@ At point 5, developers are faced with a decision conflict. They must decide if t
 \includegraphics[width=12cm]{sciit-software-arch}
 \end{figure}
 
-Figure \ref{fig:sciit-software-arch} shows the software architecture of SCIIT. There is two separate file system storage folders at heart. One responsible solely for the VCS repository objects and the other for the ITS repository objects. The VCS information is accessed by the VCS control tool Git, which in turn can be manipulated by the GitPython Library.
+Figure \ref{fig:sciit-software-arch} shows the software architecture of SCIIT. 
 
-The SCIIT Library has direct access to the ITS repository and is responsible for managing all its objects stored within that context. This is its extended functionality. It also utilises objects, methods, and attributes of the GitPython Library in order to manipulate the VCS repository. With this, the SCIIT Library can use information from both VCS and ITS to create, build and manage issues.
+This section discusses the implementation of the design as an architecture which provides mechanisms for interacting with the integrated ITS. The first is the SCIIT Library which is an extension of the GitPython open source library. GitPython manipulates Git objects and Git commands and its extended fuctionality, through the SCIIT Library, manages the Issue Repository. The second is the use of custom Git Hook scripts it manipulate issues at specific Git events.  The third is the interfaces to view and manage ITS information.
 
-The Git hooks allow for the Git application to call on functions of the SCIIT Library when commit, merge, pull and check out events take place. These hooks allow a level of automation in creating the ITS repository object such that developers need not concern themselves with explicitly maintaining the issue tracker. When these events take place, the ITS is automatically managed.
+\subsection{The SCIIT Library}
 
-Interfaces allow users to view issue tracking information stored in SCIIT. They provide direct access to the SCIIT Library that queries the ITS and VCS to build the information needed for the user. All combined these components make up the SCIIT system which allows for the manipulation of VCS and ITS objects.
+The first mechanism, the SCIIT Library, is an extension of the GitPython open source library. Through GitPython objects and methods, it enables the manipulation of the Git repository. By extending those objects and methods, it enables new functionality it to manage the Issue Repository. The SCIIT Library uses Git commit information to attach issues to commits using references and builds issue tracking information by making inferences between commits and issues. Functionality in the GitPython library that is related to the Git repository management is extended so that issue objects are managed in a similar manner to Git objects.
 
-
-\section{Summary}
-
-This chapter shows the design of a Source Code Integrated Issue Tracker and how it embeds an ITS into a VCS. The benefit of this allows developers to focus on what they know best which is source code. The next chapter will discuss how these designs were implemented to enable such a system to operate.
+Two programming library objects of GitPython are extended; the ”Repository” object which allows for manipulating the Git repository and the ”BaseObject” object which allows for manipulating the raw Git objects (commits, trees, and blobs). Extended from the "Repository" object is the ability to reference and manage an Issue Repository. Extended from the "BaseObject" object isthe ability to manipulate issues, issue tree, issue commit objects. These four objects are the main components required to embedded the ITS with the Git VCS.
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Implementation}\label{implementation}
+\subsection{The Custom Git Hooks}
 
-This chapter discusses the implementation of the design for providing mechanisms to interact with the integrated ITS. These are the use of Git Hooks for performing issue manipulation at specific Git events; the SCIIT Library which is an extension of the GitPython open source library to manipulate Git objects, Git commands and managing the Issue Repository; and the interfaces required to view and manage ITS information. The chapter shows how issue tracking is performed and concludes with outlining the challenges faced.
+The second mechanism of SCIIT, the custom Git Hook scripts, allow for the handling of issues based on Git events. This project utilises three hooks; post-commit, post-merge, and post-checkout. The custom post-commit hook communicates with the SCIIT library in order to search for embeddings and create issues in the ITS for every commit made. This allows the programmer to focus on the writing of code while management of issues occur automatically in the background. 
 
+The custom post-merge hook is utilised during two Git events; merging and pulling. In order for SCIIT to be useful to teams, the issues that are created must be syncronised with all members of the team. When pulling commits from the remote repository, SCIIT will build issue objects that are missing. Similarly, during a merge, synchronisation ensures that no issues are missing. The post-checkout hook is similar to the merge in that it syncronises issue with commits. This is mainly implemented for the users that just fetch Git commits from the remote to check out at a later stage.
 
-\section{Mechanisms}
+Theses custom Git hooks allow for the Git application to call on functions of the SCIIT Library. They provide automation in creating the ITS repository object such that developers need not concern themselves beyond embedding the issue in the source code. 
 
-\subsection{SCIIT Library - GitPython extended}
-
-The first main mechanisms of SCIIT is the SCIIT Library. It is an extension of the GitPython open source library that enables the manipulation of the Git repository with new functionality to manage the Issue Repository. Functionality in the GitPython library that is related directly to the Git repository is extended to provide the extra functionality needed for managing issues. Two programming library objects, in particular, are extended; the ”Repository” object which allows for manipulating the Git repository and the ”BaseObject” object allows for manipulating the raw Git objects (commits, trees, and blobs). Added to these is the ability to manipulate issues, issue trees, issue commits, and the issue repository.
-
-\subsection{Git Hooks}
-
-The second mechanism of SCIIT, Git Hooks, allows for the handling of issues based on Git events. This project utilises three hooks; post-commit, post-merge, and post-checkout. The post-commit hook communicates with the SCIIT library in order to search for embeddings and create issues in the ITS for every commit made. This reduces friction since the programmer does not switch focus to the issue tracker for updating information. The post-merge hook is utilised during two Git events; merging and pulling. In order for SCIIT to be useful to teams, the issues that are created must be syncronised with all members of the team. When pulling commits from the remote repository, SCIIT will build issue objects that are missing. Similarly, during a merge, synchronisation ensures that no issues are missing. The post-checkout hook is similar to the merge in that it syncronises issue with commits. This is mainly implemented for the users that just fetch Git commits from the remote to check out at a later stage.
-
-\subsection{SCIIT Interfaces}
+\subsection{The SCIIT Interfaces}
 
 The last mechanism of SCIIT is its interface channels. There are three interface channels that provide three different services.
 
@@ -342,19 +323,26 @@ The last mechanism of SCIIT is its interface channels. There are three interface
   \label{fig:sciit-tracker-shot}
 \end{figure}
 
+\subsubsection{The Command Line Interface}
 
-The first is a command line interface which does not allow for direct manipulation of issues. It allows for users to refresh the issue repository, view individual issues and view the issue tracker. The initialisation command creates the issue repository and builds issues from past commits. This is essential since developers work on existing software projects. They can clone a project and build the ITS by grabbing all the embedded issues from commits. The tracker command allows developers to view details of issues. It shows the complex relationships between the ITS and VCS such as participants, creator, commits to the issue, and changes to the issue over time. This harnesses the power of ITS and VCS such that inference can be made between the two. Further CLI commands and its uses can be found in Appendix B Figure \ref{fig:sciit-cheatsheet}. Figure \ref{fig:sciit-tracker-shot} shows an issue shown at the terminal.
+The first is a command line interface which does not allow for direct manipulation of issues. It allows for users to refresh the issue repository, view individual issues and view the issue tracker. The initialisation command creates the issue repository and builds issues from past commits. This is essential since developers work on existing software projects. They can clone a project and build the ITS by grabbing all the embedded issues from commits. 
 
-The second is a web interface. This interface shows the issue tracker to the user by launching a local web browser with all the issue tracking information loaded into HTML view. Users are not allowed to edit any of the information within this interface, but it gives a more comfortable display for users to view their issues, read through issue activity and view all other inferred data which performing developing tasks.
+The tracker command allows developers to view details of issues. It shows the complex relationships between the ITS and VCS such as participants, creator, commits to the issue, and changes to the issue over time. This harnesses the power of ITS and VCS such that inference can be made between the two. Further CLI commands and its uses can be found in Appendix B Figure \ref{fig:sciit-cheatsheet}. Figure \ref{fig:sciit-tracker-shot} shows an issue shown at the terminal.
 
-The third is an intermediate web service that allows for the integration of GitLab issues with the SCIIT System. The main reason for having such an interface is that it allows for non-developer members of a project such as coaches, team leads, production staff or contributors to create issues in GitLab that will create commits with embedded issues. This module was developed to show that SCIIT and its principles could be integrated with traditional ITS to engage non-developer users. The web service works by using GitLab Webhooks in conjunction with SCIIT on a web server and the GitLab API as follows:
+\subsubsection{The Local Web Interface}
+
+The second is a local web interface. This interface shows the issue tracker to the user by launching a local web browser with all the issue tracking information loaded into HTML view. Users are not allowed to edit any of the information within this interface, but it gives a more comfortable display for users to view their issues, read through issue activity and view all other inferred data which performing developing tasks.
+
+The interface utilises an in-built webserver backend built with Flask that handles the users local requests. It has two routes. The first route shows the user a tabbed list of open and closed issues based on status. From this list users can select indivudual issues to view based on issue title. The second route shows the user the details of an individual isse in a similar manner to that of the command line interface. It shows the the issue detail as well as the details inferred from the Git VCS.
+
+\subsubsection{The SCIIT-GitLab Integration Web Service}
+
+The third is an intermediate web service that allows for the integration of GitLab issues with the SCIIT System. The main reason for having such an interface is that it allows for non-developer members of a project such as coaches, team leads, production staff or contributors to create issues in GitLab that creates commits with embedded issues. Figure \ref{fig:sciit-gitlab-shot} shows a screenshot of the issues in GitLab managed by the web service. This module shows that SCIIT and its principles could be integrated with traditional ITS to engage non-developer users. The web service works by using GitLab Webhooks in conjunction with the SCIIT-GitLab web service and the GitLab API as follows:
 
 \begin{itemize}
   \item \textbf{Push Webhooks:} These hooks are triggered when developers push commits to the repository. An HTTP request is then sent to the SCIIT web service interface. The interface then fetches the changes from the GitLab remote repository as a mirror repository and syncs the Git commits with the ITS issue references. Any new references that are made by these changes are then packaged, and requests are made to the GitLab Issues API to create or edit those issues. Commit activities related to these changes are added to the GitLab issue as notes.
   \item \textbf{Issue Webhooks:} These hooks are triggered when someone creates or edits an issue in the GitLab web interface. An HTTP request is then sent to the SCIIT web service interface. The interface then takes the issue title and issue description that was changed and makes changes to the relevant source code contents of the file that corresponds to the issue. If it has not been assigned to a file previously a new file is created to track the new issue. It then makes a request to the GitLab Commits API to create a new commit with the specified changes.
 \end{itemize}
-
-When this web service is attached to the GitLab remote repository it syncs GitLab issues, SCIIT issues and commits such that the developer need not be concerned that the issues they create or need to work on are not in the SCIIT system. A simple pull from the remote repository will bring in the related commits and refresh the issue tracker and its details. Figure \ref{fig:sciit-gitlab-shot} shows a screenshot of the issues in GitLab managed by the web service.
 
 
 \begin{figure}[t]
@@ -365,12 +353,11 @@ When this web service is attached to the GitLab remote repository it syncs GitLa
 \end{figure}
 
 
+\section{The Issue Tracker}
 
-\section{Issue Tracking}
+This sections shows how issue tracking is performed. The SCIIT Issue Tracker is decentralised and distributed; it is dependent on the graph structure of commits in branches. It is accessed via an interface into the SCIIT Library and is built from a revision of the repository. A revision is a range of commits that are within reach of each other. It can also be specified based on Git’s intermediate references such as the HEAD or branch names and can span a path which may include all commits on all branches.
 
-The embedded ITS is no longer similar to the centralised ITS that are commonly found. In fact, the SCIIT Issue Tracker is decentralised and distributed; it is dependent on the graph structure of branches and commits. It is accessed via an interface into the SCIIT Library and is built from a revision of the repository. A revision is a range of commits that are reachable from one commit to another. It can also be specified based on Git’s intermediate references such as the HEAD or branch names and can span a path which may include all commits or those reachable from this branch.
-
-As a distributed ITS, information about the issues are built by traversing the entire repository based on the revision (commit range) specified. Git operations such as the viewing the commit log operate similarly. In this Git operation, commit history inforation is built by traversing the commit graph reference structure like shown in Figure \ref{fig:distributed-issue-tracking}. The commits are scanned and commit information is displayed based on whether the commit is reachable from the revision specified in the graph structure. In SCIIT, to build the issue tracker, commits and issue objects that contain references to each other on this revision path are read, and the complex information between the ITS and the VCS is extracted. The following is a list of such information:
+As a distributed ITS, information about the issues are built by traversing the entire repository based on the revision (commit range) specified. The revision is translated to a linear history by Git which maintains parental links and chronology. To build the issue tracker, commits and issue objects that contain references to each other on this revision path are read. Then complex information between the ITS and the VCS is extracted and attached to the tracker object. The following is a list of such information:
 
 \begin{itemize}
     \item \textbf{Creator:} The creator and the date and time of creation can be identified by the first occurrence of this embedded issue in the commit revision history. The author and time of that commit provide the exact information that reflects the creator of the issue.
@@ -379,7 +366,6 @@ As a distributed ITS, information about the issues are built by traversing the e
     \item \textbf{Participants:} This is a list of persons that made commits that contained these issues. It adequately infers who has done work on the issues.
     \item \textbf{Branch Information:} This information is extracted showing the existence of issues on branches, and their status on branches. It can help the ITS user identify where issues are present and the status of their state.
     \item \textbf{Commit Activities:} This is a list that shows the date, commit message and commit author for every commit that has the issue present. It is one of the more powerful influence tools as it can show what work was done on issues over time. This approach has four main advantages.
-
   \begin{enumerate}
     \item It represents real changes to the functionality and state of the software product as commits are made.
     \item It can contain a commit message the identifies precisely what progress has been made on an issue.
@@ -392,42 +378,11 @@ As a distributed ITS, information about the issues are built by traversing the e
 The information inferred does not need to be explicitly entered into the issue tracker as it does in traditional ITS. This is the power of SCIIT where users need not be concerned about manually recording such information, but it can be generated for them.
 
 
-\section{Challenges}
-
-Since the SCIIT system is first of its kind, there are some challenges associated with its design and development. This section outlines the significant design and development challenges.
-
-The first major challenge concerns extracting issues embedded in source code. This involves use of a series of regular expressions. These expressions look at the raw string representation of the source code that is stored in a commit and extracts issue inforation. The first step in the process is to create regular expressions for extracting the block comments based on the programming language of the source file. The second step is to check the block comments for the presence of the \textbf{\textit{@issue}} flag. Once this is found the issue information can be extracted. The regular experssions used for each step of the process is very long and complicated and took some many testing iterations to ensure validity. Many updates to them were made over the development of the project.
-
-The second major challenge concerns the allocation of IDs to the issues in the issue tracker. There were two options. The first option is to allow the system to assign issue IDs to all issues in the tracker once created. This option however was difficult to implement and provided a processing and I/O overhead. The process involved: reading the last generated ID from the disk; incrementing the ID for use in the new issue; saving the new issue to the disk and saving the new issue ID to the disk. These operations are costly in situations where there are many issues to be stored in one commit.
-
-The most appropriate approach to this challenge is to give developer control of the issue IDs to be used. This optimises the disk access during commits and allows for the developers to explicitly specify the issue. A drawback of this approach is the need to check commits for duplicate issue IDs that are sepcified throughout all the source code files of the project. This ensures that there are no two issues in different files with the same issue ID. The system will then warn the user of a conflict of issue IDs and where the conflicts are located.
-
-The third major challenge concerns the single threaded file access operations used in Git. When building the issue repository from past commits or building the issue tracker, SCIIT traverses each commit and scans its related file object contents (blobs) to get issue information. This is a time-consuming process and is restricted to a single thread because of the architecture of Git. SCIIT encounters I/O errors if multiple threads are used since there is a high likelihood that the same file may be accessed at the same time due to the referencing of the issue commit objects to commits. Although the system will benefit from extracting information for two or more commits at a time, I/O operations and access does allow it to be possible. 
-
-\begin{figure}[t]
-\centering
-  \caption{Screenshot of initialising issue repository from past commits}
-  \includegraphics[width=14cm]{sciit-init}
-  \label{fig:sciit-init}
-\end{figure}
-
-This limits the performance of SCITT to build issues from past commits on repositories that consist of a high number of commits such as the Linux Open Source Project (781,903 commits) or even smaller repoitories such as Tensorflow (39,390 commits). The performance also suffers based on the commit/merge strategy that the developer teams are using since some strategies can have commits that contain a larger tree of file changes that other strategies may not implement. As an average baseline, SCIIT takes 15 seconds to scan 1000 commits. Figure \ref{fig:sciit-init} shows the building of the issue repository from the VueJS git repository containing, at the time of writing, 5716 commits.
-
-This problem also affects the performance of building the issue tracker history as each object must be read in a single thread while traversing the issue commit revisions. For vast repositories, it can take some time for the issue tracker to be built which can reduce the productivity of the developer. One way around this challenge is to provide a revision to the building of the issue tracker that limits the building of the full issue tracker. Here only the information required by the revision is used.
-
-The GitLab integration web service helps to reduce this problem. It does this by storing the issue tracker information between revisions specified by the lastest commit a developer has when pushing to a remote repository and the last commit on the remote repository. In a typical workflow, this is a series of commits that are made on a new branch. The state of the issue tracker between small revisions of commits can now be safely stored in a centralised manner. It must be noted, however, that developer teams may use other remote hosting solutions for which integration services have not yet been created.
-
-The last major challenge concerns the use of GitLab API calls within the web service interface. GitLab Webhooks are a part of the main functionality of the website. For example, utilising the GitLab Commits API triggers a Push Webhook. As such, during development special care needs to be taken to verify the dates of receiving GitLab webhooks with the internal web service time. If a Webhook was triggered and came in within seconds of another, they would be ignored as it would have originated from API calls within the web service. In the web service handling Issue Hooks generated requests for handling Push Hook and vice versa. If this was not carefully handled internally, then the web service would send infinately looping requests, unnecessarily creating GitLab Issues and commits on remote the repository.
-
-\section{Summary}
-
-The implementation of the system ensures that developers are less burdened with the responsibility of maintaining an ITS as all the issues are now embedded into the VCS commits. This should now reduce the friction between maintaining the issue tracker and developing code as the activities are now combined and automated.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Evaluation}\label{evaluation}
 
-This chapter begins by presenting the evaluation strategy. The remainder outlines user feedback, the impact on issue tracking practices, the impact on developing code using VCS and the robustness of the product as identified through software testing. 
+This chapter begins by presenting the evaluation strategy. The remainder outlines user feedback and the robustness of the product as identified through software testing. 
 
 \section{Evaluation Strategy}
 
@@ -458,7 +413,7 @@ They still are responsible for looking at the embedded issues and performing the
 
 \subsection{Ease of Use}
 
-Test users find the application easy to install and use. They note the ease of creating and managing issues by embedding the information into the source code. The status messages shown after commits on the command line are useful for them to maintain awareness and confirm the status of issues at each commit. This is provided by the Git Hooks. They noticed that they did not need to expressly comment on each activity as the commit messages were used.
+Test users find the application easy to install and use. They note the ease of creating and managing issues by embedding the information into the source code. The status messages shown after commits on the command line are useful for them to maintain awareness and confirm the status of issues at each commit. This is provided by the custom Git Hooks. They noticed that they did not need to expressly comment on each activity as the commit messages were used.
 
 \subsection{Interfaces for Viewing Issues}
 
@@ -469,6 +424,60 @@ As for interfaces, most users found that the web interface provided by the appli
 The most commented on drawback is the local web interface. Many users would have liked more control over the issues at this point to be able to edit descriptions and other metadata. Since the issues are embedded into source code, it was difficult to provide this function. Another stated drawback was the need to have comments on an issue.
 
 The most highlighted benefit was the capability of continuing developing code while issue information is built up over commits. They found that they did not need to remember issue numbers as this was internally tracked. They also liked the fact that they could embed and move the issue to segments of code where the development work is taking place. They mentioned it as helpful in providing a quick glance on what needed to be done without leaving the code editor.
+
+
+\section{Challenges}
+
+% re write this section to include what was discussed at the meeting
+
+Since the SCIIT system is first of its kind, there are some challenges associated with its design and development. This section outlines the significant design and development challenges.
+
+The first major challenge concerns extracting issues embedded in source code. This involves use of a series of regular expressions. These expressions look at the raw string representation of the source code that is stored in a commit and extracts issue inforation. The first step in the process is to create regular expressions for extracting the block comments based on the programming language of the source file. The second step is to check the block comments for the presence of the \textbf{\textit{@issue}} flag. Once this is found the issue information can be extracted. The regular experssions used for each step of the process is very long and complicated and took some many testing iterations to ensure validity. Many updates to them were made over the development of the project.
+
+The second major challenge concerns the allocation of IDs to the issues in the issue tracker. There were two options. The first option is to allow the system to assign issue IDs to all issues in the tracker once created. This option however was difficult to implement and provided a processing and I/O overhead. The process involved: reading the last generated ID from the disk; incrementing the ID for use in the new issue; saving the new issue to the disk and saving the new issue ID to the disk. These operations are costly in situations where there are many issues to be stored in one commit.
+
+The most appropriate approach to this challenge is to give developer control of the issue IDs to be used. This optimises the disk access during commits and allows for the developers to explicitly specify the issue. A drawback of this approach is the need to check commits for duplicate issue IDs that are sepcified throughout all the source code files of the project. This ensures that there are no two issues in different files with the same issue ID. The system will then warn the user of a conflict of issue IDs and where the conflicts are located.
+
+The third major challenge concerns the single threaded file access operations used in Git. When building the issue repository from past commits or building the issue tracker, SCIIT traverses each commit and scans its related file object contents (blobs) to get issue information. This is a time-consuming process and is restricted to a single thread because of the architecture of Git. SCIIT encounters I/O errors if multiple threads are used since there is a high likelihood that the same file may be accessed at the same time due to the referencing of the issue commit objects to commits. Although the system will benefit from extracting information for two or more commits at a time, I/O operations and access does allow it to be possible. 
+
+\begin{figure}[t]
+\centering
+  \caption{Screenshot of initialising issue repository from past commits}
+  \includegraphics[width=14cm]{sciit-init}
+  \label{fig:sciit-init}
+\end{figure}
+
+This limits the performance of SCITT to build issues from past commits on repositories that consist of a high number of commits such as the Linux Open Source Project (781,903 commits) or even smaller repoitories such as Tensorflow (39,390 commits). The performance also suffers based on the commit/merge strategy that the developer teams are using since some strategies can have commits that contain a larger tree of file changes that other strategies may not implement. As an average baseline, SCIIT takes 15 seconds to scan 1000 commits. Figure \ref{fig:sciit-init} shows the building of the issue repository from the VueJS git repository containing, at the time of writing, 5716 commits.
+
+This problem also affects the performance of building the issue tracker history as each object must be read in a single thread while traversing the issue commit revisions. For vast repositories, it can take some time for the issue tracker to be built which can reduce the productivity of the developer. One way around this challenge is to provide a revision to the building of the issue tracker that limits the building of the full issue tracker. Here only the information required by the revision is used.
+
+The GitLab integration web service helps to reduce this problem. It does this by storing the issue tracker information between revisions specified by the lastest commit a developer has when pushing to a remote repository and the last commit on the remote repository. In a typical workflow, this is a series of commits that are made on a new branch. The state of the issue tracker between small revisions of commits can now be safely stored in a centralised manner. It must be noted, however, that developer teams may use other remote hosting solutions for which integration services have not yet been created.
+
+The last major challenge concerns the use of GitLab API calls within the web service interface. GitLab Webhooks are a part of the main functionality of the website. For example, utilising the GitLab Commits API triggers a Push Webhook. As such, during development special care needs to be taken to verify the dates of receiving GitLab webhooks with the internal web service time. If a Webhook was triggered and came in within seconds of another, they would be ignored as it would have originated from API calls within the web service. In the web service handling Issue Hooks generated requests for handling Push Hook and vice versa. If this was not carefully handled internally, then the web service would send infinately looping requests, unnecessarily creating GitLab Issues and commits on remote the repository.
+
+\section{Software Testing} % should I bother having a testing section
+
+This section describes in detail the testing strategy that was used to verify the design and validity of SCIIT. The software is tested after the implementation of each desired feature this allows for regression testing with features already implemented. The test suite also utilises many mocks which mask the dependencies on other code in the system. Each test that requires access to the full Git repository is mocked out such that the test suite would finish running in sufficient time. Lastly, continuous integration (CI) practices are used to run the test suite as regression testing each time code is committed.
+
+All modules of the software, except the integration web service, were thoroughly tested with unit and integration tests at the time of writing. However, the integration web service tests are live to confirm its functionality. The test suite for the application is modular. The SCIIT Library, command line and web interfaces we all tested separately and a TestCase is made for each method within each module. Each TestCase contains atomic tests that verify the functionality of the method by checking valid and invalid scenarios of operation, errors thrown, and boundary conditions. Currently, the test suite consists of 142 tests providing 98\% code coverage and verifies the stability of the application.
+
+During development, CI practices were used to test regression of the application. Regression is where new functionality added breaks with the well-structured behaviour of methods. CI is where the entire test suite is run on every push to the remote repository. GitLab’s CI is used since it offers the ability to send notifications on failed test cases. In these situations, the application can be immediately updated to ensure that functionality is maintained.
+
+This complete testing framework ensures that the SCIIT system developed conforms to the designs set out. This, however, does not mean that SCIIT is entirely free from bugs. More widespread use of the system will uncover more bugs as users may try operations with the system that does not conform with its design intention. However, at its current release, the system is stable for distribution and use.
+
+\section{Summary}
+
+The SCIIT system introduces changes in the way developers conduct software development practices since the ITS is embedded into the VCS. The software practices are an emergent property of this design. Continued use and adoption will inform changes to development workflows as a result, and the system will provide more insight and evaluation over time. However, at this stage, it is thoroughly tested and has a stable release for distribution.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Conclusion}\label{conclusion}
+
+This project shows that Issue Tracking Systems (ITS) can be successfully embedded into Version Control Systems (VCS) to reduce the friction between maintaining an issue tracker and developing code. It was the potention to impact on issue tracking practices and on developing code using VCS. The solution is a Source Control Integrated Issue Tracking (SCIIT) system that saves issues alongside commits in Git.
+
+SCIIT benefits developers by allowing them to focus on the development process and create code. Issues are tracked by creating a small embedding in a block comment of the source code which is automatically tracked alongside the commits that developers create containing the issue. Through this, developers are unburdened with the need to explicitly update an ITS.
+
+The system provides a lightweight method for tracking issues and potentially introduces new development workflows. Additionally, the system is a first of its kind and needs to mature before it shows additional benefits or unintended drawbacks from its use. It currently contains a feature set that allows it to replace traditional ITS but future work can be done to include features that enhance team collaboration.
 
 
 
@@ -501,30 +510,6 @@ Additionally, since the issues are stored as embeddings within the source code, 
 
 These areas are potentially affected by SCIIT and are a practical improvement to the workflow of developers. It encourages best practices and workflows that are industry standard. This, however, may not work well for all developer teams as some prefer to adopt their own style of developing. Further use of the product in various different developer environments is required in order to ascertain any broader impact on development and VCS practices that SCIIT may have.
 
-
-\section{Software Testing} % should I bother having a testing section
-
-This section describes in detail the testing strategy that was used to verify the design and validity of SCIIT. The software is tested after the implementation of each desired feature this allows for regression testing with features already implemented. The test suite also utilises many mocks which mask the dependencies on other code in the system. Each test that requires access to the full Git repository is mocked out such that the test suite would finish running in sufficient time. Lastly, continuous integration (CI) practices are used to run the test suite as regression testing each time code is committed.
-
-All modules of the software, except the integration web service, were thoroughly tested with unit and integration tests at the time of writing. However, the integration web service tests are live to confirm its functionality. The test suite for the application is modular. The SCIIT Library, command line and web interfaces we all tested separately and a TestCase is made for each method within each module. Each TestCase contains atomic tests that verify the functionality of the method by checking valid and invalid scenarios of operation, errors thrown, and boundary conditions. Currently, the test suite consists of 142 tests providing 98\% code coverage and verifies the stability of the application.
-
-During development, CI practices were used to test regression of the application. Regression is where new functionality added breaks with the well-structured behaviour of methods. CI is where the entire test suite is run on every push to the remote repository. GitLab’s CI is used since it offers the ability to send notifications on failed test cases. In these situations, the application can be immediately updated to ensure that functionality is maintained.
-
-This complete testing framework ensures that the SCIIT system developed conforms to the designs set out. This, however, does not mean that SCIIT is entirely free from bugs. More widespread use of the system will uncover more bugs as users may try operations with the system that does not conform with its design intention. However, at its current release, the system is stable for distribution and use.
-
-\section{Summary}
-
-The SCIIT system introduces changes in the way developers conduct software development practices since the ITS is embedded into the VCS. The software practices are an emergent property of this design. Continued use and adoption will inform changes to development workflows as a result, and the system will provide more insight and evaluation over time. However, at this stage, it is thoroughly tested and has a stable release for distribution.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Conclusion}\label{conclusion}
-
-This project shows that Issue Tracking Systems (ITS) can be successfully embedded into Version Control Systems (VCS) to reduce the friction between maintaining an issue tracker and developing code. The solution is a Source Control Integrated Issue Tracking (SCIIT) system that saves issues alongside commits in Git.
-
-SCIIT benefits developers by allowing them to focus on the development process and create code. Issues are tracked by creating a small embedding in a block comment of the source code which is automatically tracked alongside the commits that developers create containing the issue. Through this, developers are unburdened with the need to explicitly update an ITS.
-
-The system provides a lightweight method for tracking issues and potentially introduces new development workflows. Additionally, the system is a first of its kind and needs to mature before it shows additional benefits or unintended drawbacks from its use. It currently contains a feature set that allows it to replace traditional ITS but future work can be done to include features that enhance team collaboration.
 
 \section{Future Work}
 
