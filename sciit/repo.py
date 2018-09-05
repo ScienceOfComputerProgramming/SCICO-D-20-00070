@@ -12,6 +12,7 @@ import difflib
 
 from shutil import copyfile
 from datetime import datetime
+from multiprocessing import Process
 
 from git import Repo
 
@@ -208,6 +209,12 @@ class IssueRepo(Repo):
             :Shows Progress in Shell: if repo is used with command line interface
         """
 
+        def build_process(self, commit, ignored_files):
+            issues = find_issues_in_commit(
+                self, commit, ignored_files=ignored_files)
+            itree = IssueTree.create(self, issues)
+            icommit = IssueCommit.create(self, commit, itree)
+
         start = datetime.now()
         commits_scanned = 0
 
@@ -224,12 +231,10 @@ class IssueRepo(Repo):
 
                 self.print_commit_progress(
                     datetime.now(), start, commits_scanned, num_commits)
-
-                issues = find_issues_in_commit(
-                    self, commit, ignored_files=ignored_files)
-                itree = IssueTree.create(self, issues)
-                IssueCommit.create(self, commit, itree)
-
+                p = Process(target=build_process, args=(self,commit,ignored_files))
+                p.start()
+                p.join()
+                
             if all_commits:
                 write_last_issue(self.issue_dir, all_commits[0].hexsha)
             else:
