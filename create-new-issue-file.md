@@ -9,4 +9,4 @@
 
  Similar pattern generators would be useful for popular IDEs,
  such as PyCharm and Intellij.
--->
+->
