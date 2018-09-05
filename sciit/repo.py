@@ -9,9 +9,11 @@ import re
 import stat
 import pkg_resources
 import difflib
+import gc
 
 from shutil import copyfile
 from datetime import datetime
+from threading import Thread
 
 from git import Repo
 
@@ -214,24 +216,22 @@ class IssueRepo(Repo):
         if len(self.heads) > 0:
             # get all commits on the all branches
             # enforcing the topology order of parents to children
-            all_commits = list(self.iter_commits(['--all', '--topo-order']))
-            num_commits = len(all_commits)
+            all_commits = self.iter_commits(['--all', '--topo-order', '--reverse'])
+            num_commits = int(self.git.execute(['git', 'rev-list', '--all', '--count']))
             ignored_files = get_sciit_ignore(self)
 
-            # reversed to start at the first commit
-            for commit in reversed(all_commits):
+            for commit in all_commits:
                 commits_scanned += 1
 
                 self.print_commit_progress(
                     datetime.now(), start, commits_scanned, num_commits)
-
                 issues = find_issues_in_commit(
-                    self, commit, ignored_files=ignored_files)
+                self, commit, ignored_files=ignored_files)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
-
+                
             if all_commits:
-                write_last_issue(self.issue_dir, all_commits[0].hexsha)
+                write_last_issue(self.issue_dir, self.head.commit.hexsha)
             else:
                 raise NoCommitsError
         else:
@@ -268,9 +268,9 @@ class IssueRepo(Repo):
             time_format = '%a %b %d %H:%M:%S %Y %z'
             # get all commits on the all branches
             if rev is not None:
-                icommits = list(self.iter_issue_commits(rev, paths, **kwargs))
+                icommits = self.iter_issue_commits(rev, paths, **kwargs)
             else:
-                icommits = list(self.iter_issue_commits('--branches'))
+                icommits = self.iter_issue_commits('--branches')
 
             for icommit in icommits:
 
