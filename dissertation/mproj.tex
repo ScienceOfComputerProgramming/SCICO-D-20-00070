@@ -378,15 +378,14 @@ As a distributed ITS, information about the issues are built by traversing the e
 The information inferred does not need to be explicitly entered into the issue tracker as it does in traditional ITS. This is the power of SCIIT where users need not be concerned about manually recording such information, but it can be generated for them.
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Evaluation}\label{evaluation}
 
-This chapter begins by presenting the evaluation strategy. The remainder outlines user feedback and the robustness of the product as identified through software testing. 
+This chapter begins by presenting the evaluation strategy. The remainder outlines user feedback, the reduction of friction and the robustness of the product as identified through software testing. 
 
 \section{Evaluation Strategy}
 
-SCIIT is evaluated by a process called Dogfooding. In programmer jargon, this is where developers use the product during development to determine useful features to include or to determine fixes to unintended bugs before distribution. It provides high levels of feedback that are rapidly included in future releases. It is worth noting that dogfooding also applied to the development of SCIIT. It is used as the ITS for development work of this project.
+SCIIT is evaluated by a process called Dogfooding. This is where developers use the product during development to determine useful features to include or to determine fixes to unintended bugs before distribution. Fradin \cite{Dogfooding} explains that is is a process of being hands-on with your own products that you create to make it work better. It provides high levels of feedback that are rapidly included in future releases. It is worth noting that dogfooding also applies to the development of SCIIT. It is used as the ITS for development work of this project.
 
 Within dogfooding, user testing is conducted for a period of 5 weeks with three students and the supervisor. During this period, users are able to use the software for tracking issues in their own development projects and report feedback. Each tester uses SCIIT in their individual development work and as such user feedback does not include information on team environments. Due to the scope of this project and its impacts on development practices more user and group testing will be required in the future. 
 
@@ -400,12 +399,11 @@ This section describes the user experiences when using the SCIIT system. In part
 
 \subsection{Reduction of Friction}
 
-% rephrase this section with comments from sarthak and quy
 Reduction of friction between maintaining issue tracker and developing code is not a established concept in software engineering research. It is a result of the research of why issue trackers are not updated. 
 
 For test users of SCIIT, without guidence on expectations, they notice this concept of reduction in friction. This is identified by the reduced time spent using external issue tracking software for their projects. They mention that it allows them write code without concern for the issues. The background processes of SCIIT tracks revisions to issues and its references to commits. This way they comment on the fact that their work can be done on an issue without the need to manually update some ITS.
 
-They usually only call on the issue tracker when they require information on the status of issues or when creating a new branch to implement new features. They utilise primarily the command line interface to access the issue tracker. The additional information given on commit progress on an issue was welcomed, however, they notice that issues that have not been given specific attention but lived in the source code had commit activities assigned. They view this as erroneous.
+They usually only call on the issue tracker when they require information on the status of issues or when creating a new branch to implement new features. They utilise primarily the command line interface to access the issue tracker. The additional information given on commit progress on an issue was welcomed, however, they notice that issues that have not been given specific attention but lived in the source code had commit activities assigned.
 
 When changing issues details they liked that fact that they do not need to login to another ITS. The embedded issue can be easily found using a text search in their Integrated Development Environment (IDE) or text editor or through calling the tracker command from the CLI to be directed to the file containing the embedded issue. Testers like being able to make their updates to the metadata of the issue, to include or remove, the necessary details directly from source code.
 
@@ -421,33 +419,40 @@ As for interfaces, most users found that the web interface provided by the appli
 
 \subsection{Benefits and Drawbacks}
 
-The most commented on drawback is the local web interface. Many users would have liked more control over the issues at this point to be able to edit descriptions and other metadata. Since the issues are embedded into source code, it was difficult to provide this function. Another stated drawback was the need to have comments on an issue.
-
 The most highlighted benefit was the capability of continuing developing code while issue information is built up over commits. They found that they did not need to remember issue numbers as this was internally tracked. They also liked the fact that they could embed and move the issue to segments of code where the development work is taking place. They mentioned it as helpful in providing a quick glance on what needed to be done without leaving the code editor.
 
+The most commented on drawback is the local web interface. Many users would have liked more control over the issues at this point to be able to edit descriptions and other metadata. Since the issues are embedded into source code, it was difficult to provide this function. Another stated drawback was the need to have comments on an issue. They noted that this was one of the flaws that needed to be addressed in the next release of the system.
 
-\section{Challenges}
+
+\section{Performance}
 
 % re write this section to include what was discussed at the meeting
 
-Since the SCIIT system is first of its kind, there are some challenges associated with its design and development. This section outlines the significant design and development challenges.
+%The first major challenge concerns extracting issues embedded in source code. This involves use of a series of regular expressions. These expressions look at the raw string representation of the source code that is stored in a commit and extracts issue inforation. The first step in the process is to create regular expressions for extracting the block comments based on the programming language of the source file. The second step is to check the block comments for the presence of the \textbf{\textit{@issue}} flag. Once this is found the issue information can be extracted. The regular experssions used for each step of the process is very long and complicated and took some many testing iterations to ensure validity. Many updates to them were made over the development of the project.
 
-The first major challenge concerns extracting issues embedded in source code. This involves use of a series of regular expressions. These expressions look at the raw string representation of the source code that is stored in a commit and extracts issue inforation. The first step in the process is to create regular expressions for extracting the block comments based on the programming language of the source file. The second step is to check the block comments for the presence of the \textbf{\textit{@issue}} flag. Once this is found the issue information can be extracted. The regular experssions used for each step of the process is very long and complicated and took some many testing iterations to ensure validity. Many updates to them were made over the development of the project.
+%The second major challenge concerns the allocation of IDs to the issues in the issue tracker. There were two options. The first option is to allow the system to assign issue IDs to all issues in the tracker once created. This option however was difficult to implement and provided a processing and I/O overhead. The process involved: reading the last generated ID from the disk; incrementing the ID for use in the new issue; saving the new issue to the disk and saving the new issue ID to the disk. These operations are costly in situations where there are many issues to be stored in one commit.
 
-The second major challenge concerns the allocation of IDs to the issues in the issue tracker. There were two options. The first option is to allow the system to assign issue IDs to all issues in the tracker once created. This option however was difficult to implement and provided a processing and I/O overhead. The process involved: reading the last generated ID from the disk; incrementing the ID for use in the new issue; saving the new issue to the disk and saving the new issue ID to the disk. These operations are costly in situations where there are many issues to be stored in one commit.
+%The most appropriate approach to this challenge is to give developer control of the issue IDs to be used. This optimises the disk access during commits and allows for the developers to explicitly specify the issue. A drawback of this approach is the need to check commits for duplicate issue IDs that are sepcified throughout all the source code files of the project. This ensures that there are no two issues in different files with the same issue ID. The system will then warn the user of a conflict of issue IDs and where the conflicts are located.
 
-The most appropriate approach to this challenge is to give developer control of the issue IDs to be used. This optimises the disk access during commits and allows for the developers to explicitly specify the issue. A drawback of this approach is the need to check commits for duplicate issue IDs that are sepcified throughout all the source code files of the project. This ensures that there are no two issues in different files with the same issue ID. The system will then warn the user of a conflict of issue IDs and where the conflicts are located.
+The performance of the system is unfavourable for two operations: building the issue repository and building the issue tracker. This is due to the fact that Git provides single threaded file access operations. When building the issue repository from past commits or building the issue tracker, SCIIT traverses each commit in the repository and scans its related file object contents (blobs) to get issue information. This is a time-consuming process and is restricted to a single thread because of the architecture of Git. SCIIT encounters I/O errors if multiple threads are used since there is a high likelihood that the same file may be accessed at the same time due to the referencing of the issue commit objects to commits. Although the system will benefit from extracting information for two or more commits at a time, I/O operations and access does allow it to be possible. 
 
-The third major challenge concerns the single threaded file access operations used in Git. When building the issue repository from past commits or building the issue tracker, SCIIT traverses each commit and scans its related file object contents (blobs) to get issue information. This is a time-consuming process and is restricted to a single thread because of the architecture of Git. SCIIT encounters I/O errors if multiple threads are used since there is a high likelihood that the same file may be accessed at the same time due to the referencing of the issue commit objects to commits. Although the system will benefit from extracting information for two or more commits at a time, I/O operations and access does allow it to be possible. 
+\begin{center}
+  \begin{tabular}{ | l | r | r | r | }
+    \hline
+    \textbf{REPOSITORY} & \textbf{{\#} OF COMMITS} & \textbf{DURATION}  & \textbf{AVG. PER. 100 COMMITS} \\ \hline
+    Bottle & 2,014 & 1 min 59 secs & 5.9 secs \\ \hline
+    Flask & 3,422 & 4 mins 30 secs & 7.9 secs \\ \hline
+    Vue & 5,716 & 3 mins 28 secs & 3.6 sec \\ \hline
+    React & 13,686 & 30 mins 7 secs & 13.2 secs \\ \hline
+    AngularJs & 13,971 &  1 hr 24 mins 19 secs & 36.2 secs \\ \hline
+    Tensorflow & 37,940 & 4 hrs 30 mins 30 secs & 42.77 secs \\ \hline
+    Docker & 43,648 & 2 hrs 2 mins & 16.77 secs \\ \hline
+    Git & 54,488 & 1 hr 24 mins 15 secs & 9.28 secs \\ \hline
 
-\begin{figure}[t]
-\centering
-  \caption{Screenshot of initialising issue repository from past commits}
-  \includegraphics[width=14cm]{sciit-init}
-  \label{fig:sciit-init}
-\end{figure}
+  \end{tabular}
+\end{center}
 
-This limits the performance of SCITT to build issues from past commits on repositories that consist of a high number of commits such as the Linux Open Source Project (781,903 commits) or even smaller repoitories such as Tensorflow (39,390 commits). The performance also suffers based on the commit/merge strategy that the developer teams are using since some strategies can have commits that contain a larger tree of file changes that other strategies may not implement. As an average baseline, SCIIT takes 15 seconds to scan 1000 commits. Figure \ref{fig:sciit-init} shows the building of the issue repository from the VueJS git repository containing, at the time of writing, 5716 commits.
+This limits the performance of SCITT to build issues from past commits on repositories that consist of a high number of commits such as Tensorflow (39,390 commits). The performance also suffers based on the commit/merge strategy that the developer teams are using since some strategies can have merge commits that contain a larger tree of file changes that other strategies may not encourage. See Table \ref{} for a comparison on the performance of building issue repositories for various open source projects. As a baseline, SCIIT takes 15 seconds to scan 1000 commits. Figure \ref{fig:sciit-init} shows the building of the issue repository from the VueJS git repository containing, at the time of writing, 5716 commits.
 
 This problem also affects the performance of building the issue tracker history as each object must be read in a single thread while traversing the issue commit revisions. For vast repositories, it can take some time for the issue tracker to be built which can reduce the productivity of the developer. One way around this challenge is to provide a revision to the building of the issue tracker that limits the building of the full issue tracker. Here only the information required by the revision is used.
 
