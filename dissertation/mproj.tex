@@ -5,7 +5,7 @@
 \usepackage{fancyvrb}
 \usepackage[final]{pdfpages}
 \usepackage{times}
-
+\usepackage{tabularx}
 \usepackage[newfloat]{minted}
 \setminted[python]{fontsize=\footnotesize}
 
@@ -161,7 +161,7 @@ For the development of the next generation of issue trackers, Just et al. \cite{
   \item iIt will remain the central focus of developers.
 \end{enumerate}
 
-By embedding overlapping traits of the ITS with VCS, developers can uniquely utilise an integrated system that meets the needs of both maintaining issue tracking information and developing code.
+By embedding overlapping traits of the ITS with VCS, developers can uniquely utilise an integrated system that meets the needs of both maintaining issue tracking information and developing code. 
 
 
 \section{Related Products}
@@ -271,7 +271,7 @@ Although branching and merging, pushing and pulling are the primary mechanisms a
 
 
 \begin{figure}[h!]
-\caption{Distributed Issue Tracking in Graph Structure}
+\caption{Distributed Issue Tracking in Git Graph Structure}
 \label{fig:distributed-issue-tracking}
 \centering
 \includegraphics[width=15cm]{distributed-issue-tracking}
@@ -293,9 +293,7 @@ At point 5, developers are faced with a decision conflict. They must decide if t
 \includegraphics[width=12cm]{sciit-software-arch}
 \end{figure}
 
-Figure \ref{fig:sciit-software-arch} shows the software architecture of SCIIT. 
-
-This section discusses the implementation of the design as an architecture which provides mechanisms for interacting with the integrated ITS. The first is the SCIIT Library which is an extension of the GitPython open source library. GitPython manipulates Git objects and Git commands and its extended fuctionality, through the SCIIT Library, manages the Issue Repository. The second is the use of custom Git Hook scripts it manipulate issues at specific Git events.  The third is the interfaces to view and manage ITS information.
+This section discusses the implementation of the design as an architecture, shown in Figure \ref{fig:sciit-software-arch}, which provides mechanisms for interacting with the integrated ITS. The first is the SCIIT Library which is an extension of the GitPython open source library. GitPython manipulates Git objects and Git commands and its extended fuctionality, through the SCIIT Library, manages the Issue Repository. The second is the use of custom Git Hook scripts it manipulate issues at specific Git events.  The third is the interfaces to view and manage ITS information.
 
 \subsection{The SCIIT Library}
 
@@ -314,7 +312,7 @@ Theses custom Git hooks allow for the Git application to call on functions of th
 
 \subsection{The SCIIT Interfaces}
 
-The last mechanism of SCIIT is its interface channels. There are three interface channels that provide three different services.
+The last mechanism of SCIIT is its interface channels. There are three interface channels that provide three different services: the command line, the local web, and the SCIIT-GitLab integration.
 
 \begin{figure}
 \centering
@@ -399,8 +397,6 @@ This section describes the user experiences when using the SCIIT system. In part
 
 \subsection{Reduction of Friction}
 
-Reduction of friction between maintaining issue tracker and developing code is not a established concept in software engineering research. It is a result of the research of why issue trackers are not updated. 
-
 For test users of SCIIT, without guidence on expectations, they notice this concept of reduction in friction. This is identified by the reduced time spent using external issue tracking software for their projects. They mention that it allows them write code without concern for the issues. The background processes of SCIIT tracks revisions to issues and its references to commits. This way they comment on the fact that their work can be done on an issue without the need to manually update some ITS.
 
 They usually only call on the issue tracker when they require information on the status of issues or when creating a new branch to implement new features. They utilise primarily the command line interface to access the issue tracker. The additional information given on commit progress on an issue was welcomed, however, they notice that issues that have not been given specific attention but lived in the source code had commit activities assigned.
@@ -428,37 +424,57 @@ The most commented on drawback is the local web interface. Many users would have
 
 % re write this section to include what was discussed at the meeting
 
-%The first major challenge concerns extracting issues embedded in source code. This involves use of a series of regular expressions. These expressions look at the raw string representation of the source code that is stored in a commit and extracts issue inforation. The first step in the process is to create regular expressions for extracting the block comments based on the programming language of the source file. The second step is to check the block comments for the presence of the \textbf{\textit{@issue}} flag. Once this is found the issue information can be extracted. The regular experssions used for each step of the process is very long and complicated and took some many testing iterations to ensure validity. Many updates to them were made over the development of the project.
+This section discusses the performance characteristics of SCIIT and shows the results of running operations on several Git repositories of Open Source Projects. The performance of the system is unfavourable for two operations: building the issue repository with its objects and references and building the issue tracker from those objects and references. 
 
-%The second major challenge concerns the allocation of IDs to the issues in the issue tracker. There were two options. The first option is to allow the system to assign issue IDs to all issues in the tracker once created. This option however was difficult to implement and provided a processing and I/O overhead. The process involved: reading the last generated ID from the disk; incrementing the ID for use in the new issue; saving the new issue to the disk and saving the new issue ID to the disk. These operations are costly in situations where there are many issues to be stored in one commit.
+The first factor affecting operation performance is due to the fact that Git provides single threaded file access operations. When building the issue repository from past commits or building the issue tracker, SCIIT traverses each commit in the repository and scans its related file object contents (blobs) to get issue information. 
 
-%The most appropriate approach to this challenge is to give developer control of the issue IDs to be used. This optimises the disk access during commits and allows for the developers to explicitly specify the issue. A drawback of this approach is the need to check commits for duplicate issue IDs that are sepcified throughout all the source code files of the project. This ensures that there are no two issues in different files with the same issue ID. The system will then warn the user of a conflict of issue IDs and where the conflicts are located.
+This is a time-consuming process and is restricted to a single thread because of the architecture of Git. SCIIT encounters I/O errors if multiple threads are used since there is a high likelihood that the same file may be accessed at the same time due to fact that multiple objects may contain the same references. On repositories with above 50K commits, the operations must be done at a time where the team is not actively working on the project.
 
-The performance of the system is unfavourable for two operations: building the issue repository and building the issue tracker. This is due to the fact that Git provides single threaded file access operations. When building the issue repository from past commits or building the issue tracker, SCIIT traverses each commit in the repository and scans its related file object contents (blobs) to get issue information. This is a time-consuming process and is restricted to a single thread because of the architecture of Git. SCIIT encounters I/O errors if multiple threads are used since there is a high likelihood that the same file may be accessed at the same time due to the referencing of the issue commit objects to commits. Although the system will benefit from extracting information for two or more commits at a time, I/O operations and access does allow it to be possible. 
+The second factor affecting building issue repository performance is the number of files changed per commit. Some commits contain a large number of file changes and as such the algorithm that builds the issue tracker must scan each of the files changed in order to detect issues. This takes a longer time for commits with more file changes. In order to reduce the effect, files that do not contain block comments are skipped since they will not contain any embedded issues.
 
-\begin{center}
-  \begin{tabular}{ | l | r | r | r | }
+Additionally, files that may contain a large number of block comments without embedded issues will be scanned which adds to the performance drain. In order to curb these effects developers will need to change the way in which they would create block comments on a project. This must be a new consideration when using SCIIT on new software projects. It has no effect on past practices.
+
+
+The same poor performance is exibited when building the issue tracker history. Each object must be read in a single thread while traversing the issue commit revisions. For large repositories (above 50K commits), it can take some time for the issue tracker to be built which can reduce the productivity of the developer. One way around this challenge is to provide a revision to the building of the issue tracker that limits the building of the full issue tracker. Here only the information required by the revision is used.
+ 
+
+\begin{table}[h!]
+\centering
+  \caption{Build Performance of SCIIT for Several Open Source Git Repositories}
+  \label{table:build-performance}
+  \begin{tabular}{ | p{3cm} | p{3cm} | p{3cm} | p{3cm} | p{3cm} }
+
     \hline
-    \textbf{REPOSITORY} & \textbf{{\#} OF COMMITS} & \textbf{DURATION}  & \textbf{AVG. PER. 100 COMMITS} \\ \hline
-    Bottle & 2,014 & 1 min 59 secs & 5.9 secs \\ \hline
-    Flask & 3,422 & 4 mins 30 secs & 7.9 secs \\ \hline
-    Vue & 5,716 & 3 mins 28 secs & 3.6 sec \\ \hline
-    React & 13,686 & 30 mins 7 secs & 13.2 secs \\ \hline
-    AngularJs & 13,971 &  1 hr 24 mins 19 secs & 36.2 secs \\ \hline
-    Tensorflow & 37,940 & 4 hrs 30 mins 30 secs & 42.77 secs \\ \hline
-    Docker & 43,648 & 2 hrs 2 mins & 16.77 secs \\ \hline
-    Git & 54,488 & 1 hr 24 mins 15 secs & 9.28 secs \\ \hline
+    \textbf{REPOSITORY NAME} & \textbf{TOTAL FILES} & \textbf{TOTAL COMMITS} & \textbf{BUILD DURATION (secs)}  & \textbf{AVG. PER. 100 COMMITS (secs)} \\ \hline
+    Bottle & 210 & 2,014 & 1 min 59 secs & 5.9 secs \\ \hline
+    Flask & 257 & 3,422 & 4 mins 30 secs & 7.9 secs \\ \hline
+    Vue & 622 & 5,716 & 3 mins 28 secs & 3.6 sec \\ \hline
+    React & 1,087 & 13,686 & 30 mins 7 secs & 13.2 secs \\ \hline
+    AngularJs & 7,768 & 13,971 &  1 hr 24 mins 19 secs & 36.2 secs \\ \hline
+    Tensorflow & 13,332 & 37,940 & 4 hrs 30 mins 30 secs & 42.77 secs \\ \hline
+    Docker & 11,347 & 43,648 & 2 hrs 2 mins & 16.77 secs \\ \hline
+    Git & 3,401 & 54,488 & 1 hr 24 mins 15 secs & 9.28 secs \\ \hline
 
   \end{tabular}
-\end{center}
+\end{table}
 
-This limits the performance of SCITT to build issues from past commits on repositories that consist of a high number of commits such as Tensorflow (39,390 commits). The performance also suffers based on the commit/merge strategy that the developer teams are using since some strategies can have merge commits that contain a larger tree of file changes that other strategies may not encourage. See Table \ref{} for a comparison on the performance of building issue repositories for various open source projects. As a baseline, SCIIT takes 15 seconds to scan 1000 commits. Figure \ref{fig:sciit-init} shows the building of the issue repository from the VueJS git repository containing, at the time of writing, 5716 commits.
+Table \ref{table:build-performance} shows the performance of building issue repositories for various open source Git repositories. As we can see from the Tensorflow repository compared to others, the time taken to process the repository is dependent on the number of file changes of a commit and the number of block comments utilised. This repository contains 13,332 files. The python files in this project contain many block comments and therefore a lot of time is spent searching those blocks. This is due to the fact that docstrings were used to define block comments in the python programming language as it does not have such an interface.
 
-This problem also affects the performance of building the issue tracker history as each object must be read in a single thread while traversing the issue commit revisions. For vast repositories, it can take some time for the issue tracker to be built which can reduce the productivity of the developer. One way around this challenge is to provide a revision to the building of the issue tracker that limits the building of the full issue tracker. Here only the information required by the revision is used.
+Additionally, we see that projects that contain a large number of source code files take a longer time to build. Commits to these projects contains many changes per file and therefore there is an performance cost for decompressing the raw contents of the file represented by the Git object (blob) for this commit. 
 
-The GitLab integration web service helps to reduce this problem. It does this by storing the issue tracker information between revisions specified by the lastest commit a developer has when pushing to a remote repository and the last commit on the remote repository. In a typical workflow, this is a series of commits that are made on a new branch. The state of the issue tracker between small revisions of commits can now be safely stored in a centralised manner. It must be noted, however, that developer teams may use other remote hosting solutions for which integration services have not yet been created.
+To further illustrate the performance, Figure \ref{} shows the build process of the repositories based duration vs commits.
 
-The last major challenge concerns the use of GitLab API calls within the web service interface. GitLab Webhooks are a part of the main functionality of the website. For example, utilising the GitLab Commits API triggers a Push Webhook. As such, during development special care needs to be taken to verify the dates of receiving GitLab webhooks with the internal web service time. If a Webhook was triggered and came in within seconds of another, they would be ignored as it would have originated from API calls within the web service. In the web service handling Issue Hooks generated requests for handling Push Hook and vice versa. If this was not carefully handled internally, then the web service would send infinately looping requests, unnecessarily creating GitLab Issues and commits on remote the repository.
+\section{Reduced Issue Tracking Process}
+
+This section discusses the reduction of steps required in the issue tracking process. It shows where the duplicates of effort for developers are reduced. As described by Fan et al. \cite{Fan:2017}, the Issue Tracking Process of started in GitHub is now widely used in software development. The SCIIT System however reduces steps outlined in this process thereby making it simpler for developers. This is gained from the advantage of embedding the ITS into the VCS.
+
+\begin{figure}
+\centering
+  \caption{Bug Tracking Process}
+  \includegraphics[width=15cm]{sciit-tracker-shot}
+  \label{fig:sciit-tracker-shot}
+\end{figure}
+Figure \ref{} shows the steps that is reduced in colour. and shows exactly where developers gain benefit from using SCIIT. 
 
 \section{Software Testing} % should I bother having a testing section
 
