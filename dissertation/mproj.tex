@@ -442,27 +442,29 @@ The same poor performance is exibited when building the issue tracker history. E
 \centering
   \caption{Build Performance of SCIIT for Several Open Source Git Repositories}
   \label{table:build-performance}
-  \begin{tabular}{ | p{3cm} | p{3cm} | p{3cm} | p{3cm} | p{3cm} }
+  \begin{tabular}{ | p{2.5cm} | p{2.5cm} | p{2.5cm} | p{2.5cm} | p{2.5cm} | }
 
     \hline
-    \textbf{REPOSITORY NAME} & \textbf{TOTAL FILES} & \textbf{TOTAL COMMITS} & \textbf{BUILD DURATION (secs)}  & \textbf{AVG. PER. 100 COMMITS (secs)} \\ \hline
+    \textbf{REPOSITORY NAME} & \textbf{TOTAL FILES} & \textbf{TOTAL\newline COMMITS} & \textbf{BUILD\newline DURATION}  & \textbf{AVG. PER. 100 COMMITS (secs)} \\ \hline
     Bottle & 210 & 2,014 & 1 min 59 secs & 5.9 secs \\ \hline
-    Flask & 257 & 3,422 & 4 mins 30 secs & 7.9 secs \\ \hline
-    Vue & 622 & 5,716 & 3 mins 28 secs & 3.6 sec \\ \hline
-    React & 1,087 & 13,686 & 30 mins 7 secs & 13.2 secs \\ \hline
-    AngularJs & 7,768 & 13,971 &  1 hr 24 mins 19 secs & 36.2 secs \\ \hline
-    Tensorflow & 13,332 & 37,940 & 4 hrs 30 mins 30 secs & 42.77 secs \\ \hline
-    Docker & 11,347 & 43,648 & 2 hrs 2 mins & 16.77 secs \\ \hline
-    Git & 3,401 & 54,488 & 1 hr 24 mins 15 secs & 9.28 secs \\ \hline
+    Flask & 257 & 3,422 & 1 mins 38 secs & 2.8 secs \\ \hline
+    Vue & 622 & 5,716 & 2 mins 46 secs & 2.9 sec \\ \hline
+    React & 1,087 & 13,686 & 13 mins 48 secs & 6 secs \\ \hline
+    AngularJs & 7,768 & 13,971 &  49 mins 28 secs & 21.2 secs \\ \hline
+    Tensorflow & 13,332 & 37,940 & 3 hrs 29 mins 20 secs & 33.1 secs \\ \hline
+    Docker & 11,347 & 43,648 & 2 hrs 2 mins & 16.8 secs \\ \hline
+    Git & 3,401 & 54,488 & 1 hr 25 mins 57 secs & 9.4 secs \\ \hline
 
   \end{tabular}
 \end{table}
 
-Table \ref{table:build-performance} shows the performance of building issue repositories for various open source Git repositories. As we can see from the Tensorflow repository compared to others, the time taken to process the repository is dependent on the number of file changes of a commit and the number of block comments utilised. This repository contains 13,332 files. The python files in this project contain many block comments and therefore a lot of time is spent searching those blocks. This is due to the fact that docstrings were used to define block comments in the python programming language as it does not have such an interface.
+Table \ref{table:build-performance} shows the performance of building issue repositories for various open source Git repositories. We must note that this test scans repositories that do not contain any embbedded issues to be created on the file system as these are mature projects that do not utilise SCIIT. Therefore, the results are used for comparision of scanning purposes only as repositories contain the same characteristic of no embedded issues.
 
-Additionally, we see that projects that contain a large number of source code files take a longer time to build. Commits to these projects contains many changes per file and therefore there is an performance cost for decompressing the raw contents of the file represented by the Git object (blob) for this commit. 
+As we can see from the Tensorflow repository compared to others, the time taken to process the repository is dependent on the number of file changes of a commit and the number of block comments utilised. The python files in this project contain many block comments and therefore a lot of time is spent searching those blocks. This is due to the fact that docstrings were used to define block comments in the python programming language as it does not have such an interface. The programming language in this case also adds to the performance issue as there is no other mechanism for suitably creating block comments.
 
-To further illustrate the performance, Figure \ref{} shows the build process of the repositories based duration vs commits.
+Additionally, we see that projects that contain a large number of source code files take a longer time to build. Commits to these projects contains many changes per file and therefore there is an performance cost for decompressing the raw contents of the file represented by the Git object (blob) for this commit. The Git source code repository from the table shows that although there may be a large number of commits, if the commits must span a large number of file changes as represented by the number of source code files, the performace will be poor. On average, scanning this repository consumes less time than others due to this characteristic.
+
+This performance issue must be dealt with in future releases of the software so that developers can easily build their issue repository along with thier issue repository. With a more mature system this may include storing issue repository objects along with git objects on a remote server such that when the developer pulls or clones the VCS repository they get the full issue repository as well. This will eliminate the need to build the issue repository.
 
 \section{Reduced Issue Tracking Process}
 
@@ -470,13 +472,18 @@ This section discusses the reduction of steps required in the issue tracking pro
 
 \begin{figure}
 \centering
-  \caption{Bug Tracking Process}
-  \includegraphics[width=15cm]{sciit-tracker-shot}
-  \label{fig:sciit-tracker-shot}
+  \caption{Bug Tracking Process Flowchart}
+  \includegraphics[width=10cm]{process-flowchart}
+  \label{fig:process-flowchart}
 \end{figure}
-Figure \ref{} shows the steps that is reduced in colour. and shows exactly where developers gain benefit from using SCIIT. 
 
-\section{Software Testing} % should I bother having a testing section
+Figure \ref{fig:process-flowchart} shows the steps that is required in order to implement an issue. The steps that are reduced by the use of SCIIT are highlghted green and shows exactly where developers gain benefit from using SCIIT. The blue area shows the work that is done within version control to implement the details of the issue. It is an iterative process and each commit will automatically update progress on the issue.
+
+Updating the progress as a manaual step in traditional issue trackers pose the problem of developers prioritising other work and not including the information. This must be done for each commit such that a detailed history of work done can be later identified and discussed. Since this step is no longer a manual task done by the developer, they save the time, focus and effort required to update the progress. They also retain the benefit of having a detailed history of work done.
+
+The disscussion points before and after implementing code are also streamlined. Developers get an accurate description of the work done to implement the issue which helps in making decisions on what must be done next or the status of the issue. Through integration with the VCS it is also distributed to all members of the team when the code is accessed further encouraging discussion. SCIIT helps to make the entire development process simpler, reducing friction at points where focus must be shifted from one development task to another.
+
+\section{Software Testing} 
 
 This section describes in detail the testing strategy that was used to verify the design and validity of SCIIT. The software is tested after the implementation of each desired feature this allows for regression testing with features already implemented. The test suite also utilises many mocks which mask the dependencies on other code in the system. Each test that requires access to the full Git repository is mocked out such that the test suite would finish running in sufficient time. Lastly, continuous integration (CI) practices are used to run the test suite as regression testing each time code is committed.
 
@@ -545,6 +552,8 @@ Commit activities is another area in which the system can be improved. Currently
 This leads to the need for context-aware and programming language specific mechanisms that mark when work on an issue is actually started. Context-aware mechanisms can be implemented through a marker on the issue to identify its state such as future work, work in progress, or paused state. This way commit activity can be attributed to the accurate state of an issue which does not depend solely on its existence in the source code.
 
 Programming language-specific mechanisms can also be used to identify when work done on the source code relates to the issue. For example, issues present in a module or function block will have dependencies on other modules or functions. If the source code of the dependency has changed, then SCIIT can identify this as a commit activity on the issue.
+
+To overcome the perfomance issue specifically in building the issue tracker, a intermediate cache can be implemented. This cache can be stored at tagged git commits. These tagged commits provide the best reference from which to store the cache as they mainly represent major releases of software products. At these points, the software is unlikely to undergo any changes in previous commits. The cache will allow older issue tracker information to be quickly accessible to developers.
 
 These additional features will make the SCIIT system more robust and attune to the needs of both development teams and other software product stakeholders.
 
