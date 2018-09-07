@@ -49,23 +49,6 @@ class TestInitCommand(TestCase):
         self.assertIn('Empty issue repository created',
                       sys.stdout.getvalue())
 
-    @patch('sciit.repo.IssueRepo.iter_commits')
-    @patch('sciit.repo.find_issues_in_commit')
-    def test_init_reset_repo_exists_with_commits(self, issues, commits):
-        safe_create_repo_dir('there')
-        args = Mock()
-        args.repo = IssueRepo('there')
-        args.repo.cli = True
-        args.reset = True
-        commits.return_value = [second_commit,
-                                first_commit]
-        issues.return_value = []
-        init(args)
-        self.assertIn('Building repository from commits',
-                      sys.stdout.getvalue())
-        self.assertIn('2/2 commits:',
-                      sys.stdout.getvalue())
-
     @patch('sciit.repo.IssueRepo.heads')
     def test_init_with_no_commits(self, heads):
         remove_existing_repo('there')
