@@ -271,8 +271,13 @@ class IssueRepo(Repo):
                 icommits = self.iter_issue_commits(rev, paths, **kwargs)
             else:
                 icommits = self.iter_issue_commits('--branches')
+            numcommits = 0
 
             for icommit in icommits:
+                
+                numcommits += 1
+                if numcommits == 1:
+                    top = icommit
 
                 for issue in icommit.issuetree.issues:
                     author_date = icommit.commit.authored_datetime.strftime(
@@ -412,10 +417,10 @@ class IssueRepo(Repo):
                 if rev is not None:
                     rev_list = self.git.execute(
                         ['git', 'rev-list', f'{head.name}', '--'])
-                    if icommits[0].hexsha not in rev_list:
+                    if top.hexsha not in rev_list:
                         continue
                     else:
-                        icommit = icommits[0]
+                        icommit = top                        
                 else:
                     icommit = IssueCommit(self, head.commit.hexsha)
                 for issue in icommit.issuetree.issues:
