@@ -10,16 +10,20 @@ import os
 
 CSTYLE = r'/\*((?:.|[\r\n])*?)\*/'
 PYTHON = r'(?:=\s*(?:[\'\"]){3}(?:.*(?:.|[\r\n])*?)(?:[\'\"]){3})|(?:[\'\"]){3}(.*(?:.|[\r\n])*?)(?:[\'\"]){3}'
-HTML = r'<!--((?:(?:.|[\r\n])*?))-->'
+# HTML = r'<!--((?:(?:.|[\r\n])*?))-->'
+
+HTML = r'(?:<!--)([\w\W]+?)(?:-->)'
+
 MATLAB = r'%{((?:.|[\r\n])*?)%}'
 HASKELL = r'{-((?:.|[\r\n])*?)-}'
 PLAIN = r'#(?:[*]){3,}((?:(?:.|[\r\n])*?))#(?:[*]){3,}'
-
+MARKDOWN = r'(?:---)([\w\W]+?)(?:---)'
 
 CSTYLE_EXTS = ['.java', '.c', '.cpp', '.cxx', '.h', '.hpp', '.hxx', '.cs', '.php',
                '.css', '.js', '.sql', '.scala', '.swift', '.go', '.kt', '.kts']
-HTML_EXTS = ['.htm', '.html', '.xhtml', '.md']
+HTML_EXTS = ['.htm', '.html', '.xhtml']
 OTHER_EXTS = ['.yml', '.yaml', '.feature', '.rb']
+MARKDOWN_EXTS = ['.md']
 
 
 class ISSUE:
@@ -41,6 +45,8 @@ def get_file_object_pattern(file_object):
             pattern = CSTYLE
         elif ext in HTML_EXTS:
             pattern = HTML
+        elif ext in MARKDOWN_EXTS:
+            pattern = MARKDOWN
         elif ext in OTHER_EXTS or file_object.mime_type == 'text/plain':
             pattern = PLAIN
         elif ext == '.m':

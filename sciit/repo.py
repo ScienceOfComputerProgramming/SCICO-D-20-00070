@@ -225,8 +225,7 @@ class IssueRepo(Repo):
 
                 self.print_commit_progress(
                     datetime.now(), start, commits_scanned, num_commits)
-                issues = find_issues_in_commit(
-                self, commit, ignored_files=ignored_files)
+                issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
                 
@@ -271,6 +270,8 @@ class IssueRepo(Repo):
                 icommits = self.iter_issue_commits(rev, paths, **kwargs)
             else:
                 icommits = self.iter_issue_commits('--branches')
+
+            icommits = list(icommits)
 
             for icommit in icommits:
 

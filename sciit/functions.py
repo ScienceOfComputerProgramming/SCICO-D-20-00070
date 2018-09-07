@@ -123,7 +123,7 @@ def deserialize(obj):
     location = get_location(obj)
     filename = location[1]
     if not os.path.exists(filename):
-        raise RepoObjectDoesNotExistError
+        raise RepoObjectDoesNotExistError(filename)
     f = open(filename, 'rb')
     contents = zlib.decompress(f.read()).decode()
     f.close()
