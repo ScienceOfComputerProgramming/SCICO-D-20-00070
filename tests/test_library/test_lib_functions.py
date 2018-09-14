@@ -1,6 +1,3 @@
-"""
-This module tests the functionality of the functions module.
-"""
 import os
 from unittest import TestCase
 from unittest.mock import patch, MagicMock

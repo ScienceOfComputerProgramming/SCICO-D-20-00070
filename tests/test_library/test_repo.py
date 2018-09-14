@@ -1,6 +1,4 @@
-import sys
 import os
-import shutil
 from unittest import TestCase
 from unittest.mock import patch, Mock, PropertyMock, MagicMock
 from git import Commit

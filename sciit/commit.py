@@ -14,7 +14,6 @@ from git.util import hex_to_bin
 from sciit import IssueTree, Issue
 from sciit.functions import serialize, deserialize, object_exists
 from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
-from sciit.issue import find_issue_data_in_comment
 
 
 __all__ = ('IssueCommit', 'find_issues_in_commit')
@@ -35,6 +34,39 @@ def get_blobs(tree):
     for tree in tree.trees:
         blobs.update(get_blobs(tree))
     return blobs
+
+
+def find_issue_data_in_comment(comment):
+    """
+    Finds the relevant issue data in block comments made by the user in source code. Only if an issue is specified does
+    the function continue to extract other issue data.
+
+    Args:
+        :(str) comment: raw string representation of \
+        the block comment
+
+    Returns:
+        :(dict) data: contains all the relevant issue data
+    """
+    data = {}
+
+    def update_issue_data_dict_with_value_from_comment(regex, key):
+        value = re.findall(regex, comment)
+        if len(value) > 0:
+            data[key] = value[0]
+
+    update_issue_data_dict_with_value_from_comment(ISSUE.ID, 'id')
+
+    if 'id' in data:
+        update_issue_data_dict_with_value_from_comment(ISSUE.TITLE, 'title')
+        update_issue_data_dict_with_value_from_comment(ISSUE.DESCRIPTION, 'description')
+        update_issue_data_dict_with_value_from_comment(ISSUE.ASSIGNEES, 'assignees')
+        update_issue_data_dict_with_value_from_comment(ISSUE.LABEL, 'label')
+        update_issue_data_dict_with_value_from_comment(ISSUE.DUE_DATE, 'due_date')
+        update_issue_data_dict_with_value_from_comment(ISSUE.PRIORITY, 'priority')
+        update_issue_data_dict_with_value_from_comment(ISSUE.WEIGHT, 'weight')
+
+    return data
 
 
 def find_issues_data_in_blob_content(search, object_contents):
@@ -116,17 +148,15 @@ class IssueCommit(Object):
     IssueCommit objects represent a git commit object linked to an IssueTree.
 
     :note:
-        When creating a tree if the object already exists the
-        existing object is returned
+        When creating a tree if the object already exists the existing object is returned.
     """
     __slots__ = ('data', 'commit', 'size', 'issuetree')
 
     type = 'issuecommit'
-    """ The base type of this issue repository object
-    """
 
     def __init__(self, repo, sha, issuetree=None):
-        """Initialize a newly instanced IssueCommiy
+        """
+        Initialize a newly instanced IssueCommit
 
         Args:
             :(Repo) repo: is the Repo we are located in
@@ -177,8 +207,8 @@ class IssueCommit(Object):
 
     @classmethod
     def create(cls, repo, commit, issuetree):
-        """Factory method that creates an IssueCommit with its issuetree
-        or return the IssueCommit from the FileSystem
+        """
+        Factory method that creates an IssueCommit with its issuetree or return the IssueCommit from the FileSystem
 
         Args:
             :(Repo) repo: is the Repo we are located in

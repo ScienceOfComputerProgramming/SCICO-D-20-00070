@@ -5,16 +5,12 @@
 :Created: 24 June 2018
 """
 import hashlib
-import re
-import os
 
 from git import util, Object
 from git.util import hex_to_bin
 
 from sciit import Issue
-from sciit.issue import find_issue_data_in_comment
 from sciit.functions import serialize, deserialize, object_exists
-from sciit.regex import get_file_object_pattern, PLAIN
 
 
 __all__ = ('IssueTree', )
@@ -30,8 +26,6 @@ class IssueTree(Object):
     __slots__ = ('data', 'issues', 'size')
 
     type = 'issuetree'
-    """ The base type of this issue repository object
-    """
 
     def __init__(self, repo, sha, issues=None):
         """Initialize a newly instanced IssueTree
@@ -43,25 +37,22 @@ class IssueTree(Object):
                 a list of issues as issue objects
 
         :note:
-            The object may be deserialised from the file system when instatiated 
-            or serialized to the file system when the object is created from a factory
+            The object may be deserialised from the file system when instantiated or serialized to the file system when
+            the object is created from a factory.
         """
         if len(sha) > 20:
             sha = hex_to_bin(sha)
         super(IssueTree, self).__init__(repo, sha)
+
         if not object_exists(self) and issues is not None:
-            self.data = [{'id': i.data['id'],
-                          'hexsha': i.hexsha} for i in issues]
-            """List of dictionaries containing issue data that is easily
-            serializable/deserializable
-            """
+            self.data = [{'id': i.data['id'], 'hexsha': i.hexsha} for i in issues]
+
             self.issues = issues
-            """The :py:class:`Issues` that are attached to this issue tree
-            """
             serialize(self)
+
         else:
             deserialize(self)
-            self.issues = []
+            self.issues = list()
             for issue in self.data:
                 self.issues.append(Issue(repo, issue['hexsha']))
 

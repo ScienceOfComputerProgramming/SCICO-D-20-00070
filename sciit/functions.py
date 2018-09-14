@@ -179,7 +179,7 @@ def write_last_issue(issue_dir, sha):
 
 
 def get_last_issue(repo):
-    """Retuns the sha of the last issuecommit reference saved
+    """Returns the sha of the last issuecommit reference saved
 
     Args:
         :(IssueRepo) repo: the repository to look for

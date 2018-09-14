@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
-"""Module that assists building strings containing the 
-issue tracker information needed for showing to the user.
+"""
+Module that assists building strings containing the issue tracker information needed for showing to the user.
 
 @author: Nystrom Edwards
 
 Created on 29 July 2018
 """
+
 from sciit.cli.color import Color
 
 
 def build_log_item(icommit):
-    """Builds a string representation of issue commit for log
-    to the terminal with ANSI color codes
+    """
+    Builds a string representation of issue commit for log to the terminal with ANSI color codes
 
     Args:
         :(IssueCommit) icommit: commit to build string from
@@ -32,8 +33,8 @@ def build_log_item(icommit):
 
 
 def build_log(icommits):
-    """Builds a string representation of a list of issue commits for log
-    to the terminal with ANSI color codes
+    """
+    Builds a string representation of a list of issue commits for log to the terminal with ANSI color codes
 
     Args:
         :list(IssueCommit) icommits: commits to build string from
@@ -48,8 +49,8 @@ def build_log(icommits):
 
 
 def build_issue_commit(icommit):
-    """Builds a string representation of issue commit for showing
-    to the terminal without ANSI color codes
+    """
+    Builds a string representation of issue commit for showing to the terminal without ANSI color codes
 
     Args:
         :(IssueCommit) icommit: commit to build string from
@@ -77,8 +78,8 @@ def build_issue_commit(icommit):
 
 
 def build_issue_tree(itree):
-    """Builds a string representation of issue tree for showing
-    to the terminal without ANSI color codes
+    """
+    Builds a string representation of issue tree for showing to the terminal without ANSI color codes
 
     Args:
         :(IssueTree) itree: issue tree to build string from
@@ -97,8 +98,8 @@ def build_issue_tree(itree):
 
 
 def build_issue(issue):
-    """Builds a string representation of issue for showing
-    to the terminal with ANSI color codes
+    """
+    Builds a string representation of issue for showing to the terminal with ANSI color codes
 
     Args:
         :(Issue) issue: issue to build string from
@@ -129,8 +130,8 @@ def build_issue(issue):
 
 
 def build_history_item(item, view=None):
-    """Builds a string representation of a issue history item for showing
-    to the terminal with ANSI color codes
+    """
+    Builds a string representation of a issue history item for showing to the terminal with ANSI color codes
 
     Args:
         :(dict) item: item to build string from
@@ -248,8 +249,8 @@ def build_history_item(item, view=None):
 
 
 def build_history_items(items, view=None):
-    """Builds a string representation of a dict of history items
-    for showing to the terminal with ANSI color codes
+    """
+    Builds a string representation of a dict of history items for showing to the terminal with ANSI color codes
 
     Args:
         :dict(dict) items: history items to build string from

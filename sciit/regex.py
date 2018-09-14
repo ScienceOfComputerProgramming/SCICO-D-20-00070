@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Module that contains the definition regex patterns used to identify issues
-in source code. Also identifies the file types supported and thier comment
+"""
+Module that contains the definition of regex patterns used to identify issues in source code. Also identifies the file
+types supported and their comment.
 structure
 
 :@author: Nystrom Edwards
@@ -10,7 +11,6 @@ import os
 
 CSTYLE = r'/\*((?:.|[\r\n])*?)\*/'
 PYTHON = r'(?:=\s*(?:[\'\"]){3}(?:.*(?:.|[\r\n])*?)(?:[\'\"]){3})|(?:[\'\"]){3}(.*(?:.|[\r\n])*?)(?:[\'\"]){3}'
-# HTML = r'<!--((?:(?:.|[\r\n])*?))-->'
 
 HTML = r'(?:<!--)([\w\W]+?)(?:-->)'
 
