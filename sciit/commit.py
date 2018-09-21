@@ -10,6 +10,7 @@ import re
 
 from git import Object, Commit
 from git.util import hex_to_bin
+from slugify import slugify
 
 from sciit import IssueTree, Issue
 from sciit.functions import serialize, deserialize, object_exists
@@ -38,7 +39,8 @@ def get_blobs(tree):
 
 def find_issue_data_in_comment(comment):
     """
-    Finds the relevant issue data in block comments made by the user in source code. Only if an issue is specified does
+    Finds the relevant issue data in block comments made 
+    by the user in source code. Only if an issue is specified does
     the function continue to extract other issue data.
 
     Args:
@@ -50,6 +52,11 @@ def find_issue_data_in_comment(comment):
     """
     data = {}
 
+    def clean_data_dictionary():
+        if 'title' not in data:
+            data['title'] = data['id']
+        data['id'] = slugify(data['id'])
+
     def update_issue_data_dict_with_value_from_comment(regex, key):
         value = re.findall(regex, comment)
         if len(value) > 0:
@@ -59,20 +66,25 @@ def find_issue_data_in_comment(comment):
 
     if 'id' in data:
         update_issue_data_dict_with_value_from_comment(ISSUE.TITLE, 'title')
-        update_issue_data_dict_with_value_from_comment(ISSUE.DESCRIPTION, 'description')
-        update_issue_data_dict_with_value_from_comment(ISSUE.ASSIGNEES, 'assignees')
+        update_issue_data_dict_with_value_from_comment(
+            ISSUE.DESCRIPTION, 'description')
+        update_issue_data_dict_with_value_from_comment(
+            ISSUE.ASSIGNEES, 'assignees')
         update_issue_data_dict_with_value_from_comment(ISSUE.LABEL, 'label')
-        update_issue_data_dict_with_value_from_comment(ISSUE.DUE_DATE, 'due_date')
-        update_issue_data_dict_with_value_from_comment(ISSUE.PRIORITY, 'priority')
+        update_issue_data_dict_with_value_from_comment(
+            ISSUE.DUE_DATE, 'due_date')
+        update_issue_data_dict_with_value_from_comment(
+            ISSUE.PRIORITY, 'priority')
         update_issue_data_dict_with_value_from_comment(ISSUE.WEIGHT, 'weight')
+        clean_data_dictionary()
 
     return data
 
 
 def find_issues_data_in_blob_content(search, object_contents):
-
     comments = re.findall(search, object_contents)
-    comments_with_issues = [x for x in comments if re.search(ISSUE.ID, x) is not None]
+    comments_with_issues = [
+        x for x in comments if re.search(ISSUE.ID, x) is not None]
 
     issues = list()
 
@@ -117,14 +129,15 @@ def find_issues_in_commit(repo, commit, comment_pattern=None, ignored_files=None
 
         # get file extension and set pattern
         if not comment_pattern:
-            comment_pattern = get_file_object_pattern(blobs[change])
+            comment_search_pattern = get_file_object_pattern(blobs[change])
 
-        if not comment_pattern:
+        if not comment_search_pattern:
             continue
 
         try:
             object_contents = blobs[change].data_stream.read().decode('utf-8')
-            blob_issues = find_issues_data_in_blob_content(comment_pattern, object_contents)
+            blob_issues = find_issues_data_in_blob_content(
+                comment_search_pattern, object_contents)
 
             for issue_data in blob_issues:
                 issue_data['filepath'] = change
@@ -137,7 +150,8 @@ def find_issues_in_commit(repo, commit, comment_pattern=None, ignored_files=None
     # Bring forward the open issues that had no changes made to them from all available parents.
     for parent in commit.parents:
         issue_commit = IssueCommit(repo, parent.hexsha)
-        old_issues = [x for x in issue_commit.issuetree.issues if x.filepath not in files_changed]
+        old_issues = [
+            x for x in issue_commit.issuetree.issues if x.filepath not in files_changed]
         issues.extend(old_issues)
 
     return issues
@@ -178,7 +192,8 @@ class IssueCommit(Object):
         # see `GitPython.Commit <https://gitpython.readthedocs.io/en/stable/reference.html#module-git.objects.commit/>`.
 
         if not object_exists(self) and issuetree is not None:
-            self.data = {'commit': self.commit.hexsha, 'itree': issuetree.hexsha}
+            self.data = {'commit': self.commit.hexsha,
+                         'itree': issuetree.hexsha}
             self.issuetree = issuetree
             serialize(self)
         else:
@@ -189,7 +204,8 @@ class IssueCommit(Object):
     def children(self):
         children = list()
 
-        rev_list = self.repo.git.execute(['git', 'rev-list', '--all', '--children'])
+        rev_list = self.repo.git.execute(
+            ['git', 'rev-list', '--all', '--children'])
         pattern = re.compile(r'(?:' + self.hexsha + ')(.*)')
         child_shas = pattern.findall(rev_list)[0]
         child_shas = child_shas.strip(' ').split(' ')
