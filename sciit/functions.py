@@ -44,7 +44,7 @@ def get_type_from_sha(repo, sha):
     filename = folder + '/' + sha[2:]
 
     if not os.path.exists(filename):
-        raise RepoObjectDoesNotExistError
+        raise RepoObjectDoesNotExistError(filename)
 
     f = open(filename, 'rb')
     contents = zlib.decompress(f.read()).decode()
@@ -123,7 +123,7 @@ def deserialize(obj):
     location = get_location(obj)
     filename = location[1]
     if not os.path.exists(filename):
-        raise RepoObjectDoesNotExistError
+        raise RepoObjectDoesNotExistError(filename)
     f = open(filename, 'rb')
     contents = zlib.decompress(f.read()).decode()
     f.close()
@@ -179,7 +179,7 @@ def write_last_issue(issue_dir, sha):
 
 
 def get_last_issue(repo):
-    """Retuns the sha of the last issuecommit reference saved
+    """Returns the sha of the last issuecommit reference saved
 
     Args:
         :(IssueRepo) repo: the repository to look for

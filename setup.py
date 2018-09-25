@@ -1,21 +1,13 @@
 # -*- coding: utf-8 -*-
-
-
-"""setup.py: setuptools control."""
-
-
-import subprocess
 from setuptools import setup, find_packages
 
-with open('sciit/man/VERSION', 'rb') as f:
-    version = f.read().decode('utf-8')
+with open('README.md', 'r') as f:
+    long_descr = f.read()
 
-with open('README.md', 'rb') as f:
-    long_descr = f.read().decode('utf-8')
+with open('requirements.txt', 'r') as f:
+    requirements = f.read().split('\n')
 
-with open('requirements.txt', 'rb') as f:
-    requirements = f.read().decode('utf-8').split('\n')
-
+version = '1.0'
 
 setup(
     name='sciit',
@@ -26,7 +18,6 @@ setup(
         'console_scripts': ['git-sciit = sciit.cli.start:main']
     },
     zip_safe=False,
-    include_package_data=True,
     version=version,
     description='An application that allow issues to be managed'
     'within a version control repository rather than'

@@ -10,10 +10,8 @@ import json
 import os
 import subprocess
 import logging
-import requests
 
 from flask import Flask, Response, request
-from git import Repo
 from datetime import datetime, timezone, timedelta
 
 from sciit import IssueRepo
@@ -59,7 +57,7 @@ def index():
 
     data = request.get_json()
 
-    #set configuration items
+    # set configuration items
     CONFIG.api_token = os.environ['GITLAB_API_TOKEN']
     CONFIG.api_url = data['repository']['homepage'].rsplit(
         '/', 1)[0].rsplit('/', 1)[0] + '/api/v4/'

@@ -83,36 +83,6 @@ def page_history_items(items, view=None):
     return output
 
 
-def yes_no_option(msg=''):
-    """
-    A function used to stall program operation until user
-    specifies an option of yes or no
-
-    Returns:
-        :bool: True if user enters y or Y
-        :bool: False if user enter otherwise
-    """
-    option = input(msg + ' [y/N]: ')
-    if option is 'Y' or option is 'y':
-        return True
-    else:
-        return False
-
-
-def read_man_file(filename):
-    """
-    A function used for accessing the manual page files stored in
-    the src/man folder.
-
-    Returns:
-        :str: The contents of the file
-    """
-    filename = pkg_resources.resource_filename('sciit.man', filename)
-    with open(filename, 'rb') as f:
-        filename = f.read().decode('utf-8')
-    return filename
-
-
 def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=50, fill='█'):
     """
     Used in the command line application.

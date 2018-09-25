@@ -14,7 +14,6 @@ Created on 18 June 2018
 """
 
 from sciit.cli.functions import page_log
-from sciit.cli.color import CPrint
 
 
 def log(args):

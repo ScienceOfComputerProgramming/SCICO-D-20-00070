@@ -1,6 +1,3 @@
-"""
-This module tests the functionality of the functions module.
-"""
 import os
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
@@ -88,7 +85,7 @@ class TestSerializeDeserializeObject(TestCase):
         with self.assertRaises(RepoObjectDoesNotExistError) as context:
             deserialize(self.obj)
         self.assertTrue(
-            'The repository object does not exist.' in str(context.exception))
+            'does not exist.' in str(context.exception))
 
 
 class TestGetTypeFromSha(TestCase):
@@ -122,8 +119,8 @@ class TestGetTypeFromSha(TestCase):
     def test_object_type_cannot_be_found_in_repo(self):
         with self.assertRaises(RepoObjectDoesNotExistError) as context:
             get_type_from_sha(self.repo, 'self.issue.hexsha')
-        self.assertTrue(
-            'The repository object does not exist.' in str(context.exception))
+            self.assertTrue(
+                'The repository object does not exist.' in str(context.exception))
 
 
 class TestCacheIssueHistory(TestCase):

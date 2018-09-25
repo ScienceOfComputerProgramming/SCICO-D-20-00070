@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 from sciit.regex import get_file_object_pattern
-from sciit.regex import (CSTYLE, PYTHON, HTML, MATLAB, HASKELL, PLAIN)
+from sciit.regex import (CSTYLE, PYTHON, HTML, MATLAB, HASKELL, PLAIN, MARKDOWN)
 
 
 class TestFileObjectPattern(TestCase):
@@ -70,7 +70,7 @@ class TestFileObjectPattern(TestCase):
         file_object = Mock()
         file_object.path = 'test.md'
         pattern = get_file_object_pattern(file_object)
-        self.assertEqual(pattern, HTML)
+        self.assertEqual(pattern, MARKDOWN)
 
     def test_file_is_bdd_feature(self):
         file_object = Mock()

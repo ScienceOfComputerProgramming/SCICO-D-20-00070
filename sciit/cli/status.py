@@ -12,9 +12,6 @@ of issues that are currently being tracked on HEAD or revision.
 
 Created on 13 June 2018
 """
-from git.exc import GitCommandError
-from sciit.errors import RepoObjectDoesNotExistError
-from sciit import IssueCommit
 from sciit.cli.color import CPrint
 
 

@@ -5,7 +5,6 @@
 :Created: 21 June 2018
 """
 import os
-import re
 import stat
 import pkg_resources
 import difflib
@@ -18,7 +17,6 @@ from git import Repo
 from sciit import IssueTree, IssueCommit, Issue
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 from sciit.commit import find_issues_in_commit
-from sciit.regex import PYTHON
 from sciit.functions import write_last_issue, get_last_issue, get_sciit_ignore
 from sciit.cli.functions import print_progress_bar
 
@@ -214,24 +212,21 @@ class IssueRepo(Repo):
         if len(self.heads) > 0:
             # get all commits on the all branches
             # enforcing the topology order of parents to children
-            all_commits = list(self.iter_commits(['--all', '--topo-order']))
-            num_commits = len(all_commits)
+            all_commits = self.iter_commits(['--all', '--topo-order', '--reverse'])
+            num_commits = int(self.git.execute(['git', 'rev-list', '--all', '--count']))
             ignored_files = get_sciit_ignore(self)
 
-            # reversed to start at the first commit
-            for commit in reversed(all_commits):
+            for commit in all_commits:
                 commits_scanned += 1
 
                 self.print_commit_progress(
                     datetime.now(), start, commits_scanned, num_commits)
-
-                issues = find_issues_in_commit(
-                    self, commit, ignored_files=ignored_files)
+                issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
                 itree = IssueTree.create(self, issues)
                 IssueCommit.create(self, commit, itree)
-
+                
             if all_commits:
-                write_last_issue(self.issue_dir, all_commits[0].hexsha)
+                write_last_issue(self.issue_dir, self.head.commit.hexsha)
             else:
                 raise NoCommitsError
         else:
@@ -268,11 +263,18 @@ class IssueRepo(Repo):
             time_format = '%a %b %d %H:%M:%S %Y %z'
             # get all commits on the all branches
             if rev is not None:
-                icommits = list(self.iter_issue_commits(rev, paths, **kwargs))
+                icommits = self.iter_issue_commits(rev, paths, **kwargs)
             else:
-                icommits = list(self.iter_issue_commits('--branches'))
+                icommits = self.iter_issue_commits('--branches')
+            numcommits = 0
+
+            icommits = list(icommits)
 
             for icommit in icommits:
+                
+                numcommits += 1
+                if numcommits == 1:
+                    top = icommit
 
                 for issue in icommit.issuetree.issues:
                     author_date = icommit.commit.authored_datetime.strftime(
@@ -412,10 +414,10 @@ class IssueRepo(Repo):
                 if rev is not None:
                     rev_list = self.git.execute(
                         ['git', 'rev-list', f'{head.name}', '--'])
-                    if icommits[0].hexsha not in rev_list:
+                    if top.hexsha not in rev_list:
                         continue
                     else:
-                        icommit = icommits[0]
+                        icommit = top                        
                 else:
                     icommit = IssueCommit(self, head.commit.hexsha)
                 for issue in icommit.issuetree.issues:

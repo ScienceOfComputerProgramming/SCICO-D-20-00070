@@ -16,13 +16,13 @@ Created on 13 June 2018
 import argparse
 import sys
 import colorama
+import pkg_resources
 
 from git.exc import InvalidGitRepositoryError, GitCommandError
 from sciit.errors import RepoObjectDoesNotExistError, NoCommitsError
 
 from sciit import IssueRepo
 from sciit.cli.catfile import catfile
-from sciit.cli.functions import read_man_file
 from sciit.cli.color import CPrint, Color
 from sciit.cli.init import init
 from sciit.cli.log import log
@@ -47,7 +47,7 @@ def main():
                                      'Operations done with git will run git sciit in the '
                                      'background in order to automate issue tracking for you. ')
     parser.add_argument('-v', '--version', action='version',
-                        version=read_man_file('VERSION'))
+                        version=pkg_resources.get_distribution("sciit").version)
 
     subparsers = parser.add_subparsers()
 

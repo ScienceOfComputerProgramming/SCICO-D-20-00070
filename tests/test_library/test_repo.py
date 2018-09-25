@@ -1,6 +1,4 @@
-import sys
 import os
-import shutil
 from unittest import TestCase
 from unittest.mock import patch, Mock, PropertyMock, MagicMock
 from git import Commit
@@ -66,44 +64,6 @@ class TestBuildIssueRepo(TestCase):
         self.assertTrue(
             'The repository has no commits.' in str(context.exception))
         heads.assert_called_once()
-
-    @patch('sciit.repo.IssueRepo.iter_commits')
-    def test_build_from_two_known_commits(self, commits):
-        # get first two commits of this repo
-        first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
-        second = '622918a4c6539f853320e06804f73d1165df69d0'
-        val = [Commit(self.repo, hex_to_bin(second)),
-               Commit(self.repo, hex_to_bin(first))]
-        commits.return_value = val
-
-        # build
-        self.repo.build()
-        commits.assert_called_once()
-
-        # check two IssueCommits made with Issue Tree
-        first_commit = IssueCommit(self.repo, first)
-        second_commit = IssueCommit(self.repo, second)
-
-        # check issues created properly
-        self.assertEqual(first_commit.commit, val[1])
-        self.assertEqual(second_commit.commit, val[0])
-        self.assertEqual(len(first_commit.issuetree.issues), 0)
-        self.assertEqual(len(second_commit.issuetree.issues), 0)
-
-    @patch('sciit.repo.IssueRepo.iter_commits')
-    @patch('sciit.repo.print_progress_bar')
-    def test_print_progress_called_if_cli(self, progress, commits):
-        # get first two commits of this repo
-        first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
-        second = '622918a4c6539f853320e06804f73d1165df69d0'
-        val = [Commit(self.repo, hex_to_bin(second)),
-               Commit(self.repo, hex_to_bin(first))]
-        commits.return_value = val
-
-        self.repo.cli = True
-        self.repo.build()
-        self.assertTrue(progress.called)
-
 
 class TestBuildIterIssueCommits(TestCase):
 

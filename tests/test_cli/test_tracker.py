@@ -15,7 +15,7 @@ from sciit.functions import write_last_issue
 from tests.external_resources import safe_create_repo_dir
 from tests.test_cli.external_resources import repo, second_sha, second_commit, ansi_escape
 
-class TestStatusCommand(TestCase):
+class TestTrackerCommand(TestCase):
 
     def setUp(self):
         self.held, sys.stdout = sys.stdout, StringIO()
