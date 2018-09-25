@@ -5,22 +5,18 @@
 :Created: 21 June 2018
 """
 import os
-import re
 import stat
 import pkg_resources
 import difflib
-import gc
 
 from shutil import copyfile
 from datetime import datetime
-from threading import Thread
 
 from git import Repo
 
 from sciit import IssueTree, IssueCommit, Issue
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 from sciit.commit import find_issues_in_commit
-from sciit.regex import PYTHON
 from sciit.functions import write_last_issue, get_last_issue, get_sciit_ignore
 from sciit.cli.functions import print_progress_bar
 

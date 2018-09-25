@@ -1,5 +1,4 @@
 import json
-import re
 import logging
 
 import dateutil.parser as dateparser

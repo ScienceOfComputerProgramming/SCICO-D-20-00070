@@ -6,7 +6,6 @@ server.
 :Created: 06 August 2018
 """
 from flask import Flask, render_template
-from sciit import IssueRepo
 import markdown2
 
 app = Flask(__name__)

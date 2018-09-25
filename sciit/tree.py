@@ -6,7 +6,7 @@
 """
 import hashlib
 
-from git import util, Object
+from git import Object
 from git.util import hex_to_bin
 
 from sciit import Issue

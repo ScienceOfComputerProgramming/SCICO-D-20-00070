@@ -13,7 +13,6 @@ information for issue objects in our repository.
 Created on 09 July 2018
 """
 
-import json
 from sciit.errors import RepoObjectDoesNotExistError
 from sciit.functions import get_type_from_sha
 from sciit import Issue, IssueCommit, IssueTree

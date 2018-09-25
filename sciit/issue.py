@@ -5,7 +5,6 @@
 :Created: 23 June 2018
 """
 import hashlib
-import re
 
 from git import Object
 from git.util import hex_to_bin
