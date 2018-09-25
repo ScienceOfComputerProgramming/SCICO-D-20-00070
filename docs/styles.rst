@@ -26,11 +26,12 @@ Supported file extensions:
 .. code:: c
 
        /*
-       *   @issue Eg: The title of your issue
-       *   @description:
+       *   @issue id-of-your-issue-slugified
+       *   @title The title of the issue
+       *   @description
        *     A description of an issue as you
        *     want it to be even with ``markdown`` supported
-       *   @issue_assigned to nystrome, kevin, daniels
+       *   @assignees nystrome, kevin, daniels
        *   @due date 12 oct 2018
        *   @label in-development
        *   @weight 4
@@ -44,16 +45,16 @@ HTML Style
 Supported file extensions:
 
 -  HTML files ``.htm``, ``.html``, ``.xhtml``
--  Markdown files ``.md``
 
 .. code:: html
 
        <!--
-           @issue Eg: The title of your issue
-           @description:
+           @issue id-of-your-issue-slugified
+           @title The title of the issue
+           @description
                A description of an issue as you
                want it to be even with ``markdown`` supported
-           @issue_assigned to nystrome, kevin, daniels
+           @assignes nystrome, kevin, daniels
            @due date 12 oct 2018
            @label in-development
            @weight 4
@@ -68,16 +69,37 @@ Supports ``.py`` files
 .. code:: python
 
        """
-           @issue Eg: The title of your issue
-           @description:
+           @issue id-of-your-issue-slugified
+           @title The title of the issue
+           @description
                A description of an issue as you
                want it to be even with ``markdown`` supported
-           @issue_assigned to nystrome, kevin, daniels
+           @assignes nystrome, kevin, daniels
            @due date 12 oct 2018
            @label in-development
            @weight 4
            @priority high
        """
+       
+Markdown
+--------
+
+Supports ``.md`` files
+
+.. code::
+
+       ---
+           @issue id-of-your-issue-slugified
+           @title The title of the issue
+           @description
+               A description of an issue as you
+               want it to be even with ``markdown`` supported
+           @assignees nystrome, kevin, daniels
+           @due date 12 oct 2018
+           @label in-development
+           @weight 4
+           @priority high
+       ---
 
 MATLAB
 ------
@@ -87,11 +109,12 @@ Supports ``.m`` files
 .. code:: matlab
 
        %{
-           @issue Eg: The title of your issue
-           @description:
+           @issue id-of-your-issue-slugified
+           @title The title of the issue
+           @description
                A description of an issue as you
                want it to be even with ``markdown`` supported
-           @issue_assigned to nystrome, kevin, daniels
+           @assignes nystrome, kevin, daniels
            @due date 12 oct 2018
            @label in-development
            @weight 4
@@ -106,11 +129,12 @@ Supports ``.hs`` files
 .. code:: haskell
 
        {-
-           @issue Eg: The title of your issue
-           @description:
+           @issue id-of-your-issue-slugified
+           @title The title of the issue
+           @description
                A description of an issue as you
                want it to be even with ``markdown`` supported
-           @issue_assigned to nystrome, kevin, daniels
+           @assignees nystrome, kevin, daniels
            @due date 12 oct 2018
            @label in-development
            @weight 4
@@ -130,11 +154,12 @@ Supported file extensions:
 ::
 
        #*** (or more *)
-       #   @issue Eg: The title of your issue
-       #   @description:
+       #   @issue id-of-your-issue-slugified
+       #   @title The title of the issue
+       #   @description
        #       A description of an issue as you
        #       want it to be even with ``markdown`` supported
-       #   @issue_assigned to nystrome, kevin, daniels
+       #   @assignees nystrome, kevin, daniels
        #   @due date 12 oct 2018
        #   @label in-development
        #   @weight 4

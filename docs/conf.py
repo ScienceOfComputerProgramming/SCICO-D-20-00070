@@ -61,8 +61,7 @@ author = u'Nystrom Johann Edwards'
 # built documents.
 #
 # The short X.Y version.
-with open('../sciit/man/VERSION', 'r') as v:
-    VERSION = v.read()
+VERSION = '1.0'
 version = f'version {VERSION}'
 # The full version, including alpha/beta/rc tags.
 release = f'version {VERSION}'

@@ -40,7 +40,7 @@ An example of a recommended style for Java:
     */
 ```
 
-More styles and supported files can be found [here](STYLES.md)
+More styles and supported files can be found [here](https://gitlab.com/nystrome/sciit/wikis/Issue-Style)
 
 Cheat sheet of commands can be found [here](docs/Cheatsheet.png)
 

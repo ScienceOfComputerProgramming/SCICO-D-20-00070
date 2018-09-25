@@ -8,8 +8,9 @@ python_tests:
   image: python:3.6.5-alpine
   script:
     - apk --no-cache add git
-    - pip install nose coverage requests
+    - pip install nose coverage
     - pip install -r requirements.txt 
+    - python setup.py install
     - nosetests
   artifacts:
     paths:
