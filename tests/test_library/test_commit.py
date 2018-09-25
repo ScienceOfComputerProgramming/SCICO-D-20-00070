@@ -309,9 +309,6 @@ value that has some contents
             ],
             commit_files=['README0', 'README1', 'README2']
         )
-
-        commit.tree.blobs[3].contents = b'This one has no issue in it'
-
         issues = find_issues_in_commit(self.repo, commit, pattern)
         self.assertEqual(len(issues), 3)
 

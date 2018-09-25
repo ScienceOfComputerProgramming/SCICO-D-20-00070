@@ -130,6 +130,8 @@ def find_issues_in_commit(repo, commit, comment_pattern=None, ignored_files=None
         # get file extension and set pattern
         if not comment_pattern:
             comment_search_pattern = get_file_object_pattern(blobs[change])
+        else:
+            comment_search_pattern = comment_pattern
 
         if not comment_search_pattern:
             continue
