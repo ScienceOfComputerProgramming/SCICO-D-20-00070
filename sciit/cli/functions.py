@@ -83,20 +83,6 @@ def page_history_items(items, view=None):
     return output
 
 
-def read_man_file(filename):
-    """
-    A function used for accessing the manual page files stored in
-    the src/man folder.
-
-    Returns:
-        :str: The contents of the file
-    """
-    filename = pkg_resources.resource_filename('sciit.man', filename)
-    with open(filename, 'rb') as f:
-        filename = f.read().decode('utf-8')
-    return filename
-
-
 def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=50, fill='█'):
     """
     Used in the command line application.

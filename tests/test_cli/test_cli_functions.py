@@ -6,59 +6,7 @@ from io import StringIO
 from unittest import TestCase
 from unittest.mock import patch
 
-from sciit.cli.functions import (print_progress_bar, read_man_file,
-                                 yes_no_option)
-
-
-class TestReadManualFiles(TestCase):
-
-    def test_read_file_passed(self):
-        result = read_man_file('VERSION')
-        self.assertTrue(isinstance(result, str))
-
-    def test_read_file_fails(self):
-        with self.assertRaises(FileNotFoundError) as context:
-            read_man_file('test_read')
-        self.assertTrue('No such file or directory:' in str(context.exception))
-
-
-class TestYesNoOption(TestCase):
-
-    @patch('builtins.input', return_value='Y')
-    def test_yes_option_capital(self, mocked_input):
-        self.assertTrue(yes_no_option('Hear is a value'))
-
-    @patch('builtins.input', return_value='y')
-    def test_yes_option_common(self, mocked_input):
-        self.assertTrue(yes_no_option('Hear is a value'))
-
-    @patch('builtins.input', return_value='YY')
-    def test_yes_option_double_capital(self, mocked_input):
-        self.assertFalse(yes_no_option('Hear is a value'))
-
-    @patch('builtins.input', return_value='YY')
-    def test_yes_option_double_common(self, mocked_input):
-        self.assertFalse(yes_no_option('Hear is a value'))
-
-    @patch('builtins.input', return_value='N')
-    def test_no_option_capital(self, mocked_input):
-        self.assertFalse(yes_no_option('Hear is a value'))
-
-    @patch('builtins.input', return_value='n')
-    def test_no_option_common(self, mocked_input):
-        self.assertFalse(yes_no_option('Hear is a value'))
-
-    @patch('builtins.input', return_value='@')
-    def test_symbol_option(self, mocked_input):
-        self.assertFalse(yes_no_option('Hear is a value'))
-
-    @patch('builtins.input', return_value='22')
-    def test_double_number_option(self, mocked_input):
-        self.assertFalse(yes_no_option('Hear is a value'))
-
-    @patch('builtins.input', return_value='1')
-    def test_single_number_option(self, mocked_input):
-        self.assertFalse(yes_no_option('Hear is a value'))
+from sciit.cli.functions import print_progress_bar
 
 
 class TestPrintProgressBar(TestCase):
