@@ -10,7 +10,7 @@ from git import util, Object
 from git.util import hex_to_bin
 
 from sciit import Issue
-from sciit.functions import serialize, deserialize, object_exists
+from sciit.functions import serialize_repository_object_as_json, deserialize_repository_object_from_json, repository_object_exists
 
 
 __all__ = ('IssueTree', )
@@ -24,8 +24,6 @@ class IssueTree(Object):
         existing object is returned
     """
     __slots__ = ('data', 'issues', 'size')
-
-    type = 'issuetree'
 
     def __init__(self, repo, sha, issues=None):
         """Initialize a newly instanced IssueTree
@@ -44,17 +42,17 @@ class IssueTree(Object):
             sha = hex_to_bin(sha)
         super(IssueTree, self).__init__(repo, sha)
 
-        if not object_exists(self) and issues is not None:
+        if not repository_object_exists(self.repo, self.hexsha) and issues is not None:
             self.data = [{'id': i.data['id'], 'hexsha': i.hexsha} for i in issues]
 
             self.issues = issues
-            serialize(self)
+            serialize_repository_object_as_json(self.repo, self.hexsha, IssueTree, self.data)
 
         else:
-            deserialize(self)
+            self.data, self.size = deserialize_repository_object_from_json(self.repo, self.hexsha)
             self.issues = list()
             for issue in self.data:
-                self.issues.append(Issue(repo, issue['hexsha']))
+                self.issues.append(Issue.create_from_hexsha(repo, issue['hexsha']))
 
     @classmethod
     def create(cls, repo, issues):
@@ -70,8 +68,6 @@ class IssueTree(Object):
             issues.sort()
             sha = hashlib.sha1(str(issues).encode())
             binsha = sha.digest()
-            new_tree = cls(repo, binsha, issues)
-            return new_tree
+            return cls(repo, binsha, issues)
         else:
-            new_tree = cls(repo, cls.NULL_BIN_SHA, [])
-            return new_tree
+            return cls(repo, cls.NULL_BIN_SHA, list())

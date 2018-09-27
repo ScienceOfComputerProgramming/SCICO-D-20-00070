@@ -39,13 +39,12 @@ class TestWebServerStartup(TestCase):
 
         cls.issues = []
         for d in data:
-            cls.issues.append(Issue.create(cls.repo, d))
+            cls.issues.append(Issue.create_from_data(cls.repo, d))
         cls.itree = IssueTree.create(cls.repo, cls.issues)
 
         cls.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
         cls.first_commit = Commit(cls.repo, hex_to_bin(cls.first))
-        cls.first_icommit = IssueCommit.create(
-            cls.repo, cls.first_commit, cls.itree)
+        cls.first_icommit = IssueCommit.create(cls.repo, cls.first_commit, cls.itree)
 
         cls.app = app.test_client()
         cls.app.testing = True
@@ -57,10 +56,10 @@ class TestWebServerStartup(TestCase):
         args = Mock()
         args.repo = self.repo
         app = self.app
-        mhead = Mock()
-        mhead.commit.hexsha = self.first
-        mhead.name = 'master'
-        args.repo.heads = [mhead]
+        mock_head = Mock()
+        mock_head.commit.hexsha = self.first
+        mock_head.name = 'master'
+        args.repo.heads = [mock_head]
         icommits.return_value = [self.first_icommit]
         launch(args)
         pass

@@ -37,7 +37,7 @@ class TestIssueRepoNoExistingRepository(TestCase):
     def test_issue_repo_setup(self):
         repo = IssueRepo('here')
         repo.git_dir = repo.issue_dir
-        repo.setup()
+        repo.setup_fs_resources()
         self.assertTrue(os.path.exists('here/hooks/post-commit'))
         self.assertTrue(os.path.exists('here/hooks/post-checkout'))
         self.assertTrue(os.path.exists('here/hooks/post-merge'))
@@ -60,7 +60,7 @@ class TestBuildIssueRepo(TestCase):
     def test_build_from_empty_repo(self, heads):
         heads.return_value = []
         with self.assertRaises(NoCommitsError) as context:
-            self.repo.build()
+            self.repo.build_issue_commits()
         self.assertTrue(
             'The repository has no commits.' in str(context.exception))
         heads.assert_called_once()
@@ -91,11 +91,11 @@ class TestBuildIterIssueCommits(TestCase):
         cls.issues = []
         cls.new_issues = []
         for d in data:
-            cls.issues.append(Issue.create(cls.repo, d))
+            cls.issues.append(Issue.create_from_data(cls.repo, d))
         cls.itree = IssueTree.create(cls.repo, cls.issues)
 
         for d in new_data:
-            cls.new_issues.append(Issue.create(cls.repo, d))
+            cls.new_issues.append(Issue.create_from_data(cls.repo, d))
         cls.new_itree = IssueTree.create(cls.repo, cls.new_issues)
 
         cls.head = '622918a4c6539f853320e06804f73d1165df69d0'
@@ -117,15 +117,9 @@ class TestBuildIterIssueCommits(TestCase):
         heads.__iter__.return_value = [head]
         history = self.repo.build_history('--all')
         self.assertEqual(len(history), 8)
-        self.assertTrue(
-            'here is a nice description'
-            in history['6']['descriptions'][1]['change'])
-        self.assertTrue(
-            'description has changed'
-            in history['6']['descriptions'][0]['change'])
-        self.assertTrue(
-            'This issue had a description'
-            in history['1']['descriptions'][0]['change'])
+        self.assertTrue('here is a nice description' in history['6'].descriptions[1]['change'])
+        self.assertTrue('description has changed' in history['6'].descriptions[0]['change'])
+        self.assertTrue('This issue had a description' in history['1'].descriptions[0]['change'])
 
     @patch('sciit.repo.IssueRepo.heads')
     def test_get_build_history_no_commits(self, heads):
@@ -133,8 +127,7 @@ class TestBuildIterIssueCommits(TestCase):
         repo.heads = False
         with self.assertRaises(NoCommitsError) as context:
             repo.build_history('--all')
-        self.assertTrue(
-            'The repository has no commits.' in str(context.exception))
+        self.assertTrue('The repository has no commits.' in str(context.exception))
 
     @patch('sciit.repo.IssueRepo.iter_commits')
     @patch('sciit.repo.IssueRepo.heads')
@@ -189,7 +182,7 @@ class TestIssueStatus(TestCase):
         iter_commits.return_value = val
 
         data = {'id': '1', 'title': 'hello world', 'filepath': 'README.md'}
-        issue = Issue.create(self.repo, data)
+        issue = Issue.create_from_data(self.repo, data)
         itree = IssueTree.create(self.repo, [issue])
         IssueCommit.create(self.repo, val[1], itree)
         IssueCommit.create(self.repo, val[0], itree)

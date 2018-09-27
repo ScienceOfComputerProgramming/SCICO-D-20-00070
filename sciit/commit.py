@@ -12,7 +12,7 @@ from git import Object, Commit
 from git.util import hex_to_bin
 
 from sciit import IssueTree, Issue
-from sciit.functions import serialize, deserialize, object_exists
+from sciit.functions import serialize_repository_object_as_json, deserialize_repository_object_from_json, repository_object_exists
 from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
 
 
@@ -110,25 +110,25 @@ def find_issues_in_commit(repo, commit, comment_pattern=None, ignored_files=None
         matches = set(ignored_files.match_files(files_changed))
         files_changed -= matches
 
-    for change in files_changed:
+    for file_changed in files_changed:
         # handles renaming and deleted files they won't exist
-        if change not in blobs:
+        if file_changed not in blobs:
             continue
 
         # get file extension and set pattern
         if not comment_pattern:
-            comment_pattern = get_file_object_pattern(blobs[change])
+            comment_pattern = get_file_object_pattern(blobs[file_changed])
 
         if not comment_pattern:
             continue
 
         try:
-            object_contents = blobs[change].data_stream.read().decode('utf-8')
+            object_contents = blobs[file_changed].data_stream.read().decode('utf-8')
             blob_issues = find_issues_data_in_blob_content(comment_pattern, object_contents)
 
             for issue_data in blob_issues:
-                issue_data['filepath'] = change
-                issue = Issue.create(repo, issue_data)
+                issue_data['filepath'] = file_changed
+                issue = Issue.create_from_data(repo, issue_data)
                 issues.append(issue)
 
         except (UnicodeDecodeError, AttributeError):
@@ -137,7 +137,7 @@ def find_issues_in_commit(repo, commit, comment_pattern=None, ignored_files=None
     # Bring forward the open issues that had no changes made to them from all available parents.
     for parent in commit.parents:
         issue_commit = IssueCommit(repo, parent.hexsha)
-        old_issues = [x for x in issue_commit.issuetree.issues if x.filepath not in files_changed]
+        old_issues = [x for x in issue_commit.issue_tree.issues if x.filepath not in files_changed]
         issues.extend(old_issues)
 
     return issues
@@ -150,18 +150,16 @@ class IssueCommit(Object):
     :note:
         When creating a tree if the object already exists the existing object is returned.
     """
-    __slots__ = ('data', 'commit', 'size', 'issuetree')
+    __slots__ = ('data', 'commit', 'size', 'issue_tree', 'time_format')
 
-    type = 'issuecommit'
-
-    def __init__(self, repo, sha, issuetree=None):
+    def __init__(self, repo, sha, issue_tree=None, time_format='%a %b %d %H:%M:%S %Y %z'):
         """
         Initialize a newly instanced IssueCommit
 
         Args:
             :(Repo) repo: is the Repo we are located in
             :(bytes/str) sha: 20 byte binary sha1 or 40 character hexidecimal sha1
-            :(IssueTree) issuetree:
+            :(IssueTree) issue_tree:
                 the issue tree that contains all the issue contents for this commit
 
         :note:
@@ -177,13 +175,15 @@ class IssueCommit(Object):
         # The git commit object that this issue commit is referencing
         # see `GitPython.Commit <https://gitpython.readthedocs.io/en/stable/reference.html#module-git.objects.commit/>`.
 
-        if not object_exists(self) and issuetree is not None:
-            self.data = {'commit': self.commit.hexsha, 'itree': issuetree.hexsha}
-            self.issuetree = issuetree
-            serialize(self)
+        if not repository_object_exists(self.repo, self.hexsha) and issue_tree is not None:
+            self.data = {'commit': self.commit.hexsha, 'issue_tree': issue_tree.hexsha}
+            self.issue_tree = issue_tree
+            serialize_repository_object_as_json(self.repo, self.hexsha, IssueCommit, self.data)
         else:
-            deserialize(self)
-            self.issuetree = IssueTree(repo, self.data['itree'])
+            self.data, self.size = deserialize_repository_object_from_json(self.repo, self.hexsha)
+            self.issue_tree = IssueTree(repo, self.data['issue_tree'])
+
+        self.time_format = time_format
 
     @property
     def children(self):
@@ -200,13 +200,20 @@ class IssueCommit(Object):
 
     @property
     def open_issues(self):
-        """The number of issues that are open in this particular commit
-        as the length of the issues in the issue tree
+        """The number of issues that are open in this particular commit as the length of the issues in the issue tree
         """
-        return len(self.issuetree.issues)
+        return len(self.issue_tree.issues)
+
+    @property
+    def author_name(self):
+        return self.commit.author.name
+
+    @property
+    def date_string(self):
+        return self.commit.authored_datetime.strftime(self.time_format)
 
     @classmethod
-    def create(cls, repo, commit, issuetree):
+    def create(cls, repo, commit, issue_tree):
         """
         Factory method that creates an IssueCommit with its issuetree or return the IssueCommit from the FileSystem
 
@@ -216,5 +223,6 @@ class IssueCommit(Object):
             :(IssueTree) issuetree:
                 the issue tree that contains all the issue contents for this commit
         """
-        new_commit = cls(repo, commit.binsha, issuetree)
+        new_commit = cls(repo, commit.binsha, issue_tree)
         return new_commit
+

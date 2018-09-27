@@ -21,7 +21,7 @@ or from the specified revision.
 
 Created on 10 July 2018
 """
-from sciit.cli.functions import page_history_items
+from sciit.cli.issue import page_history_items
 from sciit.cli.color import CPrint
 from sciit.functions import cache_history
 

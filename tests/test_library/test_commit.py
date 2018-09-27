@@ -54,11 +54,11 @@ class TestCreateIssueCommit(TestCase):
         cls.new_issues = list()
 
         for d in data:
-            cls.issues.append(Issue.create(cls.repo, d))
+            cls.issues.append(Issue.create_from_data(cls.repo, d))
         cls.itree = IssueTree.create(cls.repo, cls.issues)
 
         for d in new_data:
-            cls.new_issues.append(Issue.create(cls.repo, d))
+            cls.new_issues.append(Issue.create_from_data(cls.repo, d))
 
         cls.new_itree = IssueTree.create(cls.repo, cls.new_issues)
 
@@ -77,7 +77,7 @@ class TestCreateIssueCommit(TestCase):
 
         self.assertEqual(self.first_commit.hexsha, icommit.hexsha)
         self.assertEqual(self.first_commit.binsha, icommit.binsha)
-        self.assertEqual(len(icommit.issuetree.issues), 6)
+        self.assertEqual(len(icommit.issue_tree.issues), 6)
         self.assertEqual(icommit.open_issues, 6)
 
 
@@ -378,7 +378,8 @@ value that has some contents
             p.return_value = False
             ignored_files = get_sciit_ignore(self.repo)
         issues = find_issues_in_commit(self.repo, commit, pattern, ignored_files)
-        self.assertEqual(len(issues), 3)
+        self.assertEqual(3, len(issues))
+
 
 class TestFindIssueInComment(TestCase):
 

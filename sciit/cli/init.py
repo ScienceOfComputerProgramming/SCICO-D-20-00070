@@ -15,8 +15,6 @@ helps build issues for existing repositories.
 Created on 18 June 2018
 """
 
-import sys
-from sciit.cli.functions import yes_no_option
 from sciit.cli.color import CPrint
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 
@@ -34,11 +32,11 @@ def init(args):
             return
 
     if not args.repo.is_init():
-        args.repo.setup()
+        args.repo.setup_fs_resources()
         try:
             print(' ')
             CPrint.bold('Building repository from commits')
-            args.repo.build()
+            args.repo.build_issue_commits()
             print(' ')
         except NoCommitsError as error:
             CPrint.yellow(error)

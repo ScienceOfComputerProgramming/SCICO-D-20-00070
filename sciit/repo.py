@@ -4,23 +4,20 @@
 :@author: Nystrom Edwards
 :Created: 21 June 2018
 """
+
+import markdown2
 import os
-import re
 import stat
 import pkg_resources
-import difflib
-import gc
 
 from shutil import copyfile
 from datetime import datetime
-from threading import Thread
 
 from git import Repo
 
 from sciit import IssueTree, IssueCommit, Issue
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 from sciit.commit import find_issues_in_commit
-from sciit.regex import PYTHON
 from sciit.functions import write_last_issue, get_last_issue, get_sciit_ignore
 from sciit.cli.functions import print_progress_bar
 
@@ -52,42 +49,34 @@ class IssueRepo(Repo):
         self.cli = False
 
     def is_init(self):
-        """
-        Detect if the git sciit folders are initialised
-
-        Returns:
-            :bool: true if folder exists, false otherwise
-        """
         return os.path.exists(self.issue_dir)
 
     def sync(self):
         """
-        This function ensures that the issue repository issuecommits
-        are sycned with the git commits such that there is a
-        issuecommit for every commit in the git repository
+        Ensures that the issue repository issue_commits are synced with the git commits such that there is a
+        issue_commit for every commit in the git repository.
         """
-        if self.heads:
-            last_issue_commit = get_last_issue(self)
-            commits = list(self.iter_commits('--all'))
-            latest_commit = commits[0].hexsha
-            revision = last_issue_commit + '..' + latest_commit
-            str_commits = self.git.execute(['git', 'rev-list', revision])
-            ignored_files = get_sciit_ignore(self)
-
-            # uses git.execute because iter_commits generator cannot
-            # correctly identify false or empty list.
-            if str_commits != '':
-                commits = list(self.iter_commits(revision))
-
-                for commit in reversed(commits):
-                    issues = find_issues_in_commit(
-                        self, commit, ignored_files=ignored_files)
-                    itree = IssueTree.create(self, issues)
-                    IssueCommit.create(self, commit, itree)
-
-                write_last_issue(self.issue_dir, latest_commit)
-        else:
+        if not self.heads:
             raise NoCommitsError
+
+        last_issue_commit = get_last_issue(self)
+        commits = list(self.iter_commits('--all'))
+
+        latest_commit = commits[0].hexsha
+        revision = last_issue_commit + '..' + latest_commit
+        str_commits = self.git.execute(['git', 'rev-list', revision])
+        ignored_files = get_sciit_ignore(self)
+
+        # uses git.execute because iter_commits generator cannot correctly identify false or empty list.
+        if str_commits != '':
+            commits = list(self.iter_commits(revision))
+
+            for commit in reversed(commits):
+                issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
+                issue_tree = IssueTree.create(self, issues)
+                IssueCommit.create(self, commit, issue_tree)
+
+            write_last_issue(self.issue_dir, latest_commit)
 
     def reset(self):
         """
@@ -106,54 +95,35 @@ class IssueRepo(Repo):
         else:
             raise EmptyRepositoryError
 
-    def setup(self):
+    def setup_fs_resources(self):
         """
-        Creates the git sciit folders and files and installs the necesary
+        Creates the git sciit folders and files and installs the necessary
         git hooks in the .git/hooks/ folder
         """
         os.makedirs(self.issue_dir)
         os.makedirs(self.issue_objects_dir)
 
-        # create history file
-        history_file = self.issue_dir + '/HISTORY'
-        f = open(history_file, 'w')
-        f.close()
-        # create last issue reference file
-        last_issue_file = self.issue_dir + '/LAST'
-        f = open(last_issue_file, 'w')
-        f.close()
+        open(self.issue_dir + '/HISTORY', 'w').close()
+        open(self.issue_dir + '/LAST', 'w').close()
 
-        # check git hook directory
+        self._install_hook('post-commit')
+        self._install_hook('post-merge')
+        self._install_hook('post-checkout')
+
+    def _install_hook(self, hook_name):
         git_hooks_dir = self.git_dir + '/hooks/'
         if not os.path.exists(git_hooks_dir):
             os.makedirs(git_hooks_dir)
 
-        # install post-commit hook
-        post_commit_hook = pkg_resources.resource_filename(
-            'sciit.hooks', 'post-commit')
-        post_commit_git_hook = git_hooks_dir + 'post-commit'
-        copyfile(post_commit_hook, post_commit_git_hook)
-        st = os.stat(post_commit_git_hook)
-        os.chmod(post_commit_git_hook, st.st_mode | stat.S_IEXEC)
-
-        # install post-merge hook
-        post_merge_hook = pkg_resources.resource_filename(
-            'sciit.hooks', 'post-merge')
-        post_merge_git_hook = git_hooks_dir + 'post-merge'
-        copyfile(post_merge_hook, post_merge_git_hook)
-        st = os.stat(post_merge_git_hook)
-        os.chmod(post_merge_git_hook, st.st_mode | stat.S_IEXEC)
-
-        # install post-checkout hook
-        post_checkout_hook = pkg_resources.resource_filename(
-            'sciit.hooks', 'post-checkout')
-        post_checkout_git_hook = git_hooks_dir + 'post-checkout'
-        copyfile(post_checkout_hook, post_checkout_git_hook)
-        st = os.stat(post_checkout_git_hook)
-        os.chmod(post_checkout_git_hook, st.st_mode | stat.S_IEXEC)
+        source_resource = pkg_resources.resource_filename('sciit.hooks', hook_name)
+        destination_path = git_hooks_dir + hook_name
+        copyfile(source_resource, destination_path)
+        st = os.stat(destination_path)
+        os.chmod(destination_path, st.st_mode | stat.S_IEXEC)
 
     def iter_issue_commits(self, rev=None, paths='', **kwargs):
-        """A list of IssueCommit objects representing the history of a given ref/commit
+        """
+        A list of IssueCommit objects representing the history of a given ref/commit.
 
         :param rev:
             revision specifier, see git-rev-parse for viable options.
@@ -170,28 +140,13 @@ class IssueRepo(Repo):
         :note: to receive only commits between two named revisions, use the
             "revA...revB" revision specifier
 
-        :return: ``git.Commit[]``"""
+        :return: ``git.Commit[]``
+        """
         commits = self.iter_commits(rev, paths, **kwargs)
         for commit in commits:
             yield IssueCommit(self, commit.binsha)
 
     def print_commit_progress(self, now, start, current, total):
-        """
-        Prints the progress of the iterating commits
-
-        Args:
-            :(datetime) now: The current system time
-            :(datetime) start: The system time when the process started
-            :(int) current: the current issue processed
-            :(int) total: total number of issues to be processes
-
-        Shows:
-            :Commit status: The current commit iteration
-            :Progress bar: Progress of the operation
-            :Precentage: The percentage of the operation complete
-            :Duration: How long the operation has been running
-
-        """
         if self.cli:
             duration = now - start
             prefix = '%d/%d commits: ' % (current, total)
@@ -199,7 +154,7 @@ class IssueRepo(Repo):
             print_progress_bar(
                 current, total, prefix=prefix, suffix=suffix)
 
-    def build(self):
+    def build_issue_commits(self):
         """
         Builds the issue repository from past commits on all branches
 
@@ -209,289 +164,96 @@ class IssueRepo(Repo):
         Optionally:
             :Shows Progress in Shell: if repo is used with command line interface
         """
+        if len(self.heads) < 1:
+            raise NoCommitsError
 
         start = datetime.now()
         commits_scanned = 0
 
-        if len(self.heads) > 0:
-            # get all commits on the all branches
-            # enforcing the topology order of parents to children
-            all_commits = self.iter_commits(['--all', '--topo-order', '--reverse'])
-            num_commits = int(self.git.execute(['git', 'rev-list', '--all', '--count']))
-            ignored_files = get_sciit_ignore(self)
+        # get all commits on all branches, enforcing the topology order of parents to children.
+        all_commits = self.iter_commits(['--all', '--topo-order', '--reverse'])
+        num_commits = int(self.git.execute(['git', 'rev-list', '--all', '--count']))
+        ignored_files = get_sciit_ignore(self)
 
-            for commit in all_commits:
-                commits_scanned += 1
+        for commit in all_commits:
+            commits_scanned += 1
 
-                self.print_commit_progress(
-                    datetime.now(), start, commits_scanned, num_commits)
-                issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
-                itree = IssueTree.create(self, issues)
-                IssueCommit.create(self, commit, itree)
-                
-            if all_commits:
-                write_last_issue(self.issue_dir, self.head.commit.hexsha)
-            else:
-                raise NoCommitsError
+            self.print_commit_progress(datetime.now(), start, commits_scanned, num_commits)
+            issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
+            issue_tree = IssueTree.create(self, issues)
+            IssueCommit.create(self, commit, issue_tree)
+
+        if all_commits:
+            write_last_issue(self.issue_dir, self.head.commit.hexsha)
         else:
             raise NoCommitsError
 
-    def build_history(self, rev=None, paths='', **kwargs):
-        """
-        Builds the issue history from past commits on path specified
-        or all branches
+    def build_history(self, rev=None):
 
-        Raises:
-            :NoCommitsError: if the git repository has no commits
-            :GitCommandError: if the rev supplied is not valid
-        """
-
-        def find_present_branches(commit_sha):
-            """
-            A function that helps find the branches that this commit is
-            present in which can be used to define where issues are present
-
-            Args:
-                :(str) commit_sha: The commit hexsha to look for
-            """
-            branches_present = self.git.execute(
-                ['git', 'branch', '--contains', commit_sha])
-            branches_present = branches_present.replace(
-                '*', '').replace(' ', '')
-            branches_present = branches_present
-            branches_present = branches_present.split('\n')
-            return branches_present
-
-        if self.heads:
-            history = {}
-            time_format = '%a %b %d %H:%M:%S %Y %z'
-            # get all commits on the all branches
-            if rev is not None:
-                icommits = self.iter_issue_commits(rev, paths, **kwargs)
-            else:
-                icommits = self.iter_issue_commits('--branches')
-            numcommits = 0
-
-            icommits = list(icommits)
-
-            for icommit in icommits:
-                
-                numcommits += 1
-                if numcommits == 1:
-                    top = icommit
-
-                for issue in icommit.issuetree.issues:
-                    author_date = icommit.commit.authored_datetime.strftime(
-                        time_format)
-                    in_branches = find_present_branches(icommit.commit.hexsha)
-                    # issue first appearance in history build the general
-                    # indexes needed to record complex information
-                    if issue.id not in history:
-                        history[issue.id] = issue.data
-                        history[issue.id]['size'] = issue.size
-                        history[issue.id]['creator'] = icommit.commit.author.name
-                        history[issue.id]['created_date'] = author_date
-                        history[issue.id]['last_author'] = icommit.commit.author.name
-                        history[issue.id]['last_authored_date'] = author_date
-
-                        # add lists of information for the latest revision and activity
-                        history[issue.id]['revisions'] = []
-                        revision = {'issuesha': issue.hexsha,
-                                    'date': author_date,
-                                    'author': icommit.commit.author.name}
-                        history[issue.id]['revisions'].append(revision)
-                        history[issue.id]['activity'] = []
-                        activity = {'commitsha': icommit.hexsha,
-                                    'date': author_date,
-                                    'author': icommit.commit.author.name,
-                                    'summary': icommit.commit.summary}
-                        history[issue.id]['activity'].append(activity)
-
-                        # add sets needed to detect the participants and
-                        # branches where the issue can be found
-                        history[issue.id]['participants'] = set()
-                        history[issue.id]['participants'].add(
-                            icommit.commit.author.name)
-                        history[issue.id]['in_branches'] = set()
-                        history[issue.id]['in_branches'].update(in_branches)
-
-                        # add sets for future use filling branch status
-                        history[issue.id]['open_in'] = set()
-                        history[issue.id]['filepaths'] = []
-
-                        # add lists to denote the changes made to issue description
-                        # over revisions of the issue
-                        history[issue.id]['descriptions'] = []
-                        if 'description' in history[issue.id]:
-                            history[issue.id]['last_description'] = issue.description
-                            history[issue.id]['descriptions'].append(
-                                {'change': issue.description,
-                                 'author': icommit.commit.author.name,
-                                 'date': author_date
-                                 }
-                            )
-
-                    # update the history information when more instances
-                    # of the issue is found
-                    else:
-
-                        # update the creator as the first appearance of the
-                        # issue in a reversed list would mean that was the
-                        # creator
-                        history[issue.id]['size'] += issue.size
-                        history[issue.id]['creator'] = icommit.commit.author.name
-                        history[issue.id]['created_date'] = author_date
-                        history[issue.id]['participants'].add(
-                            icommit.commit.author.name)
-                        history[issue.id]['in_branches'].update(in_branches)
-
-                        # update the activity of the issue
-                        activity = {'commitsha': icommit.commit.hexsha,
-                                    'date': author_date,
-                                    'author': icommit.commit.author.name,
-                                    'summary': icommit.commit.summary}
-                        history[issue.id]['activity'].append(activity)
-
-                        # detect a revision change, find the differences between
-                        # the previous issue and update the previous revision
-                        # showing what changes were made.
-                        # finally: add the new revision to the list
-                        if issue.hexsha not in history[issue.id]['revisions']:
-                            last_revision = history[issue.id]['revisions'][-1]
-                            last_issue_revision = Issue(
-                                self, last_revision['issuesha'])
-                            changes = [x for x, v in last_issue_revision.data.items()
-                                       if v not in issue.data.values()]
-                            if changes:
-                                changes.remove('hexsha')
-                                history[issue.id]['revisions'][-1]['changes'] = changes
-                                revision = {'issuesha': issue.hexsha, 'date': author_date,
-                                            'author': icommit.commit.author.name}
-                                history[issue.id]['revisions'].append(revision)
-
-                        # if the previous issue had other issue information
-                        # not previously found on the first occurance of the issue
-                        if hasattr(issue, 'assignees'):
-                            history[issue.id]['assignees'] = issue.assignees
-                        if hasattr(issue, 'due_date'):
-                            history[issue.id]['due_date'] = issue.due_date
-                        if hasattr(issue, 'label'):
-                            history[issue.id]['label'] = issue.label
-                        if hasattr(issue, 'weight'):
-                            history[issue.id]['weight'] = issue.weight
-                        if hasattr(issue, 'priority'):
-                            history[issue.id]['priority'] = issue.priority
-
-                        # denote the changes made to issue description
-                        # over revisions of the issue using a diff
-                        if 'description' in history[issue.id]:
-                            if hasattr(issue, 'description'):
-                                if issue.description != history[issue.id]['last_description']:
-                                    diff = difflib.ndiff(
-                                        issue.description.splitlines(),
-                                        history[issue.id]['description'].splitlines())
-                                    history[issue.id]['descriptions'][-1]['change'] = \
-                                        '\n'.join(diff) + '\n'
-                                    history[issue.id]['last_description'] = issue.description
-                                    history[issue.id]['descriptions'].append(
-                                        {'change': issue.description,
-                                         'author': icommit.commit.author.name,
-                                         'date': author_date
-                                         }
-                                    )
-
-                        # if the previous issue had other issue description
-                        # not previously found on the first occurance of the issue
-                        else:
-                            if hasattr(issue, 'description'):
-                                history[issue.id]['last_description'] = issue.description
-                                history[issue.id]['descriptions'].append(
-                                    {'change': issue.description,
-                                     'author': icommit.commit.author.name,
-                                     'date': author_date
-                                     }
-                                )
-
-            # fills the open branch set with branch status using the
-            # issue trees at the head of each branch depending on rev
-            for head in self.heads:
-                if rev is not None:
-                    rev_list = self.git.execute(
-                        ['git', 'rev-list', f'{head.name}', '--'])
-                    if top.hexsha not in rev_list:
-                        continue
-                    else:
-                        icommit = top                        
-                else:
-                    icommit = IssueCommit(self, head.commit.hexsha)
-                for issue in icommit.issuetree.issues:
-                    if issue.id in history:
-                        history[issue.id]['open_in'].add(head.name)
-                        filepath = {'branch': head.name, 'filepath': issue.data['filepath']}
-                        history[issue.id]['filepaths'].append(filepath)
-
-            # sets the issue status based on its open status
-            # in other branches
-            for issue in history.values():
-                if 'last_description' in issue:
-                    del issue['last_description']
-                if issue['open_in']:
-                    issue['status'] = 'Open'
-                else:
-                    issue['status'] = 'Closed'
-
-                    # gets the commit information of the closed issue
-                    # and adds that commit activity to the tip of activity list
-                    last_commit_sha = issue['activity'][0]['commitsha']
-                    last_icommit = IssueCommit(self, last_commit_sha)
-                    child = last_icommit.children[0]
-                    issue['closer'] = child.author.name
-                    issue['closed_date'] = child.authored_datetime.strftime(
-                        time_format)
-                    activity = {'commitsha': child.hexsha,
-                                'date': child.authored_datetime.strftime(time_format),
-                                'author': child.author.name,
-                                'summary': child.summary + ' (closed)'}
-                    issue['activity'].insert(0, activity)
-
-        else:
+        if not self.heads:
             raise NoCommitsError
 
+        history = {}
+        time_format = '%a %b %d %H:%M:%S %Y %z'
+
+        # get all commits on the all branches
+        if rev is None:
+            issue_commits = self.iter_issue_commits('--branches')
+        else:
+            issue_commits = self.iter_issue_commits(rev)
+
+        issue_commits = list(issue_commits)
+
+        for issue_commit in issue_commits:
+
+            in_branches = \
+                self.git.execute(['git', 'branch', '--contains', issue_commit.commit.hexsha])\
+                    .replace('*', '')\
+                    .replace(' ', '').split('\n')
+
+            for issue in issue_commit.issue_tree.issues:
+
+                if issue.id not in history:
+                    history[issue.id] = IssueHistory(issue.id)
+
+                history[issue.id].update(issue, issue_commit, in_branches)
+
+        # fills the open branch set with branch status using the
+        # issue trees at the head of each branch depending on rev
+
+        top = issue_commits[0]
+
+        for head in self.heads:
+
+            ### This block ocde checks whether the head is present in the current rev list, i.e. whether to include it or not.
+            ### If rev is None, this means that all revisions were collected?
+            if rev is None:
+                head_issue_commit = IssueCommit(self, head.commit.hexsha)
+            else:
+                rev_list = self.git.execute(['git', 'rev-list', f'{head.name}', '--'])
+                if top.hexsha in rev_list:
+                    head_issue_commit = top
+                else:
+                    continue
+
+            for issue in head_issue_commit.issue_tree.issues:
+                if issue.id in history:
+                    history[issue.id].open_in.add(head.name)
+                    file_path = {'branch': head.name, 'file_path': issue.data['filepath']}
+                    history[issue.id].file_paths.append(file_path)
+
         return history
 
-    def get_all_issues(self, rev=None, paths='', **kwargs):
-        """Finds all the issues in the repo 
+    def get_all_issues(self, rev=None):
+        return self.build_history(rev)
 
-        Returns:
-            :(dict) history: dictionary of the complex information \
-            between the issue tracker and the source control
-        """
-        history = self.build_history(rev, paths, **kwargs)
-        return history
+    def get_open_issues(self, rev=None):
+        history = self.build_history(rev)
+        return {id: issue for id, issue in history.items() if issue.status == 'Open'}
 
-    def get_open_issues(self, rev=None, paths='', **kwargs):
-        """Finds all the open issues in the repo 
-
-        Returns:
-            :(dict) history: dictionary of the complex information \
-            between the issue tracker and the source control
-        """
-        history = self.build_history(rev, paths, **kwargs)
-        history = {key: val for key,
-                   val in history.items() if val['status'] == 'Open'}
-        return history
-
-    def get_closed_issues(self, rev=None, paths='', **kwargs):
-        """Finds all the closed issues in the repo.
-
-        Returns:
-            :(dict) history: dictionary of the complex information \
-            between the issue tracker and the source control
-        """
-        history = self.build_history(rev, paths, **kwargs)
-        history = {key: val for key,
-                   val in history.items() if val['status'] == 'Closed'}
-        return history
+    def get_closed_issues(self, rev=None):
+        history = self.build_history(rev)
+        return {id: issue for id, issue in history.items() if issue.status == 'Closed'}
 
     @property
     def all_issues(self):
@@ -504,3 +266,201 @@ class IssueRepo(Repo):
     @property
     def closed_issues(self):
         return self.get_closed_issues()
+
+
+class IssueHistory(object):
+
+    def __init__(self, issue_id):
+
+        self.issue_id = issue_id
+
+        self.issue_and_issue_commits = list()
+
+        self.open_in = set()
+        self.file_paths = list()
+
+    @property
+    def oldest_issue_and_issue_commit(self):
+        return self.issue_and_issue_commits[-1]
+
+    @property
+    def newest_issue_and_issue_commit(self):
+        return self.issue_and_issue_commits[0]
+
+    @property
+    def newest_issue_commit(self):
+        return self.newest_issue_and_issue_commit[1]
+
+    @property
+    def oldest_issue_commit(self):
+        return self.newest_issue_and_issue_commit[1]
+
+    @property
+    def last_author(self):
+        return self.newest_issue_commit.commit.author.name
+
+    @property
+    def creator(self):
+        return self.oldest_issue_commit.commit.author.name
+
+    @property
+    def created_date(self):
+        return self.oldest_issue_commit.date_string
+
+    @property
+    def last_authored_date(self):
+        return self.newest_issue_commit.date_string
+
+    def newest_value_of_issue_property(self, p):
+        for issue_and_issue_commit in self.issue_and_issue_commits:
+            if hasattr(issue_and_issue_commit[0], p):
+                return getattr(issue_and_issue_commit[0], p)
+        return None
+
+    def history_of_issue_property(self, p):
+        result = list()
+        for issue, issue_commit, _ in self.issue_and_issue_commits:
+            if hasattr(issue, p):
+                result.append(
+                    {
+                        'change': getattr(issue, p),
+                        'author': issue_commit.commit.author.name,
+                        'date': issue_commit.date_string
+                    }
+                )
+        return result
+
+    @property
+    def title(self):
+        return self.newest_value_of_issue_property('title')
+
+    @property
+    def titles(self):
+        return self.history_of_issue_property('title')
+
+    @property
+    def description(self):
+        return self.newest_value_of_issue_property('description')
+
+    @property
+    def description_as_html(self):
+        return markdown2.markdown(self.description)
+
+    @property
+    def descriptions(self):
+        return self.history_of_issue_property('description')
+
+    @property
+    def assignees(self):
+        return self.newest_value_of_issue_property('assignees')
+
+    @property
+    def due_date(self):
+        return self.newest_value_of_issue_property('due_date')
+
+    @property
+    def label(self):
+        return self.newest_value_of_issue_property('label')
+
+    @property
+    def weight(self):
+        return self.newest_value_of_issue_property('weight')
+
+    @property
+    def priority(self):
+        return self.newest_value_of_issue_property('priority')
+
+    @property
+    def participants(self):
+        result = set()
+        for issue_and_issue_commit in self.issue_and_issue_commits:
+            result.add(issue_and_issue_commit[1].author_name)
+        return result
+
+    @property
+    def status(self):
+        return 'Open' if len(self.open_in) > 0 else 'Closed'
+
+    @property
+    def closing_commit(self):
+        if self.status == 'closed':
+            _, last_issue_commit = self.newest_issue_and_issue_commit
+            child = last_issue_commit.children[0]
+            return child
+        else:
+            return None
+
+    @property
+    def closer(self):
+        return self.closing_commit.author_name if self.closing_commit else None
+
+    @property
+    def closed_date(self):
+        return self.closing_commit.date_string if self.closing_commit else None
+
+    @property
+    def closing_summary(self):
+        return self.closing_commit.summary if self.closing_commit else None
+
+    @property
+    def activity(self):
+        result = list()
+        for issue, issue_commit, _ in self.issue_and_issue_commits:
+            result.append(
+                {
+                    'commitsha': issue_commit.commit.hexsha,
+                    'date': issue_commit.date_string,
+                    'author': issue_commit.author_name,
+                    'summary': issue_commit.commit.summary})
+
+        if self.status == 'closed':
+
+            closing_activity = \
+                {
+                    'commitsha': self.closing_commit.hexsha,
+                    'date': self.closed_date,
+                    'author': self.closer,
+                    'summary': self.closing_summary + ' (closed)'
+                }
+            result.insert(0, closing_activity)
+
+        return result
+
+    @property
+    def revisions(self):
+        result = list()
+
+        for newer, older in zip(self.issue_and_issue_commits[:-1], self.issue_and_issue_commits[:1]):
+            newer_issue = newer[0]
+            older_issue = older[0]
+
+            changes = [x for x, v in newer_issue.data.items() if v not in older_issue.data.items()]
+            changes.remove('hexsha')
+
+            revision = {
+                'issuesha': newer_issue.hexsha,
+                'date': newer[1].date_string,
+                'author': newer[1].author_name
+            }
+            if changes:
+                revision['changes'] = changes
+            result.append(revision)
+
+        return result
+
+    @property
+    def size(self):
+        return sum([issue_and_issue_commit[1].size for issue_and_issue_commit in self.issue_and_issue_commits])
+
+    @property
+    def in_branches(self):
+        result = set()
+        for issue_and_issue_commit in self.issue_and_issue_commits:
+            result.update(issue_and_issue_commit[2])
+        return result
+
+    def update(self, issue, issue_commit, branches):
+        """
+        Update the content of the issue history, based on newly discovered, *older* information.
+        """
+        self.issue_and_issue_commits.append((issue, issue_commit, branches))

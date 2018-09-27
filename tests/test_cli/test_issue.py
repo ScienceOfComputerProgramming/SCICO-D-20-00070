@@ -7,12 +7,7 @@ from io import StringIO
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from git import Commit
-from git.util import hex_to_bin
-from sciit import IssueRepo, IssueCommit, IssueTree, Issue
 from sciit.cli.issue import issue
-from sciit.functions import write_last_issue
-from tests.external_resources import safe_create_repo_dir
 from tests.test_cli.external_resources import repo, second_sha, ansi_escape, second_commit, first_sha
 
 
@@ -77,7 +72,7 @@ class TestIssueCommand(TestCase):
         self.assertIn('ID: 12', output)
         self.assertIn('Status: Open', output)
         self.assertIn('Description:', output)
-        self.assertIn('Filepath:           path', output)
+        self.assertIn('File path:         path', output)
         self.assertNotIn('Issue Revisions:', output)
         self.assertNotIn('Commit Acitivity:', output)
 

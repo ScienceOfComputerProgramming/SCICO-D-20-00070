@@ -19,7 +19,7 @@ class TestCreateIssueTree(TestCase):
         self.repo.issue_objects_dir = 'here/objects'
         self.issues = []
         for issue_data in data:
-            self.issues.append(Issue.create(self.repo, issue_data))
+            self.issues.append(Issue.create_from_data(self.repo, issue_data))
 
     def test_create_issue_tree(self):
         itree = IssueTree.create(self.repo, self.issues)

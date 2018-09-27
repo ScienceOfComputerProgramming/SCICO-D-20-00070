@@ -21,8 +21,8 @@ from git.exc import InvalidGitRepositoryError, GitCommandError
 from sciit.errors import RepoObjectDoesNotExistError, NoCommitsError
 
 from sciit import IssueRepo
-from sciit.cli.catfile import catfile
-from sciit.cli.functions import read_man_file
+from sciit.cli.cat_file import cat_file
+from sciit.cli.functions import read_sciit_version
 from sciit.cli.color import CPrint, Color
 from sciit.cli.init import init
 from sciit.cli.log import log
@@ -47,7 +47,7 @@ def main():
                                      'Operations done with git will run git sciit in the '
                                      'background in order to automate issue tracking for you. ')
     parser.add_argument('-v', '--version', action='version',
-                        version=read_man_file('VERSION'))
+                        version=read_sciit_version())
 
     subparsers = parser.add_subparsers()
 
@@ -82,7 +82,7 @@ def main():
     # responsible for the cat-file subcommand
     cat_file_parser = subparsers.add_parser('cat-file', description='Prints the content and info of objects'
                                             ' stored in our issue repository. Only one flag can be specified')
-    cat_file_parser.set_defaults(func=catfile)
+    cat_file_parser.set_defaults(func=cat_file)
     cat_file_parser.add_argument('sha', action='store', type=str,
                                  help='the sha of the issue repository object')
     group = cat_file_parser.add_mutually_exclusive_group(required=True)
@@ -132,7 +132,7 @@ def main():
                                 help='saves issue history selected to the HISTORY file in '
                                 'your issue repository directory')
 
-    # responsible for the issue subcommand
+    # responsible for the issue sub-command
     issue_parser = subparsers.add_parser(
         'issue', description='Prints an issue and it\'s status')
     issue_parser.set_defaults(func=issue)

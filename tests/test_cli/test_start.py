@@ -42,7 +42,7 @@ class TestCLIStartup(TestCase):
             self.assertIn('usage: git sciit [-h] [-v]', sys.stdout.getvalue())
 
     @patch('argparse.ArgumentParser.parse_args', new_callable=Mock)
-    @patch('sciit.repo.IssueRepo.build')
+    @patch('sciit.repo.IssueRepo.build_issue_commits')
     def test_init_command_runs_smoothly(self, build, args):
         val = Mock()
         val.func = init
@@ -74,7 +74,7 @@ class TestCLIStartup(TestCase):
         args.return_value = val
         remove_existing_repo('there')
         repo = IssueRepo('there')
-        repo.setup()
+        repo.setup_fs_resources()
         repo.heads = []
         patch_repo.return_value = repo
         start.main()

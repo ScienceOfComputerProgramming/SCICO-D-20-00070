@@ -25,15 +25,15 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for issue in history.values() if issue['status'] == 'Open' %}
+                            {% for issue in history.values() if issue.status == 'Open' %}
                             <tr>
                                 <td>
-                                    <a href='/{{ issue['id'] }}'>{{ issue['title'].title() }}</a>
+                                    <a href='/{{ issue.id }}'>{{ issue.title }}</a>
                                 </td>
                                 <td>
-                                    <strong>{{ issue['last_author'] }}</strong>
+                                    <strong>{{ issue.last_author }}</strong>
                                 </td>
-                                <td>{{ issue['last_authored_date'] }}</td>
+                                <td>{{ issue.last_authored_date }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -51,15 +51,15 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for issue in history.values() if issue['status'] == 'Closed' %}
+                            {% for issue in history.values() if issue.status == 'Closed' %}
                             <tr>
                                 <td>
-                                    <a href='/{{ issue['id'] }}'>{{ issue['title'].title() }}</a>
+                                    <a href='/{{ issue.id }}'>{{ issue.title }}</a>
                                 </td>
                                 <td>
-                                    <strong>{{ issue['last_author'] }}</strong>
+                                    <strong>{{ issue.last_author }}</strong>
                                 </td>
-                                <td>{{ issue['last_authored_date'] }}</td>
+                                <td>{{ issue.last_authored_date }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

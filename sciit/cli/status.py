@@ -28,7 +28,7 @@ def status(args):
    
     args.repo.sync()
     all_issues = args.repo.get_all_issues(revision)
-    opened = sum(x['status'] == 'Open' for x in all_issues.values())
+    opened = sum(issue.status == 'Open' for issue in all_issues.values())
     closed = len(all_issues) - opened
     CPrint.bold_red(f'Open Issues: ' + str(opened))
     CPrint.bold_green(f'Closed Issues: ' + str(closed))

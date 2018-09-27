@@ -6,20 +6,14 @@ from io import StringIO
 from unittest import TestCase
 from unittest.mock import patch
 
-from sciit.cli.functions import (print_progress_bar, read_man_file,
-                                 yes_no_option)
+from sciit.cli.functions import print_progress_bar, read_sciit_version, yes_no_option
 
 
 class TestReadManualFiles(TestCase):
 
     def test_read_file_passed(self):
-        result = read_man_file('VERSION')
+        result = read_sciit_version()
         self.assertTrue(isinstance(result, str))
-
-    def test_read_file_fails(self):
-        with self.assertRaises(FileNotFoundError) as context:
-            read_man_file('test_read')
-        self.assertTrue('No such file or directory:' in str(context.exception))
 
 
 class TestYesNoOption(TestCase):

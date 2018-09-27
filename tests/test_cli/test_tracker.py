@@ -2,18 +2,13 @@
 This module tests the functionality of the cli tracker command.
 """
 import sys
-import re
 from io import StringIO
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from git import Commit
-from git.util import hex_to_bin
-from sciit import IssueRepo, IssueCommit, IssueTree, Issue
 from sciit.cli.tracker import tracker
-from sciit.functions import write_last_issue
-from tests.external_resources import safe_create_repo_dir
 from tests.test_cli.external_resources import repo, second_sha, second_commit, ansi_escape
+
 
 class TestStatusCommand(TestCase):
 
@@ -34,8 +29,7 @@ class TestStatusCommand(TestCase):
         args.repo.build_history.return_value = {}
 
         tracker(args)
-        self.assertIn('No issues found',
-                      sys.stdout.getvalue())
+        self.assertIn('No issues found', sys.stdout.getvalue())
 
     @patch('sciit.repo.IssueRepo.heads')
     @patch('sciit.repo.IssueRepo.sync')
@@ -163,7 +157,7 @@ class TestStatusCommand(TestCase):
         output = tracker(args)
         output = ansi_escape.sub('', output)
         self.assertNotIn('Descriptions:', output)
-        self.assertNotIn('Filepaths:', output)
+        self.assertNotIn('File paths:', output)
         self.assertNotIn('Commit Activities:', output)
         self.assertNotIn('Found In:', output)
         self.assertNotIn('Open In Branches:', output)
@@ -187,7 +181,7 @@ class TestStatusCommand(TestCase):
         output = tracker(args)
         output = ansi_escape.sub('', output)
         self.assertIn('Description:', output)
-        self.assertIn('Filepaths:', output)
+        self.assertIn('File paths:', output)
         self.assertIn('Commit Activities:', output)
         self.assertIn('Found In:', output)
         self.assertIn('Open In Branches:', output)
@@ -212,7 +206,7 @@ class TestStatusCommand(TestCase):
         output = tracker(args)
         output = ansi_escape.sub('', output)
         self.assertIn('Descriptions:', output)
-        self.assertIn('Filepaths:', output)
+        self.assertIn('File paths:', output)
         self.assertIn('Commit Activities:', output)
         self.assertIn('Found In:', output)
         self.assertIn('Open In Branches:', output)
