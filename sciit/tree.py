@@ -7,67 +7,65 @@
 import hashlib
 
 from git import util, Object
-from git.util import hex_to_bin
+from git.util import hex_to_bin, bin_to_hex
 
 from sciit import Issue
-from sciit.functions import serialize_repository_object_as_json, deserialize_repository_object_from_json, repository_object_exists
+from sciit.functions import serialize_repository_object_as_json, deserialize_repository_object_from_json, \
+    repository_object_exists, get_repository_object_size
 
 
 __all__ = ('IssueTree', )
 
 
 class IssueTree(Object):
-    """IssueTree objects represent an ordered list of Issues.
 
-    :note:
-        When creating a tree if the object already exists the
-        existing object is returned
-    """
     __slots__ = ('data', 'issues', 'size')
 
-    def __init__(self, repo, sha, issues=None):
-        """Initialize a newly instanced IssueTree
-
-        Args:
-            :(Repo) repo: is the Repo we are located in
-            :(bytes/str) sha: 20 byte binary sha1 or 40 character hexidecimal sha1
-            :(list) issues:
-                a list of issues as issue objects
-
-        :note:
-            The object may be deserialised from the file system when instantiated or serialized to the file system when
-            the object is created from a factory.
-        """
-        if len(sha) > 20:
-            sha = hex_to_bin(sha)
+    def __init__(self, repo, sha, issues, size):
         super(IssueTree, self).__init__(repo, sha)
-
-        if not repository_object_exists(self.repo, self.hexsha) and issues is not None:
-            self.data = [{'id': i.data['id'], 'hexsha': i.hexsha} for i in issues]
-
-            self.issues = issues
-            serialize_repository_object_as_json(self.repo, self.hexsha, IssueTree, self.data)
-
-        else:
-            self.data, self.size = deserialize_repository_object_from_json(self.repo, self.hexsha)
-            self.issues = list()
-            for issue in self.data:
-                self.issues.append(Issue.create_from_hexsha(repo, issue['hexsha']))
+        self.issues = issues
+        self.size = size
 
     @classmethod
-    def create(cls, repo, issues):
-        """Factory method that creates an IssueTree with its issues.
+    def create_from_issues(cls, repo, issues):
 
-        Args:
-            :(Repo) repo: is the Repo we are located in
-            :(list(Issues)) issues: a list of issues that are \
-            associated to this commit tree
-        """
-        if issues:
-            issues = list(set(issues))
-            issues.sort()
-            sha = hashlib.sha1(str(issues).encode())
-            binsha = sha.digest()
-            return cls(repo, binsha, issues)
-        else:
-            return cls(repo, cls.NULL_BIN_SHA, list())
+        issues = list(set(issues))
+        issues.sort()
+        sha = hashlib.sha1(str(issues).encode())
+        binsha = sha.digest()
+        hexsha = sha.hexdigest()
+        if not repository_object_exists(repo, hexsha):
+            data = [{'id': i.data['id'], 'hexsha': i.hexsha} for i in issues]
+            serialize_repository_object_as_json(repo, hexsha, IssueTree, data)
+
+        size = get_repository_object_size(repo, hexsha)
+        return cls(repo, binsha, issues, size)
+
+    @classmethod
+    def create_from_data(cls, repo, data):
+        issues = list()
+        for issue_data in data:
+            issues.append(Issue.create_from_hexsha(repo, issue_data['hexsha']))
+
+        return IssueTree.create_from_issues(repo, issues)
+
+    @classmethod
+    def create_from_binsha(cls, repo, binsha):
+        hexsha = bin_to_hex(binsha).decode("utf")
+        return IssueTree.create_from_shas(repo, hexsha, binsha)
+
+    @classmethod
+    def create_from_hexsha(cls, repo, hexsha):
+        binsha = hex_to_bin(hexsha)
+        return IssueTree.create_from_shas(repo, hexsha, binsha)
+
+    @classmethod
+    def create_from_shas(cls, repo, hexsha, binsha):
+        data, size = deserialize_repository_object_from_json(repo, hexsha)
+
+        issues = list()
+        for issue_data in data:
+            issues.append(Issue.create_from_hexsha(repo, issue_data['hexsha']))
+
+        return cls(repo, binsha, issues, size)
+

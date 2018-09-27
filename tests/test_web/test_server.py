@@ -40,7 +40,7 @@ class TestWebServerStartup(TestCase):
         cls.issues = []
         for d in data:
             cls.issues.append(Issue.create_from_data(cls.repo, d))
-        cls.itree = IssueTree.create(cls.repo, cls.issues)
+        cls.itree = IssueTree.create_from_issues(cls.repo, cls.issues)
 
         cls.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
         cls.first_commit = Commit(cls.repo, hex_to_bin(cls.first))

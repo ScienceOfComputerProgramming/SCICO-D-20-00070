@@ -37,7 +37,7 @@ def cat_file(args):
     if object_type == 'IssueCommit':
         obj = IssueCommit(args.repo, args.sha)
     elif object_type == 'IssueTree':
-        obj = IssueTree(args.repo, args.sha)
+        obj = IssueTree.create_from_hexsha(args.repo, args.sha)
     elif object_type == 'Issue':
         obj = Issue.create_from_hexsha(args.repo, args.sha)
 

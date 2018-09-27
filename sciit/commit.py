@@ -181,7 +181,7 @@ class IssueCommit(Object):
             serialize_repository_object_as_json(self.repo, self.hexsha, IssueCommit, self.data)
         else:
             self.data, self.size = deserialize_repository_object_from_json(self.repo, self.hexsha)
-            self.issue_tree = IssueTree(repo, self.data['issue_tree'])
+            self.issue_tree = IssueTree.create_from_hexsha(repo, self.data['issue_tree'])
 
         self.time_format = time_format
 

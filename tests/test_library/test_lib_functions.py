@@ -101,7 +101,7 @@ class TestGetTypeFromSha(TestCase):
         self.repo = IssueRepo(issue_dir='here')
 
         self.issue = Issue.create_from_data(self.repo, data)
-        self.itree = IssueTree.create(self.repo, [self.issue, ])
+        self.itree = IssueTree.create_from_issues(self.repo, [self.issue, ])
         self.icommit = IssueCommit.create(
             self.repo, self.repo.head.commit, self.itree)
 
@@ -151,11 +151,11 @@ class TestCacheIssueHistory(TestCase):
         self.new_issues = []
         for d in data:
             self.issues.append(Issue.create_from_data(self.repo, d))
-        self.itree = IssueTree.create(self.repo, self.issues)
+        self.itree = IssueTree.create_from_issues(self.repo, self.issues)
 
         for d in new_data:
             self.new_issues.append(Issue.create_from_data(self.repo, d))
-        self.new_itree = IssueTree.create(self.repo, self.new_issues)
+        self.new_itree = IssueTree.create_from_issues(self.repo, self.new_issues)
 
         self.head = '622918a4c6539f853320e06804f73d1165df69d0'
         self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'

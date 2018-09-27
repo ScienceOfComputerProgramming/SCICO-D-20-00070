@@ -22,12 +22,12 @@ class TestCreateIssueTree(TestCase):
             self.issues.append(Issue.create_from_data(self.repo, issue_data))
 
     def test_create_issue_tree(self):
-        itree = IssueTree.create(self.repo, self.issues)
+        itree = IssueTree.create_from_issues(self.repo, self.issues)
         self.assertEqual(len(itree.issues), 6)
         TestCreateIssueTree.issue_sha = (itree.binsha, itree.hexsha)
 
     def test_get_issue_tree_binsha(self):
-        itree = IssueTree.create(self.repo, self.issues)
-        itree = IssueTree(self.repo, itree.hexsha)
-        itree = IssueTree(self.repo, itree.binsha)
+        itree = IssueTree.create_from_issues(self.repo, self.issues)
+        itree = IssueTree.create_from_hexsha(self.repo, itree.hexsha)
+        itree = IssueTree.create_from_binsha(self.repo, itree.binsha)
         self.assertEqual(len(itree.issues), 6)

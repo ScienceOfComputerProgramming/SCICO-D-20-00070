@@ -92,11 +92,11 @@ class TestBuildIterIssueCommits(TestCase):
         cls.new_issues = []
         for d in data:
             cls.issues.append(Issue.create_from_data(cls.repo, d))
-        cls.itree = IssueTree.create(cls.repo, cls.issues)
+        cls.itree = IssueTree.create_from_issues(cls.repo, cls.issues)
 
         for d in new_data:
             cls.new_issues.append(Issue.create_from_data(cls.repo, d))
-        cls.new_itree = IssueTree.create(cls.repo, cls.new_issues)
+        cls.new_itree = IssueTree.create_from_issues(cls.repo, cls.new_issues)
 
         cls.head = '622918a4c6539f853320e06804f73d1165df69d0'
         cls.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
@@ -183,7 +183,7 @@ class TestIssueStatus(TestCase):
 
         data = {'id': '1', 'title': 'hello world', 'filepath': 'README.md'}
         issue = Issue.create_from_data(self.repo, data)
-        itree = IssueTree.create(self.repo, [issue])
+        itree = IssueTree.create_from_issues(self.repo, [issue])
         IssueCommit.create(self.repo, val[1], itree)
         IssueCommit.create(self.repo, val[0], itree)
 

@@ -36,10 +36,10 @@ second_data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'pat
                 'description': 'here is a nice description'}]
 
 first_issues = [Issue.create_from_data(repo, d) for d in first_data]
-first_issue_tree = IssueTree.create(repo, first_issues)
+first_issue_tree = IssueTree.create_from_issues(repo, first_issues)
 
 second_issues = [Issue.create_from_data(repo, d) for d in second_data]
-second_issue_tree = IssueTree.create(repo, second_issues)
+second_issue_tree = IssueTree.create_from_issues(repo, second_issues)
 
 first_sha = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
 second_sha = '622918a4c6539f853320e06804f73d1165df69d0'

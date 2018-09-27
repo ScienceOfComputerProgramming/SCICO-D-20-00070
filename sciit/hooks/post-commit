@@ -55,7 +55,7 @@ if len(set(issues)) != len(issues):
         f'HEAD @: {repo.head.commit.summary} ~ {repo.head.commit.hexsha[:7]}')
     exit()
 
-itree = IssueTree.create(repo, issues)
+itree = IssueTree.create_from_issues(repo, issues)
 icommit = IssueCommit.create(repo, commit, itree)
 write_last_issue(repo.issue_dir, commit.hexsha)
 

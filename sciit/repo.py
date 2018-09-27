@@ -73,7 +73,7 @@ class IssueRepo(Repo):
 
             for commit in reversed(commits):
                 issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
-                issue_tree = IssueTree.create(self, issues)
+                issue_tree = IssueTree.create_from_issues(self, issues)
                 IssueCommit.create(self, commit, issue_tree)
 
             write_last_issue(self.issue_dir, latest_commit)
@@ -180,7 +180,7 @@ class IssueRepo(Repo):
 
             self.print_commit_progress(datetime.now(), start, commits_scanned, num_commits)
             issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
-            issue_tree = IssueTree.create(self, issues)
+            issue_tree = IssueTree.create_from_issues(self, issues)
             IssueCommit.create(self, commit, issue_tree)
 
         if all_commits:

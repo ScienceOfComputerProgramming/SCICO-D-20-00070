@@ -19,11 +19,10 @@ def random_40_chars():
 
 class TestCreateIssueCommit(TestCase):
 
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         safe_create_repo_dir('here')
 
-        cls.repo = IssueRepo('here')
+        self.repo = IssueRepo('here')
 
         data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path',
                  'description': 'This issue had a description'},
@@ -50,35 +49,34 @@ class TestCreateIssueCommit(TestCase):
                     {'id': '12', 'title': 'the contents of the file', 'filepath': 'path',
                      'description': 'here is a nice description'}]
 
-        cls.issues = list()
-        cls.new_issues = list()
+        self.issues = list()
+        self.new_issues = list()
 
         for d in data:
-            cls.issues.append(Issue.create_from_data(cls.repo, d))
-        cls.itree = IssueTree.create(cls.repo, cls.issues)
+            self.issues.append(Issue.create_from_data(self.repo, d))
+        self.issue_tree = IssueTree.create_from_issues(self.repo, self.issues)
 
         for d in new_data:
-            cls.new_issues.append(Issue.create_from_data(cls.repo, d))
+            self.new_issues.append(Issue.create_from_data(self.repo, d))
 
-        cls.new_itree = IssueTree.create(cls.repo, cls.new_issues)
+        self.new_issue_tree = IssueTree.create_from_issues(self.repo, self.new_issues)
 
-        cls.second = '622918a4c6539f853320e06804f73d1165df69d0'
-        cls.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
-        cls.second_commit = Commit(cls.repo, hex_to_bin(cls.second))
-        cls.first_commit = Commit(cls.repo, hex_to_bin(cls.first))
-        cls.second_icommit = IssueCommit.create(cls.repo, cls.second_commit, cls.new_itree)
-        cls.first_icommit = IssueCommit.create(cls.repo, cls.first_commit, cls.itree)
+        self.second = '622918a4c6539f853320e06804f73d1165df69d0'
+        self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
+        self.second_commit = Commit(self.repo, hex_to_bin(self.second))
+        self.first_commit = Commit(self.repo, hex_to_bin(self.first))
+        self.second_issue_commit = IssueCommit.create(self.repo, self.second_commit, self.new_issue_tree)
+        self.first_issue_commit = IssueCommit.create(self.repo, self.first_commit, self.issue_tree)
 
-        write_last_issue(cls.repo.issue_dir, cls.second)
+        write_last_issue(self.repo.issue_dir, self.second)
 
     def test_create_issue_commit(self):
-        icommit = IssueCommit.create(
-            self.repo, self.first_commit, self.itree)
+        issue_commit = IssueCommit.create(self.repo, self.first_commit, self.issue_tree)
 
-        self.assertEqual(self.first_commit.hexsha, icommit.hexsha)
-        self.assertEqual(self.first_commit.binsha, icommit.binsha)
-        self.assertEqual(len(icommit.issue_tree.issues), 6)
-        self.assertEqual(icommit.open_issues, 6)
+        self.assertEqual(self.first_commit.hexsha, issue_commit.hexsha)
+        self.assertEqual(self.first_commit.binsha, issue_commit.binsha)
+        self.assertEqual(len(issue_commit.issue_tree.issues), 6)
+        self.assertEqual(issue_commit.open_issues, 6)
 
 
 class FindIssuesInCommit(TestCase):

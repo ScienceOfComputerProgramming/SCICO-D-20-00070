@@ -16,9 +16,8 @@ __all__ = ('Issue',)
 
 
 class Issue(Object):
-    __slots__ = ('data', 'title', 'description', 'assignees',
-                 'due_date', 'label', 'weight', 'priority', 'title',
-                 'size', 'filepath', 'id')
+    __slots__ = ('data', 'title', 'description', 'assignees', 'due_date', 'label', 'weight', 'priority', 'title', 'size'
+                 , 'filepath', 'id')
 
     def __init__(self, repo, sha, data, size):
         super(Issue, self).__init__(repo, sha)
@@ -80,4 +79,3 @@ class Issue(Object):
         if not repository_object_exists(repo, sha.hexdigest()):
             serialize_repository_object_as_json(repo, sha.hexdigest(), Issue, data)
         return Issue(repo, sha.digest(), data, get_repository_object_size(repo, hexsha))
-
