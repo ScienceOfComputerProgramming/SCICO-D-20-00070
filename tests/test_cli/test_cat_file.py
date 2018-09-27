@@ -1,17 +1,11 @@
-"""
-This module tests the functionality of the cli catfile-file command.
-"""
 import sys
 from io import StringIO
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from git import Commit
-from git.util import hex_to_bin
-from sciit import IssueRepo, IssueCommit, IssueTree, Issue
 from sciit.cli.cat_file import cat_file
-from tests.external_resources import safe_create_repo_dir
-from tests.test_cli.external_resources import repo, first_issue_commit, first_issue_tree, first_issues, second_issue_commit
+from tests.test_cli.external_resources import repo, first_issue_commit, first_issue_tree, first_issues, \
+    second_issue_commit
 
 
 class TestCatFileCommand(TestCase):

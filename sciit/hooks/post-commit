@@ -1,16 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Script that contains the operation to be done
- after a commit is made. This script builds the
- issues from the commit made and stores it in our
- issue repository
 
-:@author: Nystrom Edwards
-:Created: 12 July 2018
-"""
 from sciit import IssueRepo, IssueTree, IssueCommit
 from sciit.commit import find_issues_in_commit
-from sciit.functions import write_last_issue, get_sciit_ignore
+from sciit.functions import write_last_issue_commit_sha, get_sciit_ignore_path_spec
 from sciit.cli.color import CPrint
 from sciit.functions import RepoObjectDoesNotExistError
 import colorama
@@ -23,10 +16,10 @@ if not repo.is_init():
     print('Solve error by building issue repository using: git sciit init')
     exit(127)
 
-ignored_files = get_sciit_ignore(repo)
+ignored_files = get_sciit_ignore_path_spec(repo)
 commit = repo.head.commit
 try:
-    issues = find_issues_in_commit(repo, commit, ignored_files=ignored_files)
+    issues = find_issues_in_commit(repo, commit, ignore_files=ignored_files)
 except RepoObjectDoesNotExistError as error:
     CPrint.bold_red(error)
     print('Solve error by rebuilding issue repository using: git sciit init -r')
@@ -51,13 +44,12 @@ if len(set(issues)) != len(issues):
             CPrint.red(f'\tfound in {file_found}')
 
     repo.git.execute(['git', 'reset', 'HEAD~1', '--soft'])
-    CPrint.bold_red(
-        f'HEAD @: {repo.head.commit.summary} ~ {repo.head.commit.hexsha[:7]}')
+    CPrint.bold_red(f'HEAD @: {repo.head.commit.summary} ~ {repo.head.commit.hexsha[:7]}')
     exit()
 
-itree = IssueTree.create_from_issues(repo, issues)
-icommit = IssueCommit.create(repo, commit, itree)
-write_last_issue(repo.issue_dir, commit.hexsha)
+issue_tree = IssueTree.create_from_issues(repo, issues)
+issue_commit = IssueCommit.create(repo, commit, issue_tree)
+write_last_issue_commit_sha(repo.issue_dir, commit.hexsha)
 
 # dealing with a detached head
 try:
@@ -65,9 +57,8 @@ try:
 except TypeError:
     location = 'DETACHED:' + repo.head.commit.hexsha
 
-if icommit.open_issues > 0:
-    result = str(icommit.open_issues) + \
-        ' Open Issues @' + location
+if issue_commit.open_issues > 0:
+    result = str(issue_commit.open_issues) + ' Open Issues @' + location
     CPrint.bold_red(result)
 else:
     result = 'No Open Issues @' + location

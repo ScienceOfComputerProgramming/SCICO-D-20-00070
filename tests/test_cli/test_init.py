@@ -1,17 +1,11 @@
-"""
-This module tests the functionality of the cli init command.
-"""
 import sys
 from io import StringIO
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from git import Commit
-from git.util import hex_to_bin
 from sciit import IssueRepo
 from sciit.cli.init import init
 from tests.external_resources import remove_existing_repo, safe_create_repo_dir
-from tests.test_cli.external_resources import second_commit, first_commit
 
 
 class TestInitCommand(TestCase):

@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Module that assists assigning ANSI color string objects
-and printing ANSI color coded strings to the terminal
 
-@author: Nystrom Edwards
-
-Created on 29 July 2018
-"""
 from termcolor import colored
 
 

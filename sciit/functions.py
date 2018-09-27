@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Functions to interface with repository objects on the file system.
-:@author: Nystrom Edwards
-:Created: 24 June 2018
+Functions for interfacing with repository objects on the file system.
 """
 
 import os
@@ -68,7 +66,6 @@ def deserialize_repository_object_from_json(repo, hexsha):
         return json.loads(contents.split(' ', 1)[1]), os.stat(path).st_size
 
 
-
 def cache_history(issue_dir, history):
     history_file = issue_dir + '/HISTORY'
 
@@ -90,49 +87,23 @@ def cache_history(issue_dir, history):
         f.write(json.dumps(json_history, indent=4))
 
 
-def write_last_issue(issue_dir, sha):
-    """Takes the sha of the last issuecommit built and saves it 
-    to a file to be used after post-checkout and post-merge hooks
-    to identify new issues to be built
-
-    Args:
-        :(str) issue_dir: the directory to store the issue *repo.issue_dir*
-        :(str) sha: the commit sha to be saved
-    """
-    last_issue_file = issue_dir + '/LAST'
-    f = open(last_issue_file, 'w')
-    f.write(sha)
-    f.close()
+def write_last_issue_commit_sha(issue_dir, sha):
+    last_issue_commit_file_path = issue_dir + '/LAST'
+    with open(last_issue_commit_file_path, 'w') as f:
+        f.write(sha)
 
 
-def get_last_issue(repo):
-    """Returns the sha of the last issuecommit reference saved
-
-    Args:
-        :(IssueRepo) repo: the repository to look for
-    """
-    last_issue_file = repo.issue_dir + '/LAST'
-    f = open(last_issue_file, 'r')
-    sha = f.read()
-    f.close()
-    return sha
+def get_last_issue_commit_sha(issue_dir):
+    last_issue_commit_file_path = issue_dir + '/LAST'
+    with open(last_issue_commit_file_path, 'r') as f:
+        return f.read()
 
 
-def get_sciit_ignore(repo):
-    """Returns the contents of the sciit ignore file to use
-    when making commits
-
-    Args:
-        :(IssueRepo) repo: the repository to look for
-
-    Returns:
-        :(PathSpec) spec: a gitignore spec of expressions
-    """
-    sciit_ignore_file = repo.working_dir + '/.sciitignore'
-    if os.path.exists(sciit_ignore_file):
-        with open(sciit_ignore_file, 'r') as fh:
+def get_sciit_ignore_path_spec(repo):
+    sciit_ignore_file_path = repo.working_dir + '/.sciitignore'
+    if os.path.exists(sciit_ignore_file_path):
+        with open(sciit_ignore_file_path, 'r') as fh:
             fh = fh.read().splitlines()
-            spec = pathspec.PathSpec.from_lines('gitignore', fh)
-        return spec
+            return pathspec.PathSpec.from_lines('gitignore', fh)
     else:
         return None

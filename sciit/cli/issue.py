@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Implements the git sciit issue commands. It gets the issue tracking information for a particular issue specified by the
-user.
+Implements the git sciit issue commands. Issue tracking information is retrieved for a particular issue.
 
     Example:
         This module is accessed via::
 
             $ git sciit issue [-h] [-f | -d | -n] [--save] issueid [*revision*]
-
-@author: Nystrom Edwards
-
-Created on 10 July 2018
 """
 
 from sciit.cli.color import CPrint, Color
@@ -19,11 +14,7 @@ from sciit.cli.functions import page
 
 
 def issue(args):
-    """
-    Prints an issue and its status based on the issue-id specified
-    """
 
-    # force normal if no flags supplied
     if not args.normal and not args.detailed and not args.full:
         args.normal = True
 
@@ -37,6 +28,7 @@ def issue(args):
     args.repo.sync()
     args.issueid = slugify(args.issueid)
     history = args.repo.build_history(args.revision)
+
     if args.issueid in history:
         return page_history_item(history[args.issueid], view)
     else:
@@ -49,20 +41,12 @@ def issue(args):
 
 
 def page_history_item(item, view=None):
-    """
-    Args:
-        :(dict) item: history_item to print to pager
-    """
     output = build_history_item(item, view)
     page(output)
     return output
 
 
 def page_history_items(items, view=None):
-    """
-    Args:
-        :dict(dict) items: history items to print to pager
-    """
     output = ''
     for item in items.values():
         output += build_history_item(item, view)

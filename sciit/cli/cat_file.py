@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Implements the git sciit cat-file commands. It is similar to the git cat-file command but shows the
+Implements the git sciit cat-file commands. Behaviour is similar to the git cat-file command but shows the
 information for issue objects in our repository.
 
     Example:
         This command is accessed via::
         
             $ git sciit cat-file [-h] [-t] [-s] [-p] sha
-
-@author: Nystrom Edwards
-
-Created on 09 July 2018
 """
 
 from sciit.errors import RepoObjectDoesNotExistError
@@ -35,7 +31,7 @@ def cat_file(args):
 
     # get object based on object type
     if object_type == 'IssueCommit':
-        obj = IssueCommit(args.repo, args.sha)
+        obj = IssueCommit.create_from_hexsha(args.repo, args.sha)
     elif object_type == 'IssueTree':
         obj = IssueTree.create_from_hexsha(args.repo, args.sha)
     elif object_type == 'Issue':
@@ -131,6 +127,3 @@ def page_issue(issue):
 
     page(output)
     return output
-
-
-

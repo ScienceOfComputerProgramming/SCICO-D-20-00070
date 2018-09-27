@@ -1,6 +1,3 @@
-"""
-This module tests the functionality of the cli tracker command.
-"""
 import sys
 from io import StringIO
 from unittest import TestCase
@@ -9,7 +6,7 @@ from sciit import IssueRepo
 from sciit.cli.init import init
 from sciit.cli.tracker import tracker
 from sciit.cli import start
-from tests.external_resources import remove_existing_repo, safe_create_repo_dir
+from tests.external_resources import remove_existing_repo
 from tests.test_cli.external_resources import repo, third_sha, third_commit
 from sciit.cli.color import CPrint, Color
 
@@ -42,14 +39,13 @@ class TestCLIStartup(TestCase):
             self.assertIn('usage: git sciit [-h] [-v]', sys.stdout.getvalue())
 
     @patch('argparse.ArgumentParser.parse_args', new_callable=Mock)
-    @patch('sciit.repo.IssueRepo.build_issue_commits')
+    @patch('sciit.repo.IssueRepo.build_issue_commits_from_all_commits')
     def test_init_command_runs_smoothly(self, build, args):
         val = Mock()
         val.func = init
         val.reset = False
         args.return_value = val
         start.main()
-        pass
 
     @patch('argparse.ArgumentParser.parse_args', new_callable=Mock)
     @patch('sciit.cli.start.IssueRepo')
@@ -74,7 +70,7 @@ class TestCLIStartup(TestCase):
         args.return_value = val
         remove_existing_repo('there')
         repo = IssueRepo('there')
-        repo.setup_fs_resources()
+        repo.setup_file_system_resources()
         repo.heads = []
         patch_repo.return_value = repo
         start.main()
@@ -96,8 +92,7 @@ class TestCLIStartup(TestCase):
         repo.heads = [mhead]
         patch_repo.return_value = repo
         start.main()
-        self.assertIn(
-            'Solve error by rebuilding issue repository using', sys.stdout.getvalue())
+        self.assertIn('Solve error by rebuilding issue repository using', sys.stdout.getvalue())
 
     @patch('argparse.ArgumentParser.parse_args', new_callable=Mock)
     @patch('sciit.cli.start.IssueRepo')
@@ -115,5 +110,4 @@ class TestCLIStartup(TestCase):
         repo.heads = [mhead]
         patch_repo.return_value = repo
         start.main()
-        self.assertIn(
-            'git sciit error fatal: bad revision', sys.stdout.getvalue())
+        self.assertIn('git sciit error fatal: bad revision', sys.stdout.getvalue())

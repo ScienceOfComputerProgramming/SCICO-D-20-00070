@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Module that provides main() entry point of the command 
-line interface that accepts the command line arguments and 
-pass them to the appropriate module for handling.
+"""
+main() entry point of the command line interface that accepts the command line arguments and pass them to the
+appropriate module for handling.
 
     Example:
-        This command is accessed via::
-        
+
             $ git sciit
-
-@author: Nystrom Edwards
-
-Created on 13 June 2018
 """
 
 import argparse
@@ -33,153 +28,138 @@ from sciit.web.server import launch as launchweb
 from sciit.gitlab.webservice import launch as launchgitlab
 
 
-def main():
-    """The function that provides an entry point for the cli application.
-    The ```ArgumentParser``` is the main component responsible for 
-    interpreting the command line arguments. The subparsers are responsible
-    for reading the sub components of the sub arguments.
-    """
-    parser = argparse.ArgumentParser(prog='git sciit',
-                                     description='To use the application you can create your '
-                                     'issues anywhere in your source code as block comments in '
-                                     'a particular format and it will become a trackable '
-                                     'versioned object within your git environment. '
-                                     'Operations done with git will run git sciit in the '
-                                     'background in order to automate issue tracking for you. ')
-    parser.add_argument('-v', '--version', action='version',
-                        version=read_sciit_version())
+def add_save_option(parser):
+    parser.add_argument(
+        '-s', '--save', action='store_true',
+        help='Saves issue history selected to the HISTORY file in your issue repository directory.')
+
+
+def add_revision_option(parser):
+    parser.add_argument(
+        'revision', action='store', type=str, nargs='?',
+        help=
+        'The revision path to use to generate the issue log e.g \'all\' for all commits or \'master\' for all commit on'
+        ' master branch or \'HEAD~2\' from the last two commits on current branch. See git rev-list options for more '
+        'path options.')
+
+
+def add_issue_filter_options(parser):
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        '-a', '--all', help='show all the issues currently tracked and their status', action='store_true')
+    group.add_argument(
+        '-o', '--open', help=Color.green('default:') +' show only issues that are open', action='store_true')
+    group.add_argument('-c', '--closed', help='show only issues that are closed', action='store_true')
+
+
+def add_view_options(parser):
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        '-f', '--full', action='store_true',
+        help=
+        'view the full tracker information for all issues including, description revisions, commit activity, '
+        'issue revisions, multiple filepaths, open in, and found in branches ')
+    group.add_argument(
+        '-d', '--detailed', action='store_true',
+        help='View tracker information including commit activity, multiple filepaths, open in, and found in branches')
+    group.add_argument(
+        '-n', '--normal', action='store_true',
+        help=Color.green('default:') + ' view tracker information normally needed.')
+
+
+def create_command_parser():
+
+    parser = argparse.ArgumentParser(
+        prog='git sciit',
+        description=
+        'To use the application you can create your issues anywhere in your source code as block comments in a '
+        'particular format and it will become a trackable versioned object within your git environment. Operations '
+        'done with git will run git sciit in the background in order to automate issue tracking for you. '
+    )
+    parser.add_argument('-v', '--version', action='version', version=read_sciit_version())
 
     subparsers = parser.add_subparsers()
 
-    # responsible for the init subcommand
-    init_parser = subparsers.add_parser('init', description=' Helps create an empty issue repository'
-                                        ' or build and issue repository from source code comments in'
-                                        ' past commits')
+    init_parser = subparsers.add_parser(
+        name='init',
+        description=
+        'Helps create an empty issue repository or build and issue repository from source code comments in past commits'
+    )
     init_parser.set_defaults(func=init)
-    init_parser.add_argument('-r', '--reset', action='store_true',
-                             help='resets the issue repo and rebuild from past commits')
+    init_parser.add_argument(
+        '-r', '--reset', action='store_true', help='resets the issue repo and rebuild from past commits')
 
-    # responsible for the status subcommand
-    status_parser = subparsers.add_parser('status', description='Shows the user how many issues are open'
-                                          ' and how many are closed on all branches.')
+    status_parser = subparsers.add_parser(
+        name='status',
+        description=
+        'Shows the user how many issues are open and how many are closed on all branches.'
+    )
     status_parser.set_defaults(func=status)
-    status_parser.add_argument('revision', action='store', type=str, nargs='?',
-                               help='the revision path to use to generate the issue log e.g \'all\' '
-                               'for all commits or \'master\' for all commit on master branch '
-                               'or \'HEAD~2\' from the last two commits on current branch. '
-                               'see git rev-list options for more path options.')
+    add_revision_option(status_parser)
 
-    # responsible for the log subcommand
-    log_parser = subparsers.add_parser('log', description='Prints a log that is similar to the git'
-                                       ' log but shows open issues')
+    log_parser = subparsers.add_parser(
+        'log', description='Prints a log that is similar to the git log but shows open issues')
     log_parser.set_defaults(func=log)
-    log_parser.add_argument('revision', action='store', type=str, nargs='?',
-                            help='the revision path to use to generate the issue log e.g \'all\' '
-                            'for all commits or \'master\' for all commit on master branch '
-                            'or \'HEAD~2\' from the last two commits on current branch. '
-                            'see git rev-list options for more path options.')
 
-    # responsible for the cat-file subcommand
-    cat_file_parser = subparsers.add_parser('cat-file', description='Prints the content and info of objects'
-                                            ' stored in our issue repository. Only one flag can be specified')
+    add_revision_option(log_parser)
+
+    cat_file_parser = subparsers.add_parser(
+        'cat-file',
+        description=
+        'Prints the content and info of objects stored in our issue repository. Only one flag can be specified')
     cat_file_parser.set_defaults(func=cat_file)
-    cat_file_parser.add_argument('sha', action='store', type=str,
-                                 help='the sha of the issue repository object')
+    cat_file_parser.add_argument('sha', action='store', type=str, help='The sha of the issue repository object.')
+
     group = cat_file_parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-t', '--type', action='store_true',
-                       help='instead of the content, show the object type identified by <object>.')
-    group.add_argument('-s', '--size', action='store_true',
-                       help='instead of the content, show the object size identified by <object>.')
-    group.add_argument('-p', '--print', action='store_true',
-                       help='pretty prints the contents of <object> based on type')
+    group.add_argument(
+        '-t', '--type', action='store_true',
+        help='instead of the content, show the object type identified by <object>.')
+    group.add_argument(
+        '-s', '--size', action='store_true',
+        help='instead of the content, show the object size identified by <object>.')
+    group.add_argument(
+        '-p', '--print', action='store_true', help='pretty prints the contents of <object> based on type')
 
-    # responsible for the tracker subcommand
-    tracker_parser = subparsers.add_parser(
-        'tracker', description='Prints a log that shows issues and their status')
+    tracker_parser = subparsers.add_parser('tracker', description='Prints a log that shows issues and their status.')
     tracker_parser.set_defaults(func=tracker)
-    tracker_parser.add_argument('revision', action='store', type=str, nargs='?',
-                                help='default: uses the entire issue repository. or if'
-                                'specified the revision which you would like '
-                                'to check for your issue tracker. see git revision '
-                                'for more information *optional')
-    group = tracker_parser.add_mutually_exclusive_group()
-    group.add_argument('-a', '--all',
-                       help='show all the issues currently tracked and their status',
-                       action='store_true')
-    group.add_argument('-o', '--open',
-                       help=Color.green('default:') +
-                       ' show only issues that are open',
-                       action='store_true')
-    group.add_argument('-c', '--closed',
-                       help='show only issues that are closed',
-                       action='store_true')
-    group2 = tracker_parser.add_mutually_exclusive_group()
-    group2.add_argument('-f', '--full',
-                        help='view the full tracker information for all issues including, '
-                        'description revisions, commit activity, issue revisions, '
-                        'multiple filepaths, open in, and found in branches  ',
-                        action='store_true')
-    group2.add_argument('-d', '--detailed',
-                        help='view tracker information including '
-                        'commit activity, multiple filepaths, open in, '
-                        'and found in branches ',
-                        action='store_true')
-    group2.add_argument('-n', '--normal',
-                        help=Color.green('default:') +
-                        ' view tracker information normally needed ',
-                        action='store_true')
-    tracker_parser.add_argument('-s', '--save', action='store_true',
-                                help='saves issue history selected to the HISTORY file in '
-                                'your issue repository directory')
+    add_revision_option(tracker_parser)
 
-    # responsible for the issue sub-command
-    issue_parser = subparsers.add_parser(
-        'issue', description='Prints an issue and it\'s status')
+    add_issue_filter_options(tracker_parser)
+    add_view_options(tracker_parser)
+    add_save_option(tracker_parser)
+
+    issue_parser = subparsers.add_parser('issue', description='Prints an issue and it\'s status')
     issue_parser.set_defaults(func=issue)
-    group = issue_parser.add_mutually_exclusive_group()
-    group.add_argument('-f', '--full',
-                       help='view the full tracker information for all issues including, '
-                       'description revisions, commit activity, issue revisions, '
-                       'multiple filepaths, open in, and found in branches  ',
-                       action='store_true')
-    group.add_argument('-d', '--detailed',
-                       help='view tracker information including '
-                       'commit activity, multiple filepaths, open in, '
-                       'and found in branches ',
-                       action='store_true')
-    group.add_argument('-n', '--normal',
-                       help=Color.green('default:') +
-                       ' view tracker information normally needed ',
-                       action='store_true')
-    issue_parser.add_argument('issueid', action='store', type=str,
-                              help='The id of the issue that you are looking for')
-    issue_parser.add_argument('-s', '--save', action='store_true',
-                              help='saves issue history selected to the HISTORY file in '
-                              'your issue repository directory')
-    issue_parser.add_argument('revision', action='store', type=str, nargs='?',
-                              help='the revision path to use to generate the issue log e.g \'all\' '
-                              'for all commits or \'master\' for all commit on master branch '
-                              'or \'HEAD~2\' from the last two commits on current branch. '
-                              'see git rev-list options for more path options. *optional')
 
-    # responsible for launching the local web server
+    add_view_options(issue_parser)
+
+    issue_parser.add_argument(
+        'issueid', action='store', type=str,
+        help='The id of the issue that you are looking for')
+
+    add_save_option(issue_parser)
+    add_revision_option(issue_parser)
+
     web_parser = subparsers.add_parser(
-        'web', description='Launches a local web interface for the sciit issue tracker')
+        'web',
+        description='Launches a local web interface for the sciit issue tracker')
     web_parser.set_defaults(func=launchweb)
 
-    # # responsible for launching the gitlab webservice
     gitlab_parser = subparsers.add_parser(
-        'gitlab', description='Launches the gitlab webservice that integrates gitlab issues'
-                              'with sciit')
+        'gitlab', description='Launches the gitlab webservice that integrates gitlab issues with sciit')
     gitlab_parser.set_defaults(func=launchgitlab)
 
+    return parser
+
+
+def main():
+    parser = create_command_parser()
     args = parser.parse_args()
 
-    # no args supplied
     try:
         repo = IssueRepo()
         repo.cli = True
-        colorama.init()  # initialise colours for windows
+        colorama.init()
         if not hasattr(args, 'func'):
             parser.print_help()
         else:
@@ -190,28 +170,19 @@ def main():
                 if not args.repo.is_init():
                     CPrint.red('Repository not initialized')
                     CPrint.bold_red('Run: git scitt init')
-                    return
                 else:
                     args.func(args)
-        return
+
     except InvalidGitRepositoryError:
-        CPrint.bold(
-            'fatal: not a git repository (or any parent up to mount point /)')
-        CPrint.bold(
-            'Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
-        return
+        CPrint.bold('fatal: not a git repository (or any parent up to mount point /)')
+        CPrint.bold('Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
     except NoCommitsError as error:
-        error = f'git sciit error fatal: {str(error)}'
-        CPrint.bold_red(error)
-        return
+        CPrint.bold_red(f'git sciit error fatal: {str(error)}')
     except GitCommandError as error:
-        error = f'git sciit error fatal: bad revision \'{args.revision}\''
-        CPrint.bold_red(error)
-        return
+        CPrint.bold_red(f'git sciit error fatal: bad revision \'{args.revision}\'')
     except RepoObjectDoesNotExistError as error:
         CPrint.bold_red(error)
         print('Solve error by rebuilding issue repository using: git sciit init -r')
-        return
 
 
 def start():

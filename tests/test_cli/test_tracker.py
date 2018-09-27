@@ -1,6 +1,3 @@
-"""
-This module tests the functionality of the cli tracker command.
-"""
 import sys
 from io import StringIO
 from unittest import TestCase

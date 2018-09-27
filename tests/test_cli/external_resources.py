@@ -1,7 +1,7 @@
 import re
 from tests.external_resources import safe_create_repo_dir
 from sciit import IssueRepo, IssueCommit, IssueTree, Issue
-from sciit.functions import write_last_issue
+from sciit.functions import write_last_issue_commit_sha
 from git import Commit
 from git.util import hex_to_bin
 
@@ -49,9 +49,9 @@ first_commit = Commit(repo, hex_to_bin(first_sha))
 second_commit = Commit(repo, hex_to_bin(second_sha))
 third_commit = Commit(repo, hex_to_bin(third_sha))
 
-first_issue_commit = IssueCommit.create(repo, first_commit, first_issue_tree)
-second_issue_commit = IssueCommit.create(repo, second_commit, second_issue_tree)
+first_issue_commit = IssueCommit.create_from_commit_and_issue_tree(repo, first_commit, first_issue_tree)
+second_issue_commit = IssueCommit.create_from_commit_and_issue_tree(repo, second_commit, second_issue_tree)
 
-write_last_issue(repo.issue_dir, second_sha)
+write_last_issue_commit_sha(repo.issue_dir, second_sha)
 
 ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')

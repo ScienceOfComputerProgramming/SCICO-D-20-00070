@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""Module that contains the erros that may be raised
-when using the library.
-
-:@author: Nystrom Edwards
-:Created: 21 June 2018
-"""
-
 
 class EmptyRepositoryError(FileNotFoundError):
     def __init__(self):

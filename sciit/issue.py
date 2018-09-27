@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Module that contains the definition of the issue object.
 
-:@author: Nystrom Edwards
-:Created: 23 June 2018
-"""
 import hashlib
 
 from git import Object

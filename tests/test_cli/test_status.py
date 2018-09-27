@@ -1,17 +1,9 @@
-"""
-This module tests the functionality of the cli status command.
-"""
 import sys
 from io import StringIO
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from git import Commit
-from git.util import hex_to_bin
-from sciit import IssueRepo, IssueCommit, IssueTree, Issue
 from sciit.cli.status import status
-from sciit.functions import write_last_issue
-from tests.external_resources import safe_create_repo_dir
 from tests.test_cli.external_resources import repo, second_sha, second_commit
 
 

@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Module that contains the definition of the issue tree.
 
-:@author: Nystrom Edwards
-:Created: 24 June 2018
-"""
 import hashlib
 
-from git import util, Object
+from git import Object
 from git.util import hex_to_bin, bin_to_hex
 
 from sciit import Issue

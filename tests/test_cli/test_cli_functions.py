@@ -1,6 +1,3 @@
-"""
-This module tests the functionality of the tools module.
-"""
 import sys
 from io import StringIO
 from unittest import TestCase

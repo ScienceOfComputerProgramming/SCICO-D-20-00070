@@ -91,43 +91,38 @@ class TestSerializeDeserializeObject(TestCase):
 
 class TestGetTypeFromSha(TestCase):
 
-    @classmethod
-    def setUpClass(self):
+    def setUp(self):
         safe_create_repo_dir('here')
 
-        data = {'id': '3', 'title': 'clean up this mess',
-                'filepath': 'here'}
+        data = {'id': '3', 'title': 'clean up this mess', 'filepath': 'here'}
 
         self.repo = IssueRepo(issue_dir='here')
 
         self.issue = Issue.create_from_data(self.repo, data)
-        self.itree = IssueTree.create_from_issues(self.repo, [self.issue, ])
-        self.icommit = IssueCommit.create(
-            self.repo, self.repo.head.commit, self.itree)
+        self.issue_tree = IssueTree.create_from_issues(self.repo, [self.issue, ])
+        self.issue_commit = IssueCommit.create_from_commit_and_issue_tree(self.repo, self.repo.head.commit, self.issue_tree)
 
     def test_object_type_is_issue(self):
         obj_type = get_repository_object_type_from_sha(self.repo, self.issue.hexsha)
         self.assertTrue(obj_type, 'issue')
 
     def test_object_type_is_issue_tree(self):
-        obj_type = get_repository_object_type_from_sha(self.repo, self.itree.hexsha)
+        obj_type = get_repository_object_type_from_sha(self.repo, self.issue_tree.hexsha)
         self.assertTrue(obj_type, 'issuetree')
 
     def test_object_type_is_issue_commit(self):
-        obj_type = get_repository_object_type_from_sha(self.repo, self.icommit.hexsha)
+        obj_type = get_repository_object_type_from_sha(self.repo, self.issue_commit.hexsha)
         self.assertTrue(obj_type, 'issuecommit')
 
     def test_object_type_cannot_be_found_in_repo(self):
         with self.assertRaises(RepoObjectDoesNotExistError) as context:
             get_repository_object_type_from_sha(self.repo, 'self.issue.hexsha')
-            self.assertTrue(
-                'The repository object does not exist.' in str(context.exception))
+            self.assertTrue('The repository object does not exist.' in str(context.exception))
 
 
 class TestCacheIssueHistory(TestCase):
 
-    @classmethod
-    def setUpClass(self):
+    def setUp(self):
         safe_create_repo_dir('here')
         self.repo = IssueRepo('here')
 
@@ -140,6 +135,9 @@ class TestCacheIssueHistory(TestCase):
                 {'id': '6', 'title': 'the contents of the file', 'filepath': 'path',
                  'description': 'here is a nice description'}]
 
+        self.issues = [Issue.create_from_data(self.repo, d) for d in data]
+        self.issue_tree = IssueTree.create_from_issues(self.repo, self.issues)
+
         new_data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
                     {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
                     {'id': '9', 'title': 'the contents of the file', 'filepath': 'path'},
@@ -147,23 +145,17 @@ class TestCacheIssueHistory(TestCase):
                      'description': 'description has changed'},
                     {'id': '12', 'title': 'the contents of the file', 'filepath': 'path',
                      'description': 'here is a nice description'}]
-        self.issues = []
-        self.new_issues = []
-        for d in data:
-            self.issues.append(Issue.create_from_data(self.repo, d))
-        self.itree = IssueTree.create_from_issues(self.repo, self.issues)
 
-        for d in new_data:
-            self.new_issues.append(Issue.create_from_data(self.repo, d))
-        self.new_itree = IssueTree.create_from_issues(self.repo, self.new_issues)
+
+        self.new_issues = [Issue.create_from_data(self.repo, d) for d in new_data]
+        self.new_issue_tree = IssueTree.create_from_issues(self.repo, self.new_issues)
 
         self.head = '622918a4c6539f853320e06804f73d1165df69d0'
         self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
         self.head_commit = Commit(self.repo, hex_to_bin(self.head))
         self.first_commit = Commit(self.repo, hex_to_bin(self.first))
-        self.head_icommit = IssueCommit.create(
-            self.repo, self.head_commit, self.new_itree)
-        IssueCommit.create(self.repo, self.first_commit, self.itree)
+        self.head_issue_commit = IssueCommit.create_from_commit_and_issue_tree(self.repo, self.head_commit, self.new_issue_tree)
+        IssueCommit.create_from_commit_and_issue_tree(self.repo, self.first_commit, self.issue_tree)
 
     @patch('sciit.repo.IssueRepo.iter_commits')
     @patch('sciit.repo.IssueRepo.heads')
@@ -171,7 +163,7 @@ class TestCacheIssueHistory(TestCase):
         val = [self.head_commit, self.first_commit]
         commits.return_value = val
         head = MagicMock()
-        head.commit = self.head_icommit
+        head.commit = self.head_issue_commit
         head.name = 'master'
         heads.__iter__.return_value = [head]
         history = self.repo.build_history('--all')

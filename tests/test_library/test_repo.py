@@ -1,10 +1,10 @@
 import os
 from unittest import TestCase
-from unittest.mock import patch, Mock, PropertyMock, MagicMock
+from unittest.mock import patch, PropertyMock, MagicMock
 from git import Commit
 from git.util import hex_to_bin
 from sciit import IssueRepo, IssueCommit, IssueTree, Issue
-from sciit.functions import write_last_issue, get_last_issue
+from sciit.functions import write_last_issue_commit_sha, get_last_issue_commit_sha
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 
 from tests.external_resources import safe_create_repo_dir, remove_existing_repo
@@ -37,7 +37,7 @@ class TestIssueRepoNoExistingRepository(TestCase):
     def test_issue_repo_setup(self):
         repo = IssueRepo('here')
         repo.git_dir = repo.issue_dir
-        repo.setup_fs_resources()
+        repo.setup_file_system_resources()
         self.assertTrue(os.path.exists('here/hooks/post-commit'))
         self.assertTrue(os.path.exists('here/hooks/post-checkout'))
         self.assertTrue(os.path.exists('here/hooks/post-merge'))
@@ -60,17 +60,16 @@ class TestBuildIssueRepo(TestCase):
     def test_build_from_empty_repo(self, heads):
         heads.return_value = []
         with self.assertRaises(NoCommitsError) as context:
-            self.repo.build_issue_commits()
+            self.repo.build_issue_commits_from_all_commits()
         self.assertTrue(
             'The repository has no commits.' in str(context.exception))
         heads.assert_called_once()
 
 class TestBuildIterIssueCommits(TestCase):
 
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         safe_create_repo_dir('here')
-        cls.repo = IssueRepo('here')
+        self.repo = IssueRepo('here')
 
         data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path',
                  'description': 'This issue had a description'},
@@ -88,23 +87,24 @@ class TestBuildIterIssueCommits(TestCase):
                      'description': 'description has changed'},
                     {'id': '12', 'title': 'the contents of the file', 'filepath': 'path',
                      'description': 'here is a nice description'}]
-        cls.issues = []
-        cls.new_issues = []
+
+        self.issues = list()
+        self.new_issues = list()
+
         for d in data:
-            cls.issues.append(Issue.create_from_data(cls.repo, d))
-        cls.itree = IssueTree.create_from_issues(cls.repo, cls.issues)
+            self.issues.append(Issue.create_from_data(self.repo, d))
+        self.issue_tree = IssueTree.create_from_issues(self.repo, self.issues)
 
         for d in new_data:
-            cls.new_issues.append(Issue.create_from_data(cls.repo, d))
-        cls.new_itree = IssueTree.create_from_issues(cls.repo, cls.new_issues)
+            self.new_issues.append(Issue.create_from_data(self.repo, d))
+        self.new_issue_tree = IssueTree.create_from_issues(self.repo, self.new_issues)
 
-        cls.head = '622918a4c6539f853320e06804f73d1165df69d0'
-        cls.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
-        cls.head_commit = Commit(cls.repo, hex_to_bin(cls.head))
-        cls.first_commit = Commit(cls.repo, hex_to_bin(cls.first))
-        cls.head_icommit = IssueCommit.create(
-            cls.repo, cls.head_commit, cls.new_itree)
-        IssueCommit.create(cls.repo, cls.first_commit, cls.itree)
+        self.head = '622918a4c6539f853320e06804f73d1165df69d0'
+        self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
+        self.head_commit = Commit(self.repo, hex_to_bin(self.head))
+        self.first_commit = Commit(self.repo, hex_to_bin(self.first))
+        self.head_issue_commit = IssueCommit.create_from_commit_and_issue_tree(self.repo, self.head_commit, self.new_issue_tree)
+        IssueCommit.create_from_commit_and_issue_tree(self.repo, self.first_commit, self.issue_tree)
 
     @patch('sciit.repo.IssueRepo.iter_commits')
     @patch('sciit.repo.IssueRepo.heads')
@@ -112,7 +112,7 @@ class TestBuildIterIssueCommits(TestCase):
         val = [self.head_commit, self.first_commit]
         commits.return_value = val
         head = MagicMock()
-        head.commit = self.head_icommit
+        head.commit = self.head_issue_commit
         head.name = 'master'
         heads.__iter__.return_value = [head]
         history = self.repo.build_history('--all')
@@ -135,7 +135,7 @@ class TestBuildIterIssueCommits(TestCase):
         val = [self.head_commit, self.first_commit]
         commits.return_value = val
         head = MagicMock()
-        head.commit = self.head_icommit
+        head.commit = self.head_issue_commit
         head.name = 'master'
         heads.__iter__.return_value = [head]
         open_issues = self.repo.open_issues
@@ -147,7 +147,7 @@ class TestBuildIterIssueCommits(TestCase):
         val = [self.head_commit, self.first_commit]
         commits.return_value = val
         head = MagicMock()
-        head.commit = self.head_icommit
+        head.commit = self.head_issue_commit
         head.name = 'master'
         heads.__iter__.return_value = [head]
         all_issues = self.repo.all_issues
@@ -159,7 +159,7 @@ class TestBuildIterIssueCommits(TestCase):
         val = [self.head_commit, self.first_commit]
         commits.return_value = val
         head = MagicMock()
-        head.commit = self.head_icommit
+        head.commit = self.head_issue_commit
         head.name = 'master'
         heads.__iter__.return_value = [head]
         closed_issues = self.repo.closed_issues
@@ -184,13 +184,13 @@ class TestIssueStatus(TestCase):
         data = {'id': '1', 'title': 'hello world', 'filepath': 'README.md'}
         issue = Issue.create_from_data(self.repo, data)
         itree = IssueTree.create_from_issues(self.repo, [issue])
-        IssueCommit.create(self.repo, val[1], itree)
-        IssueCommit.create(self.repo, val[0], itree)
+        IssueCommit.create_from_commit_and_issue_tree(self.repo, val[1], itree)
+        IssueCommit.create_from_commit_and_issue_tree(self.repo, val[0], itree)
 
-        icommits = list(self.repo.iter_issue_commits('--all'))
+        issue_commits = list(self.repo.iter_issue_commits('--all'))
 
-        self.assertEqual(icommits[1].hexsha, val[1].hexsha)
-        self.assertEqual(icommits[0].hexsha, val[0].hexsha)
+        self.assertEqual(issue_commits[1].hexsha, val[1].hexsha)
+        self.assertEqual(issue_commits[0].hexsha, val[0].hexsha)
 
 
 class TestRepoSync(TestCase):
@@ -208,12 +208,12 @@ class TestRepoSync(TestCase):
     @patch('sciit.repo.IssueRepo.heads')
     def test_sync_repository(self, heads, commits):
         val = [self.head_commit, self.first_commit]
-        write_last_issue(self.repo.issue_dir, self.first)
+        write_last_issue_commit_sha(self.repo.issue_dir, self.first)
         commits.return_value = val
         head = MagicMock()
         head.commit = self.head_commit
         head.name = 'master'
         heads.__iter__.return_value = [head]
         self.repo.sync()
-        last = get_last_issue(self.repo)
+        last = get_last_issue_commit_sha(self.repo.issue_dir)
         self.assertEqual(last, self.head)

@@ -6,8 +6,8 @@ from unittest.mock import Mock, patch, mock_open
 from git import Commit
 from git.util import hex_to_bin
 from sciit import Issue, IssueCommit, IssueRepo, IssueTree
-from sciit.commit import find_issues_in_commit, find_issue_data_in_comment
-from sciit.functions import write_last_issue, get_sciit_ignore
+from sciit.commit import find_issues_in_commit, find_issue_in_comment
+from sciit.functions import write_last_issue_commit_sha, get_sciit_ignore_path_spec
 from tests.external_resources import safe_create_repo_dir
 
 pattern = r'((?:#.*(?:\n\s*#)*.*)|(?:#.*)|(?:#.*$))'
@@ -65,13 +65,13 @@ class TestCreateIssueCommit(TestCase):
         self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
         self.second_commit = Commit(self.repo, hex_to_bin(self.second))
         self.first_commit = Commit(self.repo, hex_to_bin(self.first))
-        self.second_issue_commit = IssueCommit.create(self.repo, self.second_commit, self.new_issue_tree)
-        self.first_issue_commit = IssueCommit.create(self.repo, self.first_commit, self.issue_tree)
+        self.second_issue_commit = IssueCommit.create_from_commit_and_issue_tree(self.repo, self.second_commit, self.new_issue_tree)
+        self.first_issue_commit = IssueCommit.create_from_commit_and_issue_tree(self.repo, self.first_commit, self.issue_tree)
 
-        write_last_issue(self.repo.issue_dir, self.second)
+        write_last_issue_commit_sha(self.repo.issue_dir, self.second)
 
     def test_create_issue_commit(self):
-        issue_commit = IssueCommit.create(self.repo, self.first_commit, self.issue_tree)
+        issue_commit = IssueCommit.create_from_commit_and_issue_tree(self.repo, self.first_commit, self.issue_tree)
 
         self.assertEqual(self.first_commit.hexsha, issue_commit.hexsha)
         self.assertEqual(self.first_commit.binsha, issue_commit.binsha)
@@ -356,7 +356,7 @@ value that has some contents
 
         commit.tree.blobs[3].contents = b'This one has no issue in it'
 
-        ignored_files = get_sciit_ignore(self.repo)
+        ignored_files = get_sciit_ignore_path_spec(self.repo)
         issues = find_issues_in_commit(self.repo, commit, pattern, ignored_files)
         self.assertEqual(len(issues), 0)
 
@@ -374,7 +374,7 @@ value that has some contents
 
         with patch('os.path.exists') as p:
             p.return_value = False
-            ignored_files = get_sciit_ignore(self.repo)
+            ignored_files = get_sciit_ignore_path_spec(self.repo)
         issues = find_issues_in_commit(self.repo, commit, pattern, ignored_files)
         self.assertEqual(3, len(issues))
 
@@ -385,14 +385,14 @@ class TestFindIssueInComment(TestCase):
         comment = """
         @description here is a description of the item
         """
-        data = find_issue_data_in_comment(comment)
+        data = find_issue_in_comment(comment)
         self.assertEqual(data, {})
 
     def test_find_id_only(self):
         comment = """
         @issue 2
         """
-        data = find_issue_data_in_comment(comment)
+        data = find_issue_in_comment(comment)
         self.assertIn('id', data)
         self.assertEqual(data['id'], '2')
 
@@ -401,7 +401,7 @@ class TestFindIssueInComment(TestCase):
         @issue something-new
         @title this is different
         """
-        data = find_issue_data_in_comment(comment)
+        data = find_issue_in_comment(comment)
         self.assertIn('id', data)
         self.assertEqual(data['id'], 'something-new')
         self.assertIn('title', data)
@@ -412,7 +412,7 @@ class TestFindIssueInComment(TestCase):
         @issue 2
         @description something will be found
         """
-        data = find_issue_data_in_comment(comment)
+        data = find_issue_in_comment(comment)
         self.assertIn('id', data)
         self.assertEqual(data['id'], '2')
         self.assertIn('description', data)
@@ -424,7 +424,7 @@ class TestFindIssueInComment(TestCase):
         @description 
                 something will be found
         """
-        data = find_issue_data_in_comment(comment)
+        data = find_issue_in_comment(comment)
         self.assertIn('id', data)
         self.assertEqual(data['id'], '2')
         self.assertIn('description', data)
@@ -437,7 +437,7 @@ class TestFindIssueInComment(TestCase):
             something will be found
         @due_date today
         """
-        data = find_issue_data_in_comment(comment)
+        data = find_issue_in_comment(comment)
         self.assertIn('id', data)
         self.assertEqual(data['id'], '2')
         self.assertIn('description', data)
@@ -448,7 +448,7 @@ class TestFindIssueInComment(TestCase):
         @issue 2
         @assignees mark, peter, paul
         """
-        data = find_issue_data_in_comment(comment)
+        data = find_issue_in_comment(comment)
         self.assertIn('id', data)
         self.assertEqual(data['id'], '2')
         self.assertIn('assignees', data)
@@ -459,7 +459,7 @@ class TestFindIssueInComment(TestCase):
         @issue 2
         @due_date 10 dec 2018
         """
-        data = find_issue_data_in_comment(comment)
+        data = find_issue_in_comment(comment)
         self.assertIn('id', data)
         self.assertEqual(data['id'], '2')
         self.assertIn('due_date', data)
@@ -470,7 +470,7 @@ class TestFindIssueInComment(TestCase):
         @issue 2
         @label in-development, main-feature
         """
-        data = find_issue_data_in_comment(comment)
+        data = find_issue_in_comment(comment)
         self.assertIn('id', data)
         self.assertEqual(data['id'], '2')
         self.assertIn('label', data)
@@ -481,7 +481,7 @@ class TestFindIssueInComment(TestCase):
         @issue 2
         @weight 7
         """
-        data = find_issue_data_in_comment(comment)
+        data = find_issue_in_comment(comment)
         self.assertIn('id', data)
         self.assertEqual(data['id'], '2')
         self.assertIn('weight', data)
@@ -492,7 +492,7 @@ class TestFindIssueInComment(TestCase):
         @issue 2
         @priority mid-high
         """
-        data = find_issue_data_in_comment(comment)
+        data = find_issue_in_comment(comment)
         self.assertIn('id', data)
         self.assertEqual(data['id'], '2')
         self.assertIn('priority', data)
@@ -511,7 +511,7 @@ class TestFindIssueInComment(TestCase):
         @weight 4
         @priority high
         """
-        data = find_issue_data_in_comment(comment)
+        data = find_issue_in_comment(comment)
         self.assertIn('id', data)
         self.assertEqual(data['id'], 'the-title-of-your-issue')
         self.assertIn('title', data)

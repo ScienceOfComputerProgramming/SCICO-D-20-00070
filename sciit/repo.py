@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""Module that contains the definition of the issue repo.
-
-:@author: Nystrom Edwards
-:Created: 21 June 2018
-"""
 
 import markdown2
 import os
@@ -15,28 +10,18 @@ from datetime import datetime
 
 from git import Repo
 
-from sciit import IssueTree, IssueCommit, Issue
+from sciit import IssueTree, IssueCommit
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 from sciit.commit import find_issues_in_commit
-from sciit.functions import write_last_issue, get_last_issue, get_sciit_ignore
+from sciit.functions import write_last_issue_commit_sha, get_last_issue_commit_sha, get_sciit_ignore_path_spec
 from sciit.cli.functions import print_progress_bar
 
 __all__ = ('IssueRepo', )
 
 
 class IssueRepo(Repo):
-    """IssueRepo objects represent the git and issue repository.
-    Inherits from `GitPython.Repo <https://gitpython.readthedocs.io/en/2.1.10/\
-    reference.html#module-git.repo.base>`_.
-    """
 
     def __init__(self, issue_dir=None, path=None):
-        """Initialize a newly instanced IssueRepo
-
-        Args:
-            :(str) issue_dir: string representing location of issue\
-            repository *default='.git/issue'*  
-        """
         if path:
             super(IssueRepo, self).__init__(path=path)
         else:
@@ -59,32 +44,26 @@ class IssueRepo(Repo):
         if not self.heads:
             raise NoCommitsError
 
-        last_issue_commit = get_last_issue(self)
+        last_issue_commit = get_last_issue_commit_sha(self.issue_dir)
         commits = list(self.iter_commits('--all'))
 
         latest_commit = commits[0].hexsha
         revision = last_issue_commit + '..' + latest_commit
         str_commits = self.git.execute(['git', 'rev-list', revision])
-        ignored_files = get_sciit_ignore(self)
+        ignored_files = get_sciit_ignore_path_spec(self)
 
         # uses git.execute because iter_commits generator cannot correctly identify false or empty list.
         if str_commits != '':
             commits = list(self.iter_commits(revision))
 
             for commit in reversed(commits):
-                issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
+                issues = find_issues_in_commit(self, commit, ignore_files=ignored_files)
                 issue_tree = IssueTree.create_from_issues(self, issues)
-                IssueCommit.create(self, commit, issue_tree)
+                IssueCommit.create_from_commit_and_issue_tree(self, commit, issue_tree)
 
-            write_last_issue(self.issue_dir, latest_commit)
+            write_last_issue_commit_sha(self.issue_dir, latest_commit)
 
     def reset(self):
-        """
-        Resets the git sciit folders 
-
-        Raises:
-            :EmptyRepositoryError: if repo is not initialized
-        """
         def onerror(func, path, excp_info):
             os.chmod(path, stat.S_IWUSR)
             func(path)
@@ -95,11 +74,7 @@ class IssueRepo(Repo):
         else:
             raise EmptyRepositoryError
 
-    def setup_fs_resources(self):
-        """
-        Creates the git sciit folders and files and installs the necessary
-        git hooks in the .git/hooks/ folder
-        """
+    def setup_file_system_resources(self):
         os.makedirs(self.issue_dir)
         os.makedirs(self.issue_objects_dir)
 
@@ -144,26 +119,17 @@ class IssueRepo(Repo):
         """
         commits = self.iter_commits(rev, paths, **kwargs)
         for commit in commits:
-            yield IssueCommit(self, commit.binsha)
+            yield IssueCommit.create_from_binsha(self, commit.binsha)
 
     def print_commit_progress(self, now, start, current, total):
         if self.cli:
             duration = now - start
             prefix = '%d/%d commits: ' % (current, total)
             suffix = ' Duration: %s' % str(duration)
-            print_progress_bar(
-                current, total, prefix=prefix, suffix=suffix)
 
-    def build_issue_commits(self):
-        """
-        Builds the issue repository from past commits on all branches
+            print_progress_bar(current, total, prefix=prefix, suffix=suffix)
 
-        Raises:
-            :NoCommitsError: if the git repository has no commits
-
-        Optionally:
-            :Shows Progress in Shell: if repo is used with command line interface
-        """
+    def build_issue_commits_from_all_commits(self):
         if len(self.heads) < 1:
             raise NoCommitsError
 
@@ -173,20 +139,30 @@ class IssueRepo(Repo):
         # get all commits on all branches, enforcing the topology order of parents to children.
         all_commits = self.iter_commits(['--all', '--topo-order', '--reverse'])
         num_commits = int(self.git.execute(['git', 'rev-list', '--all', '--count']))
-        ignored_files = get_sciit_ignore(self)
+        ignored_files = get_sciit_ignore_path_spec(self)
 
         for commit in all_commits:
             commits_scanned += 1
 
             self.print_commit_progress(datetime.now(), start, commits_scanned, num_commits)
-            issues = find_issues_in_commit(self, commit, ignored_files=ignored_files)
+            issues = find_issues_in_commit(self, commit, ignore_files=ignored_files)
             issue_tree = IssueTree.create_from_issues(self, issues)
             IssueCommit.create(self, commit, issue_tree)
 
         if all_commits:
-            write_last_issue(self.issue_dir, self.head.commit.hexsha)
+            write_last_issue_commit_sha(self.issue_dir, self.head.commit.hexsha)
         else:
             raise NoCommitsError
+
+    def find_latest_issue_commit_for_head(self, rev, head, top):
+        if rev is None:
+            return IssueCommit.create_from_hexsha(self, head.commit.hexsha)
+        else:
+            rev_list = self.git.execute(['git', 'rev-list', f'{head.name}', '--'])
+            if top.hexsha in rev_list:
+                return top
+            else:
+                return None
 
     def build_history(self, rev=None):
 
@@ -196,7 +172,6 @@ class IssueRepo(Repo):
         history = {}
         time_format = '%a %b %d %H:%M:%S %Y %z'
 
-        # get all commits on the all branches
         if rev is None:
             issue_commits = self.iter_issue_commits('--branches')
         else:
@@ -212,29 +187,17 @@ class IssueRepo(Repo):
                     .replace(' ', '').split('\n')
 
             for issue in issue_commit.issue_tree.issues:
-
                 if issue.id not in history:
                     history[issue.id] = IssueHistory(issue.id)
 
                 history[issue.id].update(issue, issue_commit, in_branches)
 
-        # fills the open branch set with branch status using the
-        # issue trees at the head of each branch depending on rev
-
-        top = issue_commits[0]
-
         for head in self.heads:
 
-            ### This block ocde checks whether the head is present in the current rev list, i.e. whether to include it or not.
-            ### If rev is None, this means that all revisions were collected?
-            if rev is None:
-                head_issue_commit = IssueCommit(self, head.commit.hexsha)
-            else:
-                rev_list = self.git.execute(['git', 'rev-list', f'{head.name}', '--'])
-                if top.hexsha in rev_list:
-                    head_issue_commit = top
-                else:
-                    continue
+            head_issue_commit = self.find_latest_issue_commit_for_head(rev, head, issue_commits[0])
+
+            if head_issue_commit is None:
+                continue
 
             for issue in head_issue_commit.issue_tree.issues:
                 if issue.id in history:

@@ -1,8 +1,4 @@
-"""
-This module tests the functionality of the cli issue command.
-"""
 import sys
-import re
 from io import StringIO
 from unittest import TestCase
 from unittest.mock import Mock, patch

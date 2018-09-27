@@ -1,8 +1,5 @@
-"""
-This module tests the functionality of the cli tracker command.
-"""
 from unittest import TestCase
-from unittest.mock import patch, PropertyMock, Mock
+from unittest.mock import patch, Mock
 
 from git import Commit
 from git.util import hex_to_bin
@@ -15,10 +12,9 @@ from tests.external_resources import safe_create_repo_dir
 
 class TestWebServerStartup(TestCase):
 
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         safe_create_repo_dir('here')
-        cls.repo = IssueRepo('here')
+        self.repo = IssueRepo('here')
 
         data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path',
                  'description': 'This issue had a description'},
@@ -37,22 +33,21 @@ class TestWebServerStartup(TestCase):
                  'priority': 'high',
                  'filepath': 'README.md'}]
 
-        cls.issues = []
-        for d in data:
-            cls.issues.append(Issue.create_from_data(cls.repo, d))
-        cls.itree = IssueTree.create_from_issues(cls.repo, cls.issues)
+        self.issues = [Issue.create_from_data(self.repo, d) for d in data]
+        self.issue_tree = IssueTree.create_from_issues(self.repo, self.issues)
 
-        cls.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
-        cls.first_commit = Commit(cls.repo, hex_to_bin(cls.first))
-        cls.first_icommit = IssueCommit.create(cls.repo, cls.first_commit, cls.itree)
+        self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
+        self.first_commit = Commit(self.repo, hex_to_bin(self.first))
+        self.first_issue_commit = \
+            IssueCommit.create_from_commit_and_issue_tree(self.repo, self.first_commit, self.issue_tree)
 
-        cls.app = app.test_client()
-        cls.app.testing = True
+        self.app = app.test_client()
+        self.app.testing = True
 
     @patch('sciit.repo.IssueRepo.iter_issue_commits')
     @patch('sciit.repo.IssueRepo.heads')
     @patch('sciit.web.server.app')
-    def test_main_entrance(self, app, heads, icommits):
+    def test_main_entrance(self, app, heads, issue_commits):
         args = Mock()
         args.repo = self.repo
         app = self.app
@@ -60,20 +55,20 @@ class TestWebServerStartup(TestCase):
         mock_head.commit.hexsha = self.first
         mock_head.name = 'master'
         args.repo.heads = [mock_head]
-        icommits.return_value = [self.first_icommit]
+        issue_commits.return_value = [self.first_issue_commit]
         launch(args)
         pass
 
     @patch('sciit.web.server.history')
     def test_index_page(self, history):
-        history = {'issue-1': {'status': 'Open'},
-                   'issue-2': {'status': 'Closed'}}
+        history = {'issue-1': {'status': 'Open'}, 'issue-2': {'status': 'Closed'}}
+
         response = self.app.get('/', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
 
     @patch('sciit.web.server.history')
     def test_issue_page(self, history):
-        history = {'issue-1': {'status': 'Open'},
-                   'issue-2': {'status': 'Closed'}}
+        history = {'issue-1': {'status': 'Open'}, 'issue-2': {'status': 'Closed'}}
+
         response = self.app.get('/issue-1', follow_redirects=True)
         self.assertEqual(response.status_code, 200)

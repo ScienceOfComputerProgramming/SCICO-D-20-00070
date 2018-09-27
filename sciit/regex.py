@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Module that contains the definition of regex patterns used to identify issues in source code. Also identifies the file
-types supported and their comment.
-structure
 
-:@author: Nystrom Edwards
-:Created: 24 June 2018
-"""
 import os
 
 CSTYLE = r'/\*((?:.|[\r\n])*?)\*/'
@@ -38,7 +31,6 @@ class ISSUE:
 
 
 def get_file_object_pattern(file_object):
-    # get file extension and set pattern
     ext = os.path.splitext(file_object.path)[1]
     if ext is not '':
         if ext in CSTYLE_EXTS:
