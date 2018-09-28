@@ -55,10 +55,6 @@ def page_history_items(items, view=None):
     return output
 
 
-def hline():
-    return'\n\n' + '_' * 120 + '\n'
-
-
 def subheader(header):
     return Color.bold(f'\n{header}')
 
