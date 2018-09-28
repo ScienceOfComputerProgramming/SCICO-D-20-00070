@@ -200,5 +200,5 @@ class TestStatusCommand(TestCase):
 
         output = tracker(args)
         output = ansi_escape.sub('', output)
-        self.assertIn('Changes to Issue (1):', output)
+        self.assertIn('Revisions to Issue (1):', output)
         self.assertIn('Present in Commits (2):', output)

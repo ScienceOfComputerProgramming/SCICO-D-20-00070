@@ -94,13 +94,13 @@ def build_history_item(item, view=None):
         output += f'\nExisted in:        {branches}'
 
     output += f'\nSize:              {str(item.size)}' if item.size else ''
-    output += f'\nLatest file path:  {item.file_paths[0]["file_path"]}' if len(item.file_paths) > 0 else ''
+    output += f'\nLatest file path:  {item.file_path}' if len(item.file_paths) > 0 else ''
 
-    if item.status == 'Open' and (view == 'full' or view == 'detailed') and len(item.file_paths) > 1:
-        output += "\nOther branch file paths:\n"
-        for path in item.file_paths[1:]:
-            branch_status = 'open' if path['branch'] in item.open_in else 'closed'
-            output += f'\n                   {path["file_path"]} @{path["branch"]} ({branch_status})'
+    if item.status == 'Open' and (view == 'full' or view == 'detailed') and len(item.file_paths) > 0:
+        output += "\nBranch file paths:\n"
+        for branch, path in item.file_paths.items():
+            branch_status = 'open' if branch in item.open_in else 'closed'
+            output += f'\n                   {path} @{branch} ({branch_status})'
 
     if item.description:
         output += f'\nDescription:'

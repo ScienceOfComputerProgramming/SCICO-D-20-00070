@@ -107,4 +107,4 @@ class TestIssueCommand(TestCase):
         self.assertIn('Status:            Open', output)
         self.assertIn('Existed in:', output)
         self.assertIn('Present in Commits (1):', output)
-        self.assertIn('Changes to Issue (0):', output)
+        self.assertIn('Revisions to Issue (1):', output)

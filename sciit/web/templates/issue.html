@@ -72,24 +72,6 @@
                     <p>{{issue.file_path}}</p>
                     <hr>
                 </div>
-                {% if issue.open_in %}
-                <div>
-                    <label>Open In Branches</label>
-                    {% for branch in issue.open_in %}
-                        <p>{{branch}}</p>
-                    {% endfor %}
-                    <hr>
-                </div>
-                {% endif %}
-                {% if issue.in_branches %}
-                <div>
-                    <label>Located In Branches</label>
-                    {% for branch in issue.in_branches %}
-                        <p>{{branch}}</p>
-                    {% endfor %}
-                    <hr>
-                </div>
-                {% endif %}
                 {% if issue.file_paths %}
                 <div>
                     <label>Filepath in branches</label>

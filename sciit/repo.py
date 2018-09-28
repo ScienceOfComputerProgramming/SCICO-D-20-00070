@@ -191,7 +191,6 @@ class IssueRepo(Repo):
                 history[issue.id].update(issue, issue_commit, in_branches)
 
         for head in self.heads:
-
             head_issue_commit = self.find_latest_issue_commit_for_head(rev, head, issue_commits[0])
 
             if head_issue_commit is None:
@@ -200,8 +199,6 @@ class IssueRepo(Repo):
             for issue in head_issue_commit.issues:
                 if issue.id in history:
                     history[issue.id].open_in.add(head.name)
-                    file_path = {'branch': head.name, 'file_path': issue.data['filepath']}
-                    history[issue.id].file_paths.append(file_path)
 
         return history
 
@@ -238,7 +235,6 @@ class IssueHistory(object):
         self.issue_and_issue_commits = list()
 
         self.open_in = set()
-        self.file_paths = list()
 
     @property
     def oldest_issue_and_issue_commit(self):
@@ -315,8 +311,17 @@ class IssueHistory(object):
         return self.newest_value_of_issue_property('priority')
 
     @property
+    def file_paths(self):
+        result = dict()
+        for issue, issue_commit, branches in self.issue_and_issue_commits:
+            for branch in branches:
+                if branch not in result:
+                    result[branch] = issue.data['filepath']
+        return result
+
+    @property
     def file_path(self):
-        return self.file_paths[0]['file_path'] if self.file_paths else None
+        return self.newest_issue_and_issue_commit[0].data['filepath']
 
     @property
     def participants(self):
