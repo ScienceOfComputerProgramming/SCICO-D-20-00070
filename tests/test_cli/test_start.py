@@ -19,9 +19,10 @@ class TestCLIStartup(TestCase):
     def test_main_entrance(self):
         CPrint.bold_yellow('test')
         Color.bold_green('test')
-        with patch.object(start, "main", return_value=42):
-            with patch.object(start, "__name__", "__main__"):
-                with patch.object(start.sys, 'exit') as mock_exit:
+        with \
+                patch.object(start, "main", return_value=42), \
+                patch.object(start, "__name__", "__main__"),\
+                patch.object(start.sys, 'exit') as mock_exit:
                     start.start()
                     assert mock_exit.call_args[0][0] == 42
 
@@ -86,10 +87,10 @@ class TestCLIStartup(TestCase):
         val.reset = False
         val.revision = third_sha
         args.return_value = val
-        mhead = Mock()
-        mhead.commit = third_commit
-        mhead.name = 'master'
-        repo.heads = [mhead]
+        mock_head = Mock()
+        mock_head.commit = third_commit
+        mock_head.name = 'master'
+        repo.heads = [mock_head]
         patch_repo.return_value = repo
         start.main()
         self.assertIn('Solve error by rebuilding issue repository using', sys.stdout.getvalue())
@@ -104,10 +105,10 @@ class TestCLIStartup(TestCase):
         val.reset = False
         val.revision = 'aiansifaisndzzz'
         args.return_value = val
-        mhead = Mock()
-        mhead.commit = third_commit
-        mhead.name = 'master'
-        repo.heads = [mhead]
+        mock_head = Mock()
+        mock_head.commit = third_commit
+        mock_head.name = 'master'
+        repo.heads = [mock_head]
         patch_repo.return_value = repo
         start.main()
         self.assertIn('git sciit error fatal: bad revision', sys.stdout.getvalue())

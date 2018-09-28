@@ -18,8 +18,7 @@ class TestCatFileCommand(TestCase):
         args.sha = 'xxxxxsidansmd'
         args.repo = repo
         cat_file(args)
-        self.assertIn('git sciit error fatal:',
-                      sys.stdout.getvalue())
+        self.assertIn('git sciit error fatal:', sys.stdout.getvalue())
 
     def test_get_type_issuecommit(self):
         args = Mock()
