@@ -3,7 +3,7 @@ from unittest import TestCase
 from unittest.mock import patch, PropertyMock, MagicMock
 from git import Commit
 from git.util import hex_to_bin
-from sciit import IssueRepo, IssueCommit, IssueTree, Issue
+from sciit import IssueRepo, IssueCommit, Issue
 from sciit.functions import write_last_issue_commit_sha, get_last_issue_commit_sha
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 
@@ -65,6 +65,7 @@ class TestBuildIssueRepo(TestCase):
             'The repository has no commits.' in str(context.exception))
         heads.assert_called_once()
 
+
 class TestBuildIterIssueCommits(TestCase):
 
     def setUp(self):
@@ -88,23 +89,15 @@ class TestBuildIterIssueCommits(TestCase):
                     {'id': '12', 'title': 'the contents of the file', 'filepath': 'path',
                      'description': 'here is a nice description'}]
 
-        self.issues = list()
-        self.new_issues = list()
-
-        for d in data:
-            self.issues.append(Issue.create_from_data(self.repo, d))
-        self.issue_tree = IssueTree.create_from_issues(self.repo, self.issues)
-
-        for d in new_data:
-            self.new_issues.append(Issue.create_from_data(self.repo, d))
-        self.new_issue_tree = IssueTree.create_from_issues(self.repo, self.new_issues)
+        self.issues = [Issue.create_from_data(self.repo, d) for d in data]
+        self.new_issues = [Issue.create_from_data(self.repo, d) for d in new_data]
 
         self.head = '622918a4c6539f853320e06804f73d1165df69d0'
         self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
         self.head_commit = Commit(self.repo, hex_to_bin(self.head))
         self.first_commit = Commit(self.repo, hex_to_bin(self.first))
-        self.head_issue_commit = IssueCommit.create_from_commit_and_issue_tree(self.repo, self.head_commit, self.new_issue_tree)
-        IssueCommit.create_from_commit_and_issue_tree(self.repo, self.first_commit, self.issue_tree)
+        self.head_issue_commit = IssueCommit.create_from_commit_and_issues(self.repo, self.head_commit, self.new_issues)
+        IssueCommit.create_from_commit_and_issues(self.repo, self.first_commit, self.issues)
 
     @patch('sciit.repo.IssueRepo.iter_commits')
     @patch('sciit.repo.IssueRepo.heads')
@@ -177,15 +170,13 @@ class TestIssueStatus(TestCase):
         # get first two commits of this repo
         first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
         second = '622918a4c6539f853320e06804f73d1165df69d0'
-        val = [Commit(self.repo, hex_to_bin(second)),
-               Commit(self.repo, hex_to_bin(first))]
+        val = [Commit(self.repo, hex_to_bin(second)), Commit(self.repo, hex_to_bin(first))]
         iter_commits.return_value = val
 
         data = {'id': '1', 'title': 'hello world', 'filepath': 'README.md'}
         issue = Issue.create_from_data(self.repo, data)
-        itree = IssueTree.create_from_issues(self.repo, [issue])
-        IssueCommit.create_from_commit_and_issue_tree(self.repo, val[1], itree)
-        IssueCommit.create_from_commit_and_issue_tree(self.repo, val[0], itree)
+        IssueCommit.create_from_commit_and_issues(self.repo, val[1], [issue])
+        IssueCommit.create_from_commit_and_issues(self.repo, val[0], [issue])
 
         issue_commits = list(self.repo.iter_issue_commits('--all'))
 

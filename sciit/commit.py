@@ -5,7 +5,7 @@ import re
 from git import Object, Commit
 from git.util import hex_to_bin, bin_to_hex
 
-from sciit import IssueTree, Issue
+from sciit import Issue
 from sciit.functions import serialize_repository_object_as_json, deserialize_repository_object_from_json, \
     repository_object_exists, get_repository_object_size
 from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
@@ -76,7 +76,7 @@ def _get_unchanged_issues_from_commit_parents(repo, commit, files_changed_in_com
     result = list()
     for parent in commit.parents:
         issue_commit = IssueCommit.create_from_hexsha(repo, parent.hexsha)
-        old_issues = [x for x in issue_commit.issue_tree.issues if x.filepath not in files_changed_in_commit]
+        old_issues = [x for x in issue_commit.issues if x.filepath not in files_changed_in_commit]
         result.extend(old_issues)
     return result
 
@@ -120,13 +120,13 @@ def find_issues_in_commit(repo, commit, comment_pattern=None, ignore_files=None)
 
 class IssueCommit(Object):
 
-    __slots__ = ('data', 'commit', 'size', 'issue_tree', 'time_format')
+    __slots__ = ('data', 'commit', 'size', 'issues', 'time_format')
 
-    def __init__(self, repo, sha, issue_tree, size, time_format='%a %b %d %H:%M:%S %Y %z'):
+    def __init__(self, repo, sha, issues, size, time_format='%a %b %d %H:%M:%S %Y %z'):
         if type(time_format) == int:
             raise Exception()
         super(IssueCommit, self).__init__(repo, sha)
-        self.issue_tree = issue_tree
+        self.issues = issues
         self.commit = Commit(repo, sha)
         self.size = size
         self.time_format = time_format
@@ -147,7 +147,7 @@ class IssueCommit(Object):
     @property
     def open_issues(self):
         # TODO rename this
-        return len(self.issue_tree.issues)
+        return len(self.issues)
 
     @property
     def author_name(self):
@@ -158,26 +158,34 @@ class IssueCommit(Object):
         return self.commit.authored_datetime.strftime(self.time_format)
 
     @classmethod
-    def create_from_commit_and_issue_tree(cls, repo, commit, issue_tree):
+    def create_from_commit_and_issues(cls, repo, commit, issues):
 
         if not repository_object_exists(repo, commit.hexsha):
-            data = {'commit': commit.hexsha, 'issue_tree': issue_tree.hexsha}
+            data = [{'id': issue.data['id'], 'hexsha': issue.hexsha} for issue in issues]
             serialize_repository_object_as_json(repo, commit.hexsha, IssueCommit, data)
 
         size = get_repository_object_size(repo, commit.hexsha)
-        return cls(repo, commit.binsha, issue_tree, size)
+        return cls(repo, commit.binsha, issues, size)
 
     @classmethod
     def create_from_hexsha(cls, repo, hexsha):
         binsha = hex_to_bin(hexsha)
         data, size = deserialize_repository_object_from_json(repo, hexsha)
-        issue_tree = IssueTree.create_from_hexsha(repo, data['issue_tree'])
-        return cls(repo, binsha, issue_tree, size)
+
+        issues = list()
+        for issue_data in data:
+            issues.append(Issue.create_from_hexsha(repo, issue_data['hexsha']))
+
+        return cls(repo, binsha, issues, size)
 
     @classmethod
     def create_from_binsha(cls, repo, binsha):
         hexsha = bin_to_hex(binsha).decode("utf")
         data, size = deserialize_repository_object_from_json(repo, hexsha)
-        issue_tree = IssueTree.create_from_hexsha(repo, data['issue_tree'])
-        return cls(repo, binsha, issue_tree, size)
+
+        issues = list()
+        for issue_data in data:
+            issues.append(Issue.create_from_hexsha(repo, issue_data['hexsha']))
+
+        return cls(repo, binsha, issues, size)
 

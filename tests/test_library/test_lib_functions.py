@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 
 from git import Commit
 from git.util import hex_to_bin
-from sciit import Issue, IssueCommit, IssueRepo, IssueTree
+from sciit import Issue, IssueCommit, IssueRepo
 from sciit.errors import RepoObjectDoesNotExistError, RepoObjectExistsError
 from sciit.functions import deserialize_repository_object_from_json, get_repository_object_path, \
     get_repository_object_type_from_sha, get_repository_object_size, repository_object_exists,\
@@ -99,16 +99,11 @@ class TestGetTypeFromSha(TestCase):
         self.repo = IssueRepo(issue_dir='here')
 
         self.issue = Issue.create_from_data(self.repo, data)
-        self.issue_tree = IssueTree.create_from_issues(self.repo, [self.issue, ])
-        self.issue_commit = IssueCommit.create_from_commit_and_issue_tree(self.repo, self.repo.head.commit, self.issue_tree)
+        self.issue_commit = IssueCommit.create_from_commit_and_issues(self.repo, self.repo.head.commit, [self.issue])
 
     def test_object_type_is_issue(self):
         obj_type = get_repository_object_type_from_sha(self.repo, self.issue.hexsha)
         self.assertTrue(obj_type, 'issue')
-
-    def test_object_type_is_issue_tree(self):
-        obj_type = get_repository_object_type_from_sha(self.repo, self.issue_tree.hexsha)
-        self.assertTrue(obj_type, 'issuetree')
 
     def test_object_type_is_issue_commit(self):
         obj_type = get_repository_object_type_from_sha(self.repo, self.issue_commit.hexsha)
@@ -136,7 +131,6 @@ class TestCacheIssueHistory(TestCase):
                  'description': 'here is a nice description'}]
 
         self.issues = [Issue.create_from_data(self.repo, d) for d in data]
-        self.issue_tree = IssueTree.create_from_issues(self.repo, self.issues)
 
         new_data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
                     {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
@@ -146,16 +140,14 @@ class TestCacheIssueHistory(TestCase):
                     {'id': '12', 'title': 'the contents of the file', 'filepath': 'path',
                      'description': 'here is a nice description'}]
 
-
         self.new_issues = [Issue.create_from_data(self.repo, d) for d in new_data]
-        self.new_issue_tree = IssueTree.create_from_issues(self.repo, self.new_issues)
 
         self.head = '622918a4c6539f853320e06804f73d1165df69d0'
         self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
         self.head_commit = Commit(self.repo, hex_to_bin(self.head))
         self.first_commit = Commit(self.repo, hex_to_bin(self.first))
-        self.head_issue_commit = IssueCommit.create_from_commit_and_issue_tree(self.repo, self.head_commit, self.new_issue_tree)
-        IssueCommit.create_from_commit_and_issue_tree(self.repo, self.first_commit, self.issue_tree)
+        self.head_issue_commit = IssueCommit.create_from_commit_and_issues(self.repo, self.head_commit, self.new_issues)
+        IssueCommit.create_from_commit_and_issues(self.repo, self.first_commit, self.issues)
 
     @patch('sciit.repo.IssueRepo.iter_commits')
     @patch('sciit.repo.IssueRepo.heads')

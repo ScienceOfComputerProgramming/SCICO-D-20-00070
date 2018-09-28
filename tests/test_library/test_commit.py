@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch, mock_open
 
 from git import Commit
 from git.util import hex_to_bin
-from sciit import Issue, IssueCommit, IssueRepo, IssueTree
+from sciit import Issue, IssueCommit, IssueRepo
 from sciit.commit import find_issues_in_commit, find_issue_in_comment
 from sciit.functions import write_last_issue_commit_sha, get_sciit_ignore_path_spec
 from tests.external_resources import safe_create_repo_dir
@@ -49,33 +49,24 @@ class TestCreateIssueCommit(TestCase):
                     {'id': '12', 'title': 'the contents of the file', 'filepath': 'path',
                      'description': 'here is a nice description'}]
 
-        self.issues = list()
-        self.new_issues = list()
-
-        for d in data:
-            self.issues.append(Issue.create_from_data(self.repo, d))
-        self.issue_tree = IssueTree.create_from_issues(self.repo, self.issues)
-
-        for d in new_data:
-            self.new_issues.append(Issue.create_from_data(self.repo, d))
-
-        self.new_issue_tree = IssueTree.create_from_issues(self.repo, self.new_issues)
+        self.issues = [Issue.create_from_data(self.repo, d) for d in data]
+        self.new_issues = [Issue.create_from_data(self.repo, d) for d in new_data]
 
         self.second = '622918a4c6539f853320e06804f73d1165df69d0'
         self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
         self.second_commit = Commit(self.repo, hex_to_bin(self.second))
         self.first_commit = Commit(self.repo, hex_to_bin(self.first))
-        self.second_issue_commit = IssueCommit.create_from_commit_and_issue_tree(self.repo, self.second_commit, self.new_issue_tree)
-        self.first_issue_commit = IssueCommit.create_from_commit_and_issue_tree(self.repo, self.first_commit, self.issue_tree)
+        self.second_issue_commit = IssueCommit.create_from_commit_and_issues(self.repo, self.second_commit, self.issues)
+        self.first_issue_commit = IssueCommit.create_from_commit_and_issues(self.repo, self.first_commit, self.new_issues)
 
         write_last_issue_commit_sha(self.repo.issue_dir, self.second)
 
     def test_create_issue_commit(self):
-        issue_commit = IssueCommit.create_from_commit_and_issue_tree(self.repo, self.first_commit, self.issue_tree)
+        issue_commit = IssueCommit.create_from_commit_and_issues(self.repo, self.first_commit, self.issues)
 
         self.assertEqual(self.first_commit.hexsha, issue_commit.hexsha)
         self.assertEqual(self.first_commit.binsha, issue_commit.binsha)
-        self.assertEqual(len(issue_commit.issue_tree.issues), 6)
+        self.assertEqual(len(issue_commit.issues), 6)
         self.assertEqual(issue_commit.open_issues, 6)
 
 

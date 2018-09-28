@@ -11,7 +11,7 @@ information for issue objects in our repository.
 
 from sciit.errors import RepoObjectDoesNotExistError
 from sciit.functions import get_repository_object_type_from_sha
-from sciit import Issue, IssueCommit, IssueTree
+from sciit import Issue, IssueCommit
 from sciit.cli.functions import page
 from sciit.cli.color import CPrint
 
@@ -32,8 +32,6 @@ def cat_file(args):
     # get object based on object type
     if object_type == 'IssueCommit':
         obj = IssueCommit.create_from_hexsha(args.repo, args.sha)
-    elif object_type == 'IssueTree':
-        obj = IssueTree.create_from_hexsha(args.repo, args.sha)
     elif object_type == 'Issue':
         obj = Issue.create_from_hexsha(args.repo, args.sha)
 
@@ -49,8 +47,6 @@ def cat_file(args):
     elif args.print:
         if type(obj) == IssueCommit:
             output = page_issue_commit(obj)
-        elif type(obj) == IssueTree:
-            output = page_issue_tree(obj)
         elif type(obj) == Issue:
             output = page_issue(obj)
         return output
@@ -65,7 +61,6 @@ def page_issue_commit(issue_commit):
     atime = issue_commit.commit.authored_datetime.strftime(time_format)
     ctime = issue_commit.commit.committed_datetime.strftime(time_format)
     output = f'tree {issue_commit.commit.tree.hexsha}'
-    output += f'\nissuetree {issue_commit.issue_tree.hexsha}'
     output += f'\nopen issues: {str(issue_commit.open_issues)}'
     for parent in issue_commit.commit.parents:
         output += f'\nparent {parent.hexsha}'

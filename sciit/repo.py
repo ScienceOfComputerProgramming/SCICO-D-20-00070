@@ -10,7 +10,7 @@ from datetime import datetime
 
 from git import Repo
 
-from sciit import IssueTree, IssueCommit
+from sciit import IssueCommit
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 from sciit.commit import find_issues_in_commit
 from sciit.functions import write_last_issue_commit_sha, get_last_issue_commit_sha, get_sciit_ignore_path_spec
@@ -58,8 +58,7 @@ class IssueRepo(Repo):
 
             for commit in reversed(commits):
                 issues = find_issues_in_commit(self, commit, ignore_files=ignored_files)
-                issue_tree = IssueTree.create_from_issues(self, issues)
-                IssueCommit.create_from_commit_and_issue_tree(self, commit, issue_tree)
+                IssueCommit.create_from_commit_and_issues(self, commit, issues)
 
             write_last_issue_commit_sha(self.issue_dir, latest_commit)
 
@@ -146,8 +145,7 @@ class IssueRepo(Repo):
 
             self.print_commit_progress(datetime.now(), start, commits_scanned, num_commits)
             issues = find_issues_in_commit(self, commit, ignore_files=ignored_files)
-            issue_tree = IssueTree.create_from_issues(self, issues)
-            IssueCommit.create(self, commit, issue_tree)
+            IssueCommit.create_from_issues(self, commit, issues)
 
         if all_commits:
             write_last_issue_commit_sha(self.issue_dir, self.head.commit.hexsha)
@@ -186,7 +184,7 @@ class IssueRepo(Repo):
                     .replace('*', '')\
                     .replace(' ', '').split('\n')
 
-            for issue in issue_commit.issue_tree.issues:
+            for issue in issue_commit.issues:
                 if issue.id not in history:
                     history[issue.id] = IssueHistory(issue.id)
 
@@ -199,7 +197,7 @@ class IssueRepo(Repo):
             if head_issue_commit is None:
                 continue
 
-            for issue in head_issue_commit.issue_tree.issues:
+            for issue in head_issue_commit.issues:
                 if issue.id in history:
                     history[issue.id].open_in.add(head.name)
                     file_path = {'branch': head.name, 'file_path': issue.data['filepath']}
