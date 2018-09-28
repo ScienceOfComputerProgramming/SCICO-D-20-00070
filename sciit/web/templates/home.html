@@ -28,7 +28,7 @@
                             {% for issue in history.values() if issue.status == 'Open' %}
                             <tr>
                                 <td>
-                                    <a href='/{{ issue.id }}'>{{ issue.title }}</a>
+                                    <a href='/{{ issue.issue_id }}'>{{ issue.title }}</a>
                                 </td>
                                 <td>
                                     <strong>{{ issue.last_author }}</strong>
@@ -54,7 +54,7 @@
                             {% for issue in history.values() if issue.status == 'Closed' %}
                             <tr>
                                 <td>
-                                    <a href='/{{ issue.id }}'>{{ issue.title }}</a>
+                                    <a href='/{{ issue.issue_id }}'>{{ issue.title }}</a>
                                 </td>
                                 <td>
                                     <strong>{{ issue.last_author }}</strong>

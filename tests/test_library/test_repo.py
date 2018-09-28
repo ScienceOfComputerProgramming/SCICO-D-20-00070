@@ -110,9 +110,11 @@ class TestBuildIterIssueCommits(TestCase):
         heads.__iter__.return_value = [head]
         history = self.repo.build_history('--all')
         self.assertEqual(len(history), 8)
-        self.assertTrue('here is a nice description' in history['6'].descriptions[1]['change'])
-        self.assertTrue('description has changed' in history['6'].descriptions[0]['change'])
-        self.assertTrue('This issue had a description' in history['1'].descriptions[0]['change'])
+        self.assertEqual(2, len(history['6'].revisions))
+        print(history['6'].revisions[0]['changes']['description'])
+        self.assertTrue('description has changed' in history['6'].revisions[0]['changes']['description'])
+        print(history['1'].revisions[0]['changes'])
+        self.assertTrue('This issue had a description' in history['1'].revisions[1]['changes']['description'])
 
     @patch('sciit.repo.IssueRepo.heads')
     def test_get_build_history_no_commits(self, heads):

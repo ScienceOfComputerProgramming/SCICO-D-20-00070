@@ -73,13 +73,15 @@ def build_history_item(item, view=None):
     status = item.status
     participants = ', '.join(item.participants)
 
-    output =  f'\nTitle:             ' + Color.bold_yellow(f"{item.title}")
+    output = ''
+    output += f'\nTitle:             ' + Color.bold_yellow(f"{item.title}")
     output += f'\nID:                {item.issue_id}'
-    output += f'\nStatus:            ' + Color.red(status) if status == 'Open' else Color.green(status)
+    output += f'\nStatus:            ' + (Color.red(status) if status == 'Open' else Color.green(status))
     output += f'\n'
     output += f'\nClosed:            {item.closer} | {item.closed_date}' if item.closer else ''
     output += f'\nLast Authored:     {item.last_author} | {item.last_authored_date}'
-    output += f'\nCreated:           {item.creator} | {item.created_date}\n'
+    output += f'\nCreated:           {item.creator} | {item.created_date}'
+    output += f'\n'
     output += f'\nAssigned To:       {item.assignees}' if item.assignees else ''
     output += f'\nParticipants:      {participants}'
     output += f'\nDue Date:          {item.due_date}' if item.due_date else ''
@@ -100,12 +102,25 @@ def build_history_item(item, view=None):
             branch_status = 'open' if path['branch'] in item.open_in else 'closed'
             output += f'\n                   {path["file_path"]} @{path["branch"]} ({branch_status})'
 
+    if item.description:
+        output += f'\nDescription:'
+        output += '\n' if not item.description.startswith('\n') else ''
+        output += item.description
+
     if view == 'full':
         num_revisions = str(len(item.revisions))
-        output += subheader(f'\nIssue Revisions ({num_revisions}):')
+        output += subheader(f'\nRevisions to Issue ({num_revisions}):\n')
+
         for revision in item.revisions:
-            changes = ', '.join(revision['changes'])
-            output += f'\n{revision["issuesha"]} | {changes}'
+
+            changes = revision['changes']
+            output += f'\nIn {revision["issuesha"]} ({len(changes)} items changed):\n'
+
+            for changed_property, new_value in changes.items():
+                output += f' {changed_property}: {new_value}\n'
+
+            output += f'\n'
+            output += f'{Color.bold_yellow("--> made by: " + revision["author"])} - {revision["date"]}\n'
 
     if view == 'full' or view == 'detailed':
         num_commits = str(len(item.activity))
@@ -114,27 +129,6 @@ def build_history_item(item, view=None):
             output += f'\n{commit["date"]}'
             if view == 'full':
                 output += f' | {commit["commitsha"]} | {commit["author"]} | {commit["summary"]}'
-
-    if view == 'full' and item.descriptions:
-        num_descriptions = len(item.descriptions)
-        output += subheader(f'\nChanges to Descriptions ({num_descriptions}):')
-
-        for description in item.descriptions:
-            for line in description["change"].splitlines():
-                if line.startswith('+'):
-                    output += '\n' + Color.green(line)
-                elif line.startswith('-'):
-                    output += '\n' + Color.red(line)
-                else:
-                    output += '\n' + line
-
-            output += f'\n\n'
-            output += f'{Color.bold_yellow("--> made by: " + description["author"])} - {description["date"]}'
-            output += f'\n'
-    elif item.description:
-        output += subheader('\n\nDescription:')
-        output += f'{item.description}\n\n'
-        output += f'{Color.bold_yellow("--> added by: " + item.last_author)} - {item.last_authored_date}'
 
     output += f'\n{Color.yellow("*"*90)}\n'
 

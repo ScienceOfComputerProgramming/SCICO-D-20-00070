@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Module that contains the functions needed to lauch the web
-server.
-
-:@author: Nystrom Edwards
-:Created: 06 August 2018
 """
+Functions needed to lauch the web server.
+"""
+
 from flask import Flask, render_template
-from sciit import IssueRepo
-import markdown2
 
 app = Flask(__name__)
 history = None
@@ -19,8 +15,8 @@ def index():
     closed issues stored in the tracker
     """
     data = {}
-    data['Num Open Issues'] = len([x for x in history.values() if x['status'] == 'Open'])
-    data['Num Closed Issues'] = len([x for x in history.values() if x['status'] == 'Closed'])
+    data['Num Open Issues'] = len([x for x in history.values() if x.status == 'Open'])
+    data['Num Closed Issues'] = len([x for x in history.values() if x.status == 'Closed'])
     return render_template('home.html', history=history, data=data)
 
 

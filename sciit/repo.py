@@ -254,7 +254,7 @@ class IssueHistory(object):
 
     @property
     def oldest_issue_commit(self):
-        return self.newest_issue_and_issue_commit[1]
+        return self.oldest_issue_and_issue_commit[1]
 
     @property
     def last_author(self):
@@ -278,26 +278,13 @@ class IssueHistory(object):
                 return getattr(issue_and_issue_commit[0], p)
         return None
 
-    def history_of_issue_property(self, p):
-        result = list()
-        for issue, issue_commit, _ in self.issue_and_issue_commits:
-            if hasattr(issue, p):
-                result.append(
-                    {
-                        'change': getattr(issue, p),
-                        'author': issue_commit.commit.author.name,
-                        'date': issue_commit.date_string
-                    }
-                )
-        return result
+    @property
+    def hexsha(self):
+        return self.newest_value_of_issue_property('hexsha')
 
     @property
     def title(self):
         return self.newest_value_of_issue_property('title')
-
-    @property
-    def titles(self):
-        return self.history_of_issue_property('title')
 
     @property
     def description(self):
@@ -306,10 +293,6 @@ class IssueHistory(object):
     @property
     def description_as_html(self):
         return markdown2.markdown(self.description)
-
-    @property
-    def descriptions(self):
-        return self.history_of_issue_property('description')
 
     @property
     def assignees(self):
@@ -332,6 +315,10 @@ class IssueHistory(object):
         return self.newest_value_of_issue_property('priority')
 
     @property
+    def file_path(self):
+        return self.file_paths[0]['file_path'] if self.file_paths else None
+
+    @property
     def participants(self):
         result = set()
         for issue_and_issue_commit in self.issue_and_issue_commits:
@@ -344,8 +331,8 @@ class IssueHistory(object):
 
     @property
     def closing_commit(self):
-        if self.status == 'closed':
-            _, last_issue_commit = self.newest_issue_and_issue_commit
+        if self.status == 'Closed':
+            _, last_issue_commit, _ = self.newest_issue_and_issue_commit
             child = last_issue_commit.children[0]
             return child
         else:
@@ -353,11 +340,12 @@ class IssueHistory(object):
 
     @property
     def closer(self):
-        return self.closing_commit.author_name if self.closing_commit else None
+        return self.closing_commit.author.name if self.closing_commit else None
 
     @property
     def closed_date(self):
-        return self.closing_commit.date_string if self.closing_commit else None
+        time_format = '%a %b %d %H:%M:%S %Y %z'
+        return self.closing_commit.authored_datetime.strftime(time_format) if self.closing_commit else None
 
     @property
     def closing_summary(self):
@@ -374,7 +362,7 @@ class IssueHistory(object):
                     'author': issue_commit.author_name,
                     'summary': issue_commit.commit.summary})
 
-        if self.status == 'closed':
+        if self.status == 'Closed':
 
             closing_activity = \
                 {
@@ -387,25 +375,54 @@ class IssueHistory(object):
 
         return result
 
+
     @property
     def revisions(self):
         result = list()
 
-        for newer, older in zip(self.issue_and_issue_commits[:-1], self.issue_and_issue_commits[:1]):
+        if self.status == 'Closed':
+            result.append(
+                {
+                    'issuesha': self.closing_commit.hexsha,
+                    'date': self.closed_date,
+                    'author': self.closing_commit.author.name,
+                    'changes': {'status': 'Closed'}
+                }
+            )
+
+        for newer, older in zip(self.issue_and_issue_commits[:-1], self.issue_and_issue_commits[1:]):
             newer_issue = newer[0]
             older_issue = older[0]
 
-            changes = [x for x, v in newer_issue.data.items() if v not in older_issue.data.items()]
-            changes.remove('hexsha')
+            changes = dict()
+            for k, v in newer_issue.data.items():
+                if k not in older_issue.data or older_issue.data[k] != v:
+                    changes[k] = v
 
-            revision = {
-                'issuesha': newer_issue.hexsha,
-                'date': newer[1].date_string,
-                'author': newer[1].author_name
-            }
-            if changes:
-                revision['changes'] = changes
-            result.append(revision)
+            if 'hexsha' in changes:
+                del changes['hexsha']
+
+            if len(changes) > 0:
+
+                revision = {
+                    'issuesha': newer[1].commit.hexsha,
+                    'date': newer[1].date_string,
+                    'author': newer[1].author_name,
+                    'changes': changes
+                }
+                result.append(revision)
+
+        original_values = self.oldest_issue_and_issue_commit[0].data
+        if 'hexsha' in original_values:
+            del original_values['hexsha']
+
+        oldest_version = {
+            'issuesha': self.oldest_issue_commit.commit.hexsha,
+            'date': self.oldest_issue_commit.date_string,
+            'author': self.oldest_issue_commit.author_name,
+            'changes': original_values
+        }
+        result.append(oldest_version)
 
         return result
 

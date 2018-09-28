@@ -101,10 +101,8 @@ def find_issues_in_commit(repo, commit, comment_pattern=None, ignore_files=None)
             continue
 
         blob = blobs[file_changed]
-        print(comment_pattern, file_changed)
         if not comment_pattern:
             comment_pattern = get_file_object_pattern(blob)
-            print(comment_pattern)
 
         if not comment_pattern:
             continue
@@ -160,6 +158,10 @@ class IssueListInCommit(Object):
     @property
     def date_string(self):
         return self.commit.authored_datetime.strftime(self.time_format)
+
+    @property
+    def summary(self):
+        return self.children[0].summary
 
     @classmethod
     def create_from_commit_and_issues(cls, repo, commit, issues):

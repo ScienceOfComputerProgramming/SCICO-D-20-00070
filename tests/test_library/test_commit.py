@@ -158,10 +158,11 @@ class FindIssuesInCommit(TestCase):
             blobs=[
                 self.blob_mock(
                     content=b"""
-/*@issue 2
- *@description
- * value that has some contents
- */
+#***
+# @issue 2
+# @description 
+#  value that has some contents
+#***
                     """,
                     mime_type='text/plain',
                     path='hello')
@@ -169,7 +170,7 @@ class FindIssuesInCommit(TestCase):
         )
 
         issues = find_issues_in_commit(self.repo, commit)
-        self.assertEqual(len(issues), 1)
+        self.assertEqual(1, len(issues))
         self.assertNotIn('#', issues[0].description)
 
     def test_one_markdown_issue_cleaned(self):

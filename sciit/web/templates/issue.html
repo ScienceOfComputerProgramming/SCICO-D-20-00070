@@ -11,34 +11,7 @@
                 <div class="card">
                     <div class="card-header" role="tab">
                         <h5 class="mb-0">
-                            <a data-toggle="collapse" aria-expanded="true" aria-controls="accordion-1 .item-1" href="div#accordion-1 .item-1">Description Changes ({{ issue.descriptions|length }})</a>
-                        </h5>
-                    </div>
-                    <div class="collapse item-1" role="tabpanel" data-parent="#accordion-1">
-                        {% for item in issue.descriptions %}
-                        <div class="card-body">
-                            <p class="card-text">
-                                {% for line in item['change'].splitlines() %}
-                                    {% if line.startswith('+') %}
-                                        <span class="addition">{{ line }}</span>
-                                    {% elif line.startswith('-') %}
-                                        <span class="deletion">{{ line }}</span>
-                                    {% elif line.startswith('?') %}
-                                        <span class="change">{{ line }}</span>
-                                    {% else %} 
-                                        {{ line }} 
-                                    {% endif %}
-                                {% endfor %}
-                            </p>
-                            <p class="aside">changed by: {{ item['author'] }} {{ item['date'] }}</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header" role="tab">
-                        <h5 class="mb-0">
-                            <a data-toggle="collapse" aria-expanded="false" aria-controls="accordion-1 .item-2" href="div#accordion-1 .item-2">Commit Activities ({{ issue.activity|length }})</a>
+                            <a data-toggle="collapse" aria-expanded="false" aria-controls="accordion-1 .item-2" href="div#accordion-1 .item-2">Present in Commits ({{ issue.activity|length }})</a>
                         </h5>
                     </div>
                     <div class="collapse item-2" role="tabpanel" data-parent="#accordion-1">
@@ -48,10 +21,11 @@
                                     <strong>{{ item['commitsha'] }}</strong>
                                 </p>
                                 <p class="card-text">
-                                    <strong>date:</strong> {{ item['date'] }}</p>
+                                    Date: <strong>{{ item['date'] }}</strong></p>
                                 <p class="card-text">
-                                    <strong>author:</strong> {{ item['author'] }}</p>
-                                <p class="card-text">{{ item['summary'] }}</p>
+                                    Author: <strong>{{ item['author'] }}</strong> </p>
+                                <p class="card-text">
+                                    Summary: <strong>{{ item['summary'] }}</strong></p>
                                 <hr>
                             {% endfor %}
                         </div>
@@ -66,7 +40,14 @@
                     <div class="collapse item-3" role="tabpanel" data-parent="#accordion-1">
                         <div class="card-body">
                             {% for item in issue.revisions %}
-                                <p class="card-text">issue sha: {{ item }}</p>
+                                <p class="card-text">
+                                    Changes were made in <strong>{{ item['issuesha'] }}</strong>. <br> By <strong>{{ item['author'] }}</strong>  on <strong>{{ item['date'] }}</strong>.
+                                </p>
+                                {% for changed_property in item['changes'] %}
+                                    <p class="card-text">
+                                        <strong> {{changed_property}}</strong>  changed to <strong>{{item['changes'][changed_property]}}</strong>
+                                    </p>
+                                {% endfor %}
                                 <hr> 
                             {% endfor %}
                         </div>
@@ -78,7 +59,7 @@
             <div class="sidebar">
                 <div>
                     <label>Issue ID</label>
-                    <p>{{issue.id}}</p>
+                    <p>{{issue.issue_id}}</p>
                     <hr>
                 </div>
                 <div>
@@ -112,8 +93,8 @@
                 {% if issue.file_paths %}
                 <div>
                     <label>Filepath in branches</label>
-                    {% for filepath in issue.file_paths %}
-                        <p>{{filepath}}</p>
+                    {% for file_path in issue.file_paths %}
+                        <p>{{file_path['file_path']}} @ {{file_path['branch']}} ({{'open' if file_path['branch'] in issue.open_in else 'closed'}})</p>
                     {% endfor %}
                     <hr>
                 </div>
@@ -152,35 +133,35 @@
                     </p>
                     <hr>
                 </div>
-                {% if 'assignees' in issue %}
+                {% if issue.assignees %}
                 <div>
                     <label>Assigned To</label>
                     <p>{{issue.assignees}}</p>
                     <hr>
                 </div>
                 {% endif %}
-                {% if 'due_date' in issue %}
+                {% if issue.due_date %}
                 <div>
                     <label>Due Date</label>
                     <p>{{issue.due_date}}</p>
                     <hr>
                 </div>
                 {% endif %}
-                {% if 'label' in issue %}
+                {% if issuelabel %}
                 <div>
                     <label>Labels</label>
                     <p>{{issue.label}}</p>
                     <hr>
                 </div>
                 {% endif %}
-                {% if 'weight' in issue %}
+                {% if issue.weight %}
                 <div>
                     <label>Weight</label>
                     <p>{{issue.weight}}</p>
                     <hr>
                 </div>
                 {% endif %}
-                {% if 'priority' in issue %}
+                {% if issue.priority %}
                 <div>
                     <label>Priority</label>
                     <p>{{issue.priority}}</p>
