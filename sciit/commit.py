@@ -67,7 +67,10 @@ def find_issues_in_blob(search, blob_content):
 def read_in_blob_contents(blob):
     blob_contents = blob.data_stream.read()
     if type(blob_contents) == bytes:
-        return blob_contents.decode("utf-8")
+        try:
+            return blob_contents.decode("utf-8")
+        except UnicodeDecodeError as e:
+            return None
     else:
         return blob_contents
 
@@ -98,17 +101,18 @@ def find_issues_in_commit(repo, commit, comment_pattern=None, ignore_files=None)
             continue
 
         blob = blobs[file_changed]
-
+        print(comment_pattern, file_changed)
         if not comment_pattern:
             comment_pattern = get_file_object_pattern(blob)
+            print(comment_pattern)
 
         if not comment_pattern:
             continue
 
         blob_contents = read_in_blob_contents(blob)
-
+        if blob_contents is None:
+            continue
         blob_issues = find_issues_in_blob(comment_pattern, blob_contents)
-
         for issue_data in blob_issues:
             issue_data['filepath'] = file_changed
             issue = Issue.create_from_data(repo, issue_data)

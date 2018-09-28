@@ -118,9 +118,34 @@ class FindIssuesInCommit(TestCase):
         commit = self.commit_mock(
             blobs=[
                 self.blob_mock(
-                    content=b'/*@issue 2\n* @description \n * value that has some contents\n*/',
+                    content=b"""
+/*@issue 2
+ *@description
+ * value that has some contents
+ */
+                    """,
                     mime_type='text/x-java',
                     path='hello.java')
+            ]
+        )
+
+        issues = find_issues_in_commit(self.repo, commit)
+        self.assertEqual(len(issues), 1)
+        self.assertNotIn('*', issues[0].description)
+
+    def test_one_python_issue_cleaned(self):
+        commit = self.commit_mock(
+            blobs=[
+                self.blob_mock(
+                    content=b'''
+                    """
+                    @issue 2
+                    @description
+                     value that has some contents
+                    """
+                    ''',
+                    mime_type='text/x-python',
+                    path='hello.py')
             ]
         )
 
@@ -132,7 +157,12 @@ class FindIssuesInCommit(TestCase):
         commit = self.commit_mock(
             blobs=[
                 self.blob_mock(
-                    content=b'#***\n#@issue 2\n# @description \n # value that has some contents\n#***',
+                    content=b"""
+/*@issue 2
+ *@description
+ * value that has some contents
+ */
+                    """,
                     mime_type='text/plain',
                     path='hello')
             ]
@@ -193,7 +223,12 @@ value that has some contents
         commit = self.commit_mock(
             blobs=[
                 self.blob_mock(
-                    content=b'<!--@issue 3\nvalue that has some contents-->',
+                    content=b"""
+<!--
+@issue 3
+value that has some contents
+-->
+""",
                     mime_type='text',
                     path='README.html')
             ]
@@ -206,7 +241,12 @@ value that has some contents
         commit = self.commit_mock(
             blobs=[
                 self.blob_mock(
-                    content=b'<!--@issue 3\nvalue that has some contents-->',
+                    content=b"""
+<!--
+@issue 3
+value that has some contents
+-->
+                    """,
                     mime_type='text',
                     path='picture.png')
             ]

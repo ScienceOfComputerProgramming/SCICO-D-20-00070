@@ -77,23 +77,6 @@ def page_issue_commit(issue_commit):
     return output
 
 
-def page_issue_tree(issue_tree):
-    """
-    Args:
-        :(IssueTree) itree: issue tree to print to pager
-    """
-    output = ''
-    for issue in issue_tree.issues:
-        title = issue.title
-        output += f'{issue.id}\t'
-        output += f'{issue.hexsha}\t'
-        output += f'{title}\t'
-        output += f'{issue.filepath}\n'
-
-    page(output)
-    return output
-
-
 def page_issue(issue):
     """
     Args:

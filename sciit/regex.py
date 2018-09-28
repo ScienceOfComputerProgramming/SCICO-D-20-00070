@@ -32,6 +32,7 @@ class ISSUE:
 
 def get_file_object_pattern(file_object):
     ext = os.path.splitext(file_object.path)[1]
+    print(ext)
     if ext is not '':
         if ext in CSTYLE_EXTS:
             pattern = CSTYLE
@@ -39,19 +40,19 @@ def get_file_object_pattern(file_object):
             pattern = HTML
         elif ext in MARKDOWN_EXTS:
             pattern = MARKDOWN
-        elif ext in OTHER_EXTS or file_object.mime_type == 'text/plain':
-            pattern = PLAIN
         elif ext == '.m':
             pattern = MATLAB
         elif ext == '.hs':
             pattern = HASKELL
         elif ext == '.py':
             pattern = PYTHON
+        elif ext in OTHER_EXTS or file_object.mime_type == 'text/plain':
+            pattern = PLAIN
         else:
             pattern = False
-    elif file_object.mime_type != 'text/plain':
-        pattern = False
-    else:
+    elif file_object.mime_type == 'text/plain':
         pattern = PLAIN
+    else:
+        pattern = False
 
     return pattern

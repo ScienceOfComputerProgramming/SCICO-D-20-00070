@@ -145,7 +145,7 @@ class IssueRepo(Repo):
 
             self.print_commit_progress(datetime.now(), start, commits_scanned, num_commits)
             issues = find_issues_in_commit(self, commit, ignore_files=ignored_files)
-            IssueListInCommit.create_from_issues(self, commit, issues)
+            IssueListInCommit.create_from_commit_and_issues(self, commit, issues)
 
         if all_commits:
             write_last_issue_commit_sha(self.issue_dir, self.head.commit.hexsha)

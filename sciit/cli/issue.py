@@ -55,6 +55,14 @@ def page_history_items(items, view=None):
     return output
 
 
+def hline():
+    return'\n\n' + '_' * 120 + '\n'
+
+
+def subheader(header):
+    return Color.bold(f'\n{header}')
+
+
 def build_history_item(item, view=None):
     """
     Builds a string representation of a issue history item for showing to the terminal with ANSI color codes
@@ -66,119 +74,72 @@ def build_history_item(item, view=None):
         :(str): string representation of issue history item
     """
 
-    output = Color.bold_yellow(f"ID: {item.issue_id}")
-    output += f'\n'
-
     status = item.status
+    participants = ', '.join(item.participants)
 
-    if status == 'Open':
-        output += f'{Color.red(f"Status: {status}")}'
-    else:
-        output += f'{Color.green(f"Status: {status}")}'
-
-    output += f'\nTitle: {item.title}'
-
+    output =  f'\nTitle:             ' + Color.bold_yellow(f"{item.title}")
+    output += f'\nID:                {item.issue_id}'
+    output += f'\nStatus:            ' + Color.red(status) if status == 'Open' else Color.green(status)
     output += f'\n'
-
-    if item.closer:
-        output += f'\nClosed:             '
-        output += f' {item.closer}'
-        output += f' | {item.closed_date}'
-
-    output += f'\nLast Authored:      '
-    output += f' {item.last_author}'
-    output += f' | {item.last_authored_date}'
-    output += f'\nCreated:            '
-    output += f' {item.creator}'
-    output += f' | {item.created_date}'
-    output += f'\n'
-
-    if item.assignees:
-        output += f'\nAssigned To:        {item.assignees}'
-
-    output += f'\nParticipants:       '
-
-    for participant in item.participants:
-        output += participant + ', '
-    if item.due_date:
-        output += f'\nDue Date:           {item.due_date}'
-    if item.label:
-        output += f'\nLabels:             {item.label}'
-    if item.weight:
-        output += f'\nWeight:             {item.weight}'
-    if item.priority:
-        output += f'\nPriority:           {item.priority}'
+    output += f'\nClosed:            {item.closer} | {item.closed_date}' if item.closer else ''
+    output += f'\nLast Authored:     {item.last_author} | {item.last_authored_date}'
+    output += f'\nCreated:           {item.creator} | {item.created_date}\n'
+    output += f'\nAssigned To:       {item.assignees}' if item.assignees else ''
+    output += f'\nParticipants:      {participants}'
+    output += f'\nDue Date:          {item.due_date}' if item.due_date else ''
+    output += f'\nLabels:            {item.label}' if item.label else ''
+    output += f'\nWeight:            {item.weight}' if item.weight else ''
+    output += f'\nPriority:          {item.priority}' if item.priority else ''
 
     if view == 'full' or view == 'detailed':
-        output += f'\nFound In:           '
-        for branch in item.in_branches:
-            output += '\n' + ' '*20 + branch
+        branches = ', '.join(item.in_branches)
+        output += f'\nExisted in:        {branches}'
 
-    if item.size:
-        output += f'\nSize:               {str(item.size)}'
+    output += f'\nSize:              {str(item.size)}' if item.size else ''
+    output += f'\nLatest file path:  {item.file_paths[0]["file_path"]}' if len(item.file_paths) > 0 else ''
 
-    if len(item.file_paths) > 0:
-        output += '\nFile path:         ' + item.file_paths[0]['file_path']
-
-    if item.status == 'Open':
-
-        if view == 'full' or view == 'detailed':
-
-            output += f'\nOpen In Branches:   '
-            for branch in item.open_in:
-                output += '\n' + ' '*20 + branch
-
-            output += '\nFile paths:'
-            for path in item.file_paths:
-                output += '\n' + ' '*20 + path['file_path'] + ' @' + path['branch']
+    if item.status == 'Open' and (view == 'full' or view == 'detailed') and len(item.file_paths) > 1:
+        output += "\nOther branch file paths:\n"
+        for path in item.file_paths[1:]:
+            branch_status = 'open' if path['branch'] in item.open_in else 'closed'
+            output += f'\n                   {path["file_path"]} @{path["branch"]} ({branch_status})'
 
     if view == 'full':
-        output += f'\n'
-        output += f'\nIssue Revisions:    {str(len(item.revisions))}'
+        num_revisions = str(len(item.revisions))
+        output += subheader(f'\nIssue Revisions ({num_revisions}):')
         for revision in item.revisions:
-            output += '\n' + revision['issuesha']
-            if 'changes' in revision:
-                output += ' changes: '
-                for change in revision['changes']:
-                    output += f'{change}, '
+            changes = ', '.join(revision['changes'])
+            output += f'\n{revision["issuesha"]} | {changes}'
 
     if view == 'full' or view == 'detailed':
-        output += f'\n'
-        output += f'\nCommit Activities:  {str(len(item.activity))}'
+        num_commits = str(len(item.activity))
+        output += subheader(f'\nPresent in Commits ({num_commits}):')
         for commit in item.activity:
             output += f'\n{commit["date"]}'
             if view == 'full':
-                output += f' | {commit["commitsha"]}'
-            output += f' | {commit["author"]}'
-            output += f' | {commit["summary"]}'
+                output += f' | {commit["commitsha"]} | {commit["author"]} | {commit["summary"]}'
 
-    if view == 'full':
-        output += f'\n'
-        if item.descriptions:
-            output += '\n' + '_'*90 + '\n' + Color.bold('Descriptions:')
-            for description in item.descriptions:
-                for line in description["change"].splitlines():
-                    if line.startswith('+'):
-                        output += '\n' + Color.green(line)
-                    elif line.startswith('-'):
-                        output += '\n' + Color.red(line)
-                    else:
-                        output += '\n' + line
-                output += f'\n\n'
-                output += f'{Color.bold_yellow("--> added by: " + description["author"])}'
-                output += f' - {description["date"]}'
-                output += '\n' + '_'*70
-    else:
-        output += f'\n'
-        if item.description:
-            output += '\n' + '_'*90 + '\n' + Color.bold('Description:')
-            output += '\n' + item.description
+    if view == 'full' and item.descriptions:
+        num_descriptions = len(item.descriptions)
+        output += subheader(f'\nChanges to Descriptions ({num_descriptions}):')
+
+        for description in item.descriptions:
+            for line in description["change"].splitlines():
+                if line.startswith('+'):
+                    output += '\n' + Color.green(line)
+                elif line.startswith('-'):
+                    output += '\n' + Color.red(line)
+                else:
+                    output += '\n' + line
+
             output += f'\n\n'
-            output += f'{Color.bold_yellow("--> added by: " + item.last_author)}'
-            output += f' - {item.last_authored_date}'
-            output += '\n' + '_'*70
+            output += f'{Color.bold_yellow("--> made by: " + description["author"])} - {description["date"]}'
+            output += f'\n'
+    elif item.description:
+        output += subheader('\n\nDescription:')
+        output += f'{item.description}\n\n'
+        output += f'{Color.bold_yellow("--> added by: " + item.last_author)} - {item.last_authored_date}'
 
-    output += f'\n\n'
-    output += f'{Color.yellow("*"*90)}'
-    output += f'\n\n'
+    output += f'\n{Color.yellow("*"*90)}\n'
+
     return output
