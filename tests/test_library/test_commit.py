@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch, mock_open
 
 from git import Commit
 from git.util import hex_to_bin
-from sciit import Issue, IssueCommit, IssueRepo
+from sciit import Issue, IssueListInCommit, IssueRepo
 from sciit.commit import find_issues_in_commit, find_issue_in_comment
 from sciit.functions import write_last_issue_commit_sha, get_sciit_ignore_path_spec
 from tests.external_resources import safe_create_repo_dir
@@ -56,13 +56,13 @@ class TestCreateIssueCommit(TestCase):
         self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
         self.second_commit = Commit(self.repo, hex_to_bin(self.second))
         self.first_commit = Commit(self.repo, hex_to_bin(self.first))
-        self.second_issue_commit = IssueCommit.create_from_commit_and_issues(self.repo, self.second_commit, self.issues)
-        self.first_issue_commit = IssueCommit.create_from_commit_and_issues(self.repo, self.first_commit, self.new_issues)
+        self.second_issue_commit = IssueListInCommit.create_from_commit_and_issues(self.repo, self.second_commit, self.issues)
+        self.first_issue_commit = IssueListInCommit.create_from_commit_and_issues(self.repo, self.first_commit, self.new_issues)
 
         write_last_issue_commit_sha(self.repo.issue_dir, self.second)
 
     def test_create_issue_commit(self):
-        issue_commit = IssueCommit.create_from_commit_and_issues(self.repo, self.first_commit, self.issues)
+        issue_commit = IssueListInCommit.create_from_commit_and_issues(self.repo, self.first_commit, self.issues)
 
         self.assertEqual(self.first_commit.hexsha, issue_commit.hexsha)
         self.assertEqual(self.first_commit.binsha, issue_commit.binsha)

@@ -11,7 +11,7 @@ from sciit.functions import serialize_repository_object_as_json, deserialize_rep
 from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
 
 
-__all__ = ('IssueCommit', 'find_issues_in_commit')
+__all__ = ('IssueListInCommit', 'find_issues_in_commit')
 
 
 def get_blobs_from_commit_tree(tree):
@@ -75,7 +75,7 @@ def read_in_blob_contents(blob):
 def _get_unchanged_issues_from_commit_parents(repo, commit, files_changed_in_commit):
     result = list()
     for parent in commit.parents:
-        issue_commit = IssueCommit.create_from_hexsha(repo, parent.hexsha)
+        issue_commit = IssueListInCommit.create_from_hexsha(repo, parent.hexsha)
         old_issues = [x for x in issue_commit.issues if x.filepath not in files_changed_in_commit]
         result.extend(old_issues)
     return result
@@ -118,14 +118,14 @@ def find_issues_in_commit(repo, commit, comment_pattern=None, ignore_files=None)
     return issues
 
 
-class IssueCommit(Object):
+class IssueListInCommit(Object):
 
     __slots__ = ('data', 'commit', 'size', 'issues', 'time_format')
 
     def __init__(self, repo, sha, issues, size, time_format='%a %b %d %H:%M:%S %Y %z'):
         if type(time_format) == int:
             raise Exception()
-        super(IssueCommit, self).__init__(repo, sha)
+        super(IssueListInCommit, self).__init__(repo, sha)
         self.issues = issues
         self.commit = Commit(repo, sha)
         self.size = size
@@ -162,7 +162,7 @@ class IssueCommit(Object):
 
         if not repository_object_exists(repo, commit.hexsha):
             data = [{'id': issue.data['id'], 'hexsha': issue.hexsha} for issue in issues]
-            serialize_repository_object_as_json(repo, commit.hexsha, IssueCommit, data)
+            serialize_repository_object_as_json(repo, commit.hexsha, IssueListInCommit, data)
 
         size = get_repository_object_size(repo, commit.hexsha)
         return cls(repo, commit.binsha, issues, size)

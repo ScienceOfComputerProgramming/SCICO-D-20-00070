@@ -10,7 +10,7 @@ from datetime import datetime
 
 from git import Repo
 
-from sciit import IssueCommit
+from sciit import IssueListInCommit
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 from sciit.commit import find_issues_in_commit
 from sciit.functions import write_last_issue_commit_sha, get_last_issue_commit_sha, get_sciit_ignore_path_spec
@@ -58,7 +58,7 @@ class IssueRepo(Repo):
 
             for commit in reversed(commits):
                 issues = find_issues_in_commit(self, commit, ignore_files=ignored_files)
-                IssueCommit.create_from_commit_and_issues(self, commit, issues)
+                IssueListInCommit.create_from_commit_and_issues(self, commit, issues)
 
             write_last_issue_commit_sha(self.issue_dir, latest_commit)
 
@@ -118,7 +118,7 @@ class IssueRepo(Repo):
         """
         commits = self.iter_commits(rev, paths, **kwargs)
         for commit in commits:
-            yield IssueCommit.create_from_binsha(self, commit.binsha)
+            yield IssueListInCommit.create_from_binsha(self, commit.binsha)
 
     def print_commit_progress(self, now, start, current, total):
         if self.cli:
@@ -145,7 +145,7 @@ class IssueRepo(Repo):
 
             self.print_commit_progress(datetime.now(), start, commits_scanned, num_commits)
             issues = find_issues_in_commit(self, commit, ignore_files=ignored_files)
-            IssueCommit.create_from_issues(self, commit, issues)
+            IssueListInCommit.create_from_issues(self, commit, issues)
 
         if all_commits:
             write_last_issue_commit_sha(self.issue_dir, self.head.commit.hexsha)
@@ -154,7 +154,7 @@ class IssueRepo(Repo):
 
     def find_latest_issue_commit_for_head(self, rev, head, top):
         if rev is None:
-            return IssueCommit.create_from_hexsha(self, head.commit.hexsha)
+            return IssueListInCommit.create_from_hexsha(self, head.commit.hexsha)
         else:
             rev_list = self.git.execute(['git', 'rev-list', f'{head.name}', '--'])
             if top.hexsha in rev_list:

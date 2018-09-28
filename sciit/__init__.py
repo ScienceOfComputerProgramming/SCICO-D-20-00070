@@ -1,3 +1,3 @@
 from .issue import Issue
-from .commit import IssueCommit
+from .commit import IssueListInCommit
 from .repo import IssueRepo

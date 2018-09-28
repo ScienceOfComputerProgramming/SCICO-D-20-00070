@@ -10,7 +10,7 @@ that are currently being tracked on HEAD or revision.
 """
 from git.exc import GitCommandError
 from sciit.errors import RepoObjectDoesNotExistError
-from sciit import IssueCommit
+from sciit import IssueListInCommit
 from sciit.cli.color import CPrint
 
 

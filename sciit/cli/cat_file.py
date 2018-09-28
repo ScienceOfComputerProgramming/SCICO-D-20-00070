@@ -11,7 +11,7 @@ information for issue objects in our repository.
 
 from sciit.errors import RepoObjectDoesNotExistError
 from sciit.functions import get_repository_object_type_from_sha
-from sciit import Issue, IssueCommit
+from sciit import Issue, IssueListInCommit
 from sciit.cli.functions import page
 from sciit.cli.color import CPrint
 
@@ -30,8 +30,8 @@ def cat_file(args):
         return
 
     # get object based on object type
-    if object_type == 'IssueCommit':
-        obj = IssueCommit.create_from_hexsha(args.repo, args.sha)
+    if object_type == 'IssueListInCommit':
+        obj = IssueListInCommit.create_from_hexsha(args.repo, args.sha)
     elif object_type == 'Issue':
         obj = Issue.create_from_hexsha(args.repo, args.sha)
 
@@ -45,7 +45,7 @@ def cat_file(args):
 
     # print flag selected
     elif args.print:
-        if type(obj) == IssueCommit:
+        if type(obj) == IssueListInCommit:
             output = page_issue_commit(obj)
         elif type(obj) == Issue:
             output = page_issue(obj)

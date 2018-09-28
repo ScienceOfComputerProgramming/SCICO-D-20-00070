@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from sciit import IssueRepo, IssueTree, IssueCommit
+from sciit import IssueRepo, IssueTree, IssueListInCommit
 from sciit.commit import find_issues_in_commit
 from sciit.functions import write_last_issue_commit_sha, get_sciit_ignore_path_spec
 from sciit.cli.color import CPrint
@@ -48,7 +48,7 @@ if len(set(issues)) != len(issues):
     exit()
 
 issue_tree = IssueTree.create_from_issues(repo, issues)
-issue_commit = IssueCommit.create(repo, commit, issue_tree)
+issue_commit = IssueListInCommit.create(repo, commit, issue_tree)
 write_last_issue_commit_sha(repo.issue_dir, commit.hexsha)
 
 # dealing with a detached head

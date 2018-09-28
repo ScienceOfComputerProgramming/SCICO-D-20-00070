@@ -1,6 +1,6 @@
 import re
 from tests.external_resources import safe_create_repo_dir
-from sciit import IssueRepo, IssueCommit, Issue
+from sciit import IssueRepo, IssueListInCommit, Issue
 from sciit.functions import write_last_issue_commit_sha
 from git import Commit
 from git.util import hex_to_bin
@@ -47,8 +47,8 @@ first_commit = Commit(repo, hex_to_bin(first_sha))
 second_commit = Commit(repo, hex_to_bin(second_sha))
 third_commit = Commit(repo, hex_to_bin(third_sha))
 
-first_issue_commit = IssueCommit.create_from_commit_and_issues(repo, first_commit, first_issues)
-second_issue_commit = IssueCommit.create_from_commit_and_issues(repo, second_commit, second_issues)
+first_issue_commit = IssueListInCommit.create_from_commit_and_issues(repo, first_commit, first_issues)
+second_issue_commit = IssueListInCommit.create_from_commit_and_issues(repo, second_commit, second_issues)
 
 write_last_issue_commit_sha(repo.issue_dir, second_sha)
 

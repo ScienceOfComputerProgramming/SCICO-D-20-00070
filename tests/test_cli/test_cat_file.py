@@ -26,7 +26,7 @@ class TestCatFileCommand(TestCase):
         args.sha = first_issue_commit.hexsha
         args.repo = repo
         cat_file(args)
-        self.assertIn('IssueCommit', sys.stdout.getvalue())
+        self.assertIn('IssueListInCommit', sys.stdout.getvalue())
 
     def test_get_type_icommit(self):
         args = Mock()

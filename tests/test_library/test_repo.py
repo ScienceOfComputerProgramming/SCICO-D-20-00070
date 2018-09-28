@@ -3,7 +3,7 @@ from unittest import TestCase
 from unittest.mock import patch, PropertyMock, MagicMock
 from git import Commit
 from git.util import hex_to_bin
-from sciit import IssueRepo, IssueCommit, Issue
+from sciit import IssueRepo, IssueListInCommit, Issue
 from sciit.functions import write_last_issue_commit_sha, get_last_issue_commit_sha
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 
@@ -96,8 +96,8 @@ class TestBuildIterIssueCommits(TestCase):
         self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
         self.head_commit = Commit(self.repo, hex_to_bin(self.head))
         self.first_commit = Commit(self.repo, hex_to_bin(self.first))
-        self.head_issue_commit = IssueCommit.create_from_commit_and_issues(self.repo, self.head_commit, self.new_issues)
-        IssueCommit.create_from_commit_and_issues(self.repo, self.first_commit, self.issues)
+        self.head_issue_commit = IssueListInCommit.create_from_commit_and_issues(self.repo, self.head_commit, self.new_issues)
+        IssueListInCommit.create_from_commit_and_issues(self.repo, self.first_commit, self.issues)
 
     @patch('sciit.repo.IssueRepo.iter_commits')
     @patch('sciit.repo.IssueRepo.heads')
@@ -175,8 +175,8 @@ class TestIssueStatus(TestCase):
 
         data = {'id': '1', 'title': 'hello world', 'filepath': 'README.md'}
         issue = Issue.create_from_data(self.repo, data)
-        IssueCommit.create_from_commit_and_issues(self.repo, val[1], [issue])
-        IssueCommit.create_from_commit_and_issues(self.repo, val[0], [issue])
+        IssueListInCommit.create_from_commit_and_issues(self.repo, val[1], [issue])
+        IssueListInCommit.create_from_commit_and_issues(self.repo, val[0], [issue])
 
         issue_commits = list(self.repo.iter_issue_commits('--all'))
 
