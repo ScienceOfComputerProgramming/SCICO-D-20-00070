@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from sciit import Issue, IssueRepo
+from sciit import IssueSnapshot, IssueRepo
 from tests.external_resources import safe_create_repo_dir
 
 
@@ -30,33 +30,33 @@ class TestIssue(TestCase):
         safe_create_repo_dir('here')
         self.repo = IssueRepo(issue_dir='here')
 
-        self.issue = Issue.create_from_data(self.repo, self.data.copy())
-        self.issue1 = Issue.create_from_data(self.repo, self.data1.copy())
+        self.issue = IssueSnapshot.create_from_data(self.repo, self.data.copy())
+        self.issue1 = IssueSnapshot.create_from_data(self.repo, self.data1.copy())
 
     def test_create_issue(self):
-        issue = Issue.create_from_data(self.repo, self.data.copy())
+        issue = IssueSnapshot.create_from_data(self.repo, self.data.copy())
         self.assertTrue(issue.size > 0)
         self.assertNotEqual(self.data, issue.data)
         self.assertIn(self.data['filepath'], issue.data['filepath'])
         self.assertIn(self.data['contents'], issue.data['contents'])
 
     def test_create_existing_issue_returns_existing_issue(self):
-        issue = Issue.create_from_data(self.repo, self.data)
+        issue = IssueSnapshot.create_from_data(self.repo, self.data)
         self.assertEqual(self.issue, issue)
 
     def test_retreive_issue_binsha(self):
         binsha = self.issue.binsha
 
-        issue = Issue.create_from_binsha(self.repo, binsha)
+        issue = IssueSnapshot.create_from_binsha(self.repo, binsha)
         self.assertEqual(self.issue, issue)
 
     def test_retreive_issue_hexsha(self):
         hexsha = self.issue.hexsha
-        issue = Issue.create_from_hexsha(self.repo, hexsha)
+        issue = IssueSnapshot.create_from_hexsha(self.repo, hexsha)
         self.assertEqual(self.issue, issue)
 
     def test_create_separate_issues_from_similar_content(self):
-        issue = Issue.create_from_data(self.repo, self.data1.copy())
+        issue = IssueSnapshot.create_from_data(self.repo, self.data1.copy())
         self.assertTrue(issue.size > 0)
         self.assertNotEqual(self.data1, issue.data)
         self.assertIn(self.data1['filepath'], issue.data['filepath'])
@@ -73,7 +73,7 @@ class TestIssue(TestCase):
         self.assertTrue('Issue#' in str(self.issue))
 
     def test_create_issue_full_metadata(self):
-        issue = Issue.create_from_data(self.repo, self.data3.copy())
+        issue = IssueSnapshot.create_from_data(self.repo, self.data3.copy())
         self.assertTrue(hasattr(issue, 'id'))
         self.assertTrue(hasattr(issue, 'title'))
         self.assertTrue(hasattr(issue, 'description'))
@@ -86,8 +86,8 @@ class TestIssue(TestCase):
         self.assertTrue(hasattr(issue, 'size'))
 
     def test_get_issue_full_metadata(self):
-        issue = Issue.create_from_data(self.repo, self.data3.copy())
-        issue = Issue.create_from_binsha(self.repo, issue.binsha)
+        issue = IssueSnapshot.create_from_data(self.repo, self.data3.copy())
+        issue = IssueSnapshot.create_from_binsha(self.repo, issue.binsha)
         self.assertTrue(hasattr(issue, 'id'))
         self.assertTrue(hasattr(issue, 'title'))
         self.assertTrue(hasattr(issue, 'description'))

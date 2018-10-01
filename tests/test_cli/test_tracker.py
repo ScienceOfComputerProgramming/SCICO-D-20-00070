@@ -180,7 +180,7 @@ class TestStatusCommand(TestCase):
         self.assertIn('Description:', output)
         self.assertIn('Existed in:', output)
         self.assertIn('Present in Commits (2):', output)
-        self.assertNotIn('Issue Revisions:', output)
+        self.assertNotIn('IssueSnapshot Revisions:', output)
 
     @patch('sciit.repo.IssueRepo.heads')
     @patch('sciit.repo.IssueRepo.sync')

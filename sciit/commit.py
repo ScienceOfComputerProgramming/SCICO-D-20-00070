@@ -5,7 +5,7 @@ import re
 from git import Object, Commit
 from git.util import hex_to_bin, bin_to_hex
 
-from sciit import Issue
+from sciit import IssueSnapshot
 from sciit.functions import serialize_repository_object_as_json, deserialize_repository_object_from_json, \
     repository_object_exists, get_repository_object_size
 from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
@@ -113,7 +113,7 @@ def find_issues_in_commit(repo, commit, comment_pattern=None, ignore_files=None)
         blob_issues = find_issues_in_blob(comment_pattern, blob_contents)
         for issue_data in blob_issues:
             issue_data['filepath'] = file_changed
-            issue = Issue.create_from_data(repo, issue_data)
+            issue = IssueSnapshot.create_from_data(repo, issue_data)
             issues.append(issue)
 
     issues.extend(_get_unchanged_issues_from_commit_parents(repo, commit, files_changed_in_commit))
@@ -180,7 +180,7 @@ class IssueListInCommit(Object):
 
         issues = list()
         for issue_data in data:
-            issues.append(Issue.create_from_hexsha(repo, issue_data['hexsha']))
+            issues.append(IssueSnapshot.create_from_hexsha(repo, issue_data['hexsha']))
 
         return cls(repo, binsha, issues, size)
 
@@ -191,7 +191,7 @@ class IssueListInCommit(Object):
 
         issues = list()
         for issue_data in data:
-            issues.append(Issue.create_from_hexsha(repo, issue_data['hexsha']))
+            issues.append(IssueSnapshot.create_from_hexsha(repo, issue_data['hexsha']))
 
         return cls(repo, binsha, issues, size)
 

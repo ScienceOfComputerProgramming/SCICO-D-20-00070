@@ -4,7 +4,7 @@ from unittest.mock import patch, Mock
 from git import Commit
 from git.util import hex_to_bin
 
-from sciit import IssueRepo, IssueListInCommit, Issue
+from sciit import IssueRepo, IssueListInCommit, IssueSnapshot
 from sciit.web.server import app, launch
 
 from tests.external_resources import safe_create_repo_dir
@@ -33,7 +33,7 @@ class TestWebServerStartup(TestCase):
                  'priority': 'high',
                  'filepath': 'README.md'}]
 
-        self.issues = [Issue.create_from_data(self.repo, d) for d in data]
+        self.issues = [IssueSnapshot.create_from_data(self.repo, d) for d in data]
 
         self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
         self.first_commit = Commit(self.repo, hex_to_bin(self.first))

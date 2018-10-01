@@ -90,13 +90,13 @@ def index():
             delta = CONFIG.last_push_hook - CONFIG.last_issue_hook
             if delta < timedelta(seconds=10):
                 return json.dumps({"status": "Rejected",
-                                   "message": "This request originated from an Issue Hook"})
+                                   "message": "This request originated from an IssueSnapshot Hook"})
             else:
                 return handle_push_event(CONFIG, data)
         else:
             return handle_push_event(CONFIG, data)
 
-    elif event == 'Issue Hook':
+    elif event == 'IssueSnapshot Hook':
 
         CONFIG.last_issue_hook = datetime.now(timezone.utc)
         if CONFIG.last_push_hook:
@@ -141,7 +141,7 @@ def init():
     CONFIG.repo = IssueRepo(path=CONFIG.path)
     CONFIG.repo.cache_issue_commits_from_all_commits()
 
-    return json.dumps({"status": "Success", "message": f"{data['remote']} Issue Repository Initialized"})
+    return json.dumps({"status": "Success", "message": f"{data['remote']} IssueSnapshot Repository Initialized"})
 
 
 def launch(args):

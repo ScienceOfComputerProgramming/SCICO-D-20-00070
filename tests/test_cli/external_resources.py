@@ -1,6 +1,6 @@
 import re
 from tests.external_resources import safe_create_repo_dir
-from sciit import IssueRepo, IssueListInCommit, Issue
+from sciit import IssueRepo, IssueListInCommit, IssueSnapshot
 from sciit.functions import write_last_issue_commit_sha
 from git import Commit
 from git.util import hex_to_bin
@@ -35,9 +35,9 @@ second_data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'pat
                {'id': '12', 'title': 'the contents of the file', 'filepath': 'path',
                 'description': 'here is a nice description'}]
 
-first_issues = [Issue.create_from_data(repo, d) for d in first_data]
+first_issues = [IssueSnapshot.create_from_data(repo, d) for d in first_data]
 
-second_issues = [Issue.create_from_data(repo, d) for d in second_data]
+second_issues = [IssueSnapshot.create_from_data(repo, d) for d in second_data]
 
 first_sha = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
 second_sha = '622918a4c6539f853320e06804f73d1165df69d0'

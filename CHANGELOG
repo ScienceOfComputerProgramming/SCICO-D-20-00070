@@ -87,7 +87,7 @@ Version 0.3
 New Features
 ~~~~~~~~~~~~
 
-* Project renamed to Source Control Integrated Issue Tracker (SCIIT)
+* Project renamed to Source Control Integrated IssueSnapshot Tracker (SCIIT)
 * CLI issue tracker infers complex issue information from commit history
   * Builds open on branch information
   * Builds status information

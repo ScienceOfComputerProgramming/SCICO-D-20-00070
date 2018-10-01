@@ -8,15 +8,15 @@ from git.util import hex_to_bin, bin_to_hex
 from sciit.functions import serialize_repository_object_as_json, deserialize_repository_object_from_json, \
     repository_object_exists, get_repository_object_size
 
-__all__ = ('Issue',)
+__all__ = ('IssueSnapshot',)
 
 
-class Issue(Object):
+class IssueSnapshot(Object):
     __slots__ = ('data', 'title', 'description', 'assignees', 'due_date', 'label', 'weight', 'priority', 'title', 'size'
                  , 'filepath', 'id')
 
     def __init__(self, repo, sha, data, size):
-        super(Issue, self).__init__(repo, sha)
+        super(IssueSnapshot, self).__init__(repo, sha)
         self.data = data
         self.size = size
 
@@ -73,5 +73,5 @@ class Issue(Object):
         hexsha = sha.hexdigest()
         data['hexsha'] = sha.hexdigest()
         if not repository_object_exists(repo, sha.hexdigest()):
-            serialize_repository_object_as_json(repo, sha.hexdigest(), Issue, data)
-        return Issue(repo, sha.digest(), data, get_repository_object_size(repo, hexsha))
+            serialize_repository_object_as_json(repo, sha.hexdigest(), IssueSnapshot, data)
+        return IssueSnapshot(repo, sha.digest(), data, get_repository_object_size(repo, hexsha))

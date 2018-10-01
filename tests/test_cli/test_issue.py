@@ -63,7 +63,7 @@ class TestIssueCommand(TestCase):
         self.assertIn('Status:            Open', output)
         self.assertIn('Description:', output)
         self.assertIn('Latest file path:  path', output)
-        self.assertNotIn('Issue Revisions:', output)
+        self.assertNotIn('IssueSnapshot Revisions:', output)
         self.assertNotIn('Commit Activity:', output)
 
     @patch('sciit.repo.IssueRepo.heads')

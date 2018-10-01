@@ -3,7 +3,7 @@ from unittest import TestCase
 from unittest.mock import patch, PropertyMock, MagicMock
 from git import Commit
 from git.util import hex_to_bin
-from sciit import IssueRepo, IssueListInCommit, Issue
+from sciit import IssueRepo, IssueListInCommit, IssueSnapshot
 from sciit.functions import write_last_issue_commit_sha, get_last_issue_commit_sha
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 
@@ -89,8 +89,8 @@ class TestBuildIterIssueCommits(TestCase):
                     {'id': '12', 'title': 'the contents of the file', 'filepath': 'path',
                      'description': 'here is a nice description'}]
 
-        self.issues = [Issue.create_from_data(self.repo, d) for d in data]
-        self.new_issues = [Issue.create_from_data(self.repo, d) for d in new_data]
+        self.issues = [IssueSnapshot.create_from_data(self.repo, d) for d in data]
+        self.new_issues = [IssueSnapshot.create_from_data(self.repo, d) for d in new_data]
 
         self.head = '622918a4c6539f853320e06804f73d1165df69d0'
         self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
@@ -175,7 +175,7 @@ class TestIssueStatus(TestCase):
         iter_commits.return_value = val
 
         data = {'id': '1', 'title': 'hello world', 'filepath': 'README.md'}
-        issue = Issue.create_from_data(self.repo, data)
+        issue = IssueSnapshot.create_from_data(self.repo, data)
         IssueListInCommit.create_from_commit_and_issues(self.repo, val[1], [issue])
         IssueListInCommit.create_from_commit_and_issues(self.repo, val[0], [issue])
 

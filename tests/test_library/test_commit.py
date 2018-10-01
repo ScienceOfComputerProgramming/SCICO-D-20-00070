@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch, mock_open
 
 from git import Commit
 from git.util import hex_to_bin
-from sciit import Issue, IssueListInCommit, IssueRepo
+from sciit import IssueSnapshot, IssueListInCommit, IssueRepo
 from sciit.commit import find_issues_in_commit, find_issue_in_comment
 from sciit.functions import write_last_issue_commit_sha, get_sciit_ignore_path_spec
 from tests.external_resources import safe_create_repo_dir
@@ -49,8 +49,8 @@ class TestCreateIssueCommit(TestCase):
                     {'id': '12', 'title': 'the contents of the file', 'filepath': 'path',
                      'description': 'here is a nice description'}]
 
-        self.issues = [Issue.create_from_data(self.repo, d) for d in data]
-        self.new_issues = [Issue.create_from_data(self.repo, d) for d in new_data]
+        self.issues = [IssueSnapshot.create_from_data(self.repo, d) for d in data]
+        self.new_issues = [IssueSnapshot.create_from_data(self.repo, d) for d in new_data]
 
         self.second = '622918a4c6539f853320e06804f73d1165df69d0'
         self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
@@ -536,7 +536,7 @@ class TestFindIssueInComment(TestCase):
     def test_find_all_metadata(self):
         comment = """
         @issue the-title-of-your-issue
-        @title The Title of Your Issue
+        @title The Title of Your IssueSnapshot
         @description:
             A description of you issue as you
             want it to be ``markdown`` supported
@@ -550,7 +550,7 @@ class TestFindIssueInComment(TestCase):
         self.assertIn('id', data)
         self.assertEqual(data['id'], 'the-title-of-your-issue')
         self.assertIn('title', data)
-        self.assertEqual(data['title'], 'The Title of Your Issue')
+        self.assertEqual(data['title'], 'The Title of Your IssueSnapshot')
         self.assertIn('description', data)
         self.assertIn('of you issue as you\n', data['description'])
         self.assertIn('assignees', data)
