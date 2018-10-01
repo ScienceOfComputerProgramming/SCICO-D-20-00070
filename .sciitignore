@@ -1,3 +1,4 @@
 *.md
 *.rst
+*.pdf
 tests/test_library/test_commit.py
