@@ -1,2 +1,3 @@
 *.md
 *.rst
+tests/test_library/test_commit.py
