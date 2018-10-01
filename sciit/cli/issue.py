@@ -103,7 +103,7 @@ def build_history_item(item, view=None):
             output += f'\n                   {path} @{branch} ({branch_status})'
 
     if item.description:
-        output += f'\nDescription:'
+        output += f'\n\nDescription:'
         output += '\n' if not item.description.startswith('\n') else ''
         output += item.description
 

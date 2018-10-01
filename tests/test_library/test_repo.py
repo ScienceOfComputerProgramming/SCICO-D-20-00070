@@ -60,7 +60,7 @@ class TestBuildIssueRepo(TestCase):
     def test_build_from_empty_repo(self, heads):
         heads.return_value = []
         with self.assertRaises(NoCommitsError) as context:
-            self.repo.build_issue_commits_from_all_commits()
+            self.repo.cache_issue_commits_from_all_commits()
         self.assertTrue(
             'The repository has no commits.' in str(context.exception))
         heads.assert_called_once()

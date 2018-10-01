@@ -40,7 +40,7 @@ class TestCLIStartup(TestCase):
             self.assertIn('usage: git sciit [-h] [-v]', sys.stdout.getvalue())
 
     @patch('argparse.ArgumentParser.parse_args', new_callable=Mock)
-    @patch('sciit.repo.IssueRepo.build_issue_commits_from_all_commits')
+    @patch('sciit.repo.IssueRepo.cache_issue_commits_from_all_commits')
     def test_init_command_runs_smoothly(self, build, args):
         val = Mock()
         val.func = init

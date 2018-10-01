@@ -70,7 +70,7 @@ class TestCreateIssueCommit(TestCase):
         self.assertEqual(issue_commit.open_issues, 6)
 
 
-class FindIssuesInCommit(TestCase):
+class TestFindIssuesInCommit(TestCase):
 
     def setUp(self):
         safe_create_repo_dir('here')
@@ -87,13 +87,15 @@ class FindIssuesInCommit(TestCase):
         commit.parents = list()
         return commit
 
-    def tree_mock(self, trees=list(), blobs=list()):
+    @staticmethod
+    def tree_mock(trees=list(), blobs=list()):
         tree = Mock()
         tree.trees = trees
         tree.blobs = blobs
         return tree
 
-    def blob_mock(self, content=None, mime_type=None, path=None):
+    @staticmethod
+    def blob_mock(content=None, mime_type=None, path=None):
         blob = Mock()
         blob.path = path
         blob.type = 'blob'
@@ -154,16 +156,17 @@ class FindIssuesInCommit(TestCase):
         self.assertNotIn('*', issues[0].description)
 
     def test_one_hashstyle_issue_cleaned(self):
+
         commit = self.commit_mock(
             blobs=[
                 self.blob_mock(
                     content=b"""
 #***
 # @issue 2
-# @description 
+# @description
 #  value that has some contents
-#***
-                    """,
+#***"""
+                    ,
                     mime_type='text/plain',
                     path='hello')
             ]
@@ -184,7 +187,7 @@ class FindIssuesInCommit(TestCase):
 @description 
 value that has some contents
 ---
-                    """,
+""",
                     mime_type='text/plain',
                     path='issue.md')
             ]

@@ -128,7 +128,7 @@ class IssueRepo(Repo):
 
             print_progress_bar(current, total, prefix=prefix, suffix=suffix)
 
-    def build_issue_commits_from_all_commits(self):
+    def cache_issue_commits_from_all_commits(self):
         if len(self.heads) < 1:
             raise NoCommitsError
 
@@ -145,6 +145,9 @@ class IssueRepo(Repo):
 
             self.print_commit_progress(datetime.now(), start, commits_scanned, num_commits)
             issues = find_issues_in_commit(self, commit, ignore_files=ignored_files)
+
+
+
             IssueListInCommit.create_from_commit_and_issues(self, commit, issues)
 
         if all_commits:

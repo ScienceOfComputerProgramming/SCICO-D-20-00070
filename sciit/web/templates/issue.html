@@ -75,8 +75,8 @@
                 {% if issue.file_paths %}
                 <div>
                     <label>Filepath in branches</label>
-                    {% for file_path in issue.file_paths %}
-                        <p>{{file_path['file_path']}} @ {{file_path['branch']}} ({{'open' if file_path['branch'] in issue.open_in else 'closed'}})</p>
+                    {% for branch, file_path in issue.file_paths.items() %}
+                        <p>{{file_path}} @ {{branch}} ({{'open' if branch in issue.open_in else 'closed'}})</p>
                     {% endfor %}
                     <hr>
                 </div>

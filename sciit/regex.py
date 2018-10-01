@@ -32,7 +32,6 @@ class ISSUE:
 
 def get_file_object_pattern(file_object):
     ext = os.path.splitext(file_object.path)[1]
-    print(ext)
     if ext is not '':
         if ext in CSTYLE_EXTS:
             pattern = CSTYLE

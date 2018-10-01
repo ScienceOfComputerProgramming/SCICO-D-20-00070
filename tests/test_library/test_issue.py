@@ -35,7 +35,6 @@ class TestIssue(TestCase):
 
     def test_create_issue(self):
         issue = Issue.create_from_data(self.repo, self.data.copy())
-        print(issue.data)
         self.assertTrue(issue.size > 0)
         self.assertNotEqual(self.data, issue.data)
         self.assertIn(self.data['filepath'], issue.data['filepath'])

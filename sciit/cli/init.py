@@ -27,14 +27,14 @@ def init(args):
         try:
             print(' ')
             CPrint.bold('Building repository from commits')
-            args.repo.build_issue_commits_from_all_commits()
+            args.repo.cache_issue_commits_from_all_commits()
             print(' ')
         except NoCommitsError as error:
             CPrint.yellow(error)
             CPrint.green('Empty issue repository created')
         except KeyboardInterrupt:
             print('\n')
-            CPrint.bold_red('Setup issue repository process interupted')
+            CPrint.bold_red('Setup issue repository process interrupted')
             print('Cleaning up')
             args.repo.reset()
             CPrint.yellow('Done.')
