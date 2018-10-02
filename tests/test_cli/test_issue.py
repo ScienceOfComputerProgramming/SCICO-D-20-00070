@@ -20,7 +20,7 @@ class TestIssueCommand(TestCase):
     def test_command_fails_if_no_issues_matched(self, pager, sync, heads):
         self.args.revision = second_sha
         self.args.normal = self.args.detailed = self.args.full = False
-        self.args.issueid = ''
+        self.args.issue_id = ''
 
         mock_head = Mock()
         mock_head.commit = second_commit
@@ -36,7 +36,7 @@ class TestIssueCommand(TestCase):
     def test_command_returns_no_history(self, sync, history):
         self.args.revision = first_sha
         self.args.normal = self.args.detailed = self.args.full = False
-        self.args.issueid = ''
+        self.args.issue_id = ''
         history.return_value = {}
 
         issue(self.args)
@@ -50,7 +50,7 @@ class TestIssueCommand(TestCase):
         self.args.revision = second_sha
         self.args.normal = True
         self.args.detailed = self.args.full = False
-        self.args.issueid = '12'
+        self.args.issue_id = '12'
 
         mock_head = Mock()
         mock_head.commit = second_commit
@@ -73,7 +73,7 @@ class TestIssueCommand(TestCase):
         self.args.revision = second_sha
         self.args.detailed = True
         self.args.normal = self.args.full = False
-        self.args.issueid = '6'
+        self.args.issue_id = '6'
 
         mock_head = Mock()
         mock_head.commit = second_commit
@@ -81,6 +81,7 @@ class TestIssueCommand(TestCase):
         self.args.repo.heads = [mock_head]
 
         output = issue(self.args)
+
         output = ansi_escape.sub('', output)
         self.assertIn('ID:                6', output)
         self.assertIn('Status:            Open', output)
@@ -94,7 +95,7 @@ class TestIssueCommand(TestCase):
         self.args.revision = second_sha
         self.args.full = True
         self.args.normal = self.args.detailed = False
-        self.args.issueid = '12'
+        self.args.issue_id = '12'
 
         mock_head = Mock()
         mock_head.commit = second_commit

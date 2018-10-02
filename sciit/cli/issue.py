@@ -26,14 +26,14 @@ def issue(args):
         view = 'full'
 
     args.repo.sync()
-    args.issueid = slugify(args.issueid)
+    args.issue_id = slugify(args.issue_id)
     history = args.repo.build_history(args.revision)
 
-    if args.issueid in history:
-        return page_history_item(history[args.issueid], view)
+    if args.issue_id in history:
+        return page_history_item(history[args.issue_id], view)
     else:
         if history:
-            CPrint.bold_red(f'No issues found matching \'{args.issueid}\' ')
+            CPrint.bold_red(f'No issues found matching \'{args.issue_id}\' ')
             print('\nHere are issues that are in the tracker:\n')
             print("\n".join(history.keys()))
         else:

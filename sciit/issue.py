@@ -13,15 +13,15 @@ __all__ = ('IssueSnapshot',)
 
 class IssueSnapshot(Object):
     __slots__ = ('data', 'title', 'description', 'assignees', 'due_date', 'label', 'weight', 'priority', 'title', 'size'
-                 , 'filepath', 'id')
+                 , 'filepath', 'issue_id')
 
     def __init__(self, repo, sha, data, size):
         super(IssueSnapshot, self).__init__(repo, sha)
         self.data = data
         self.size = size
 
-        if 'id' in self.data:
-            self.id = self.data['id']
+        if 'issue_id' in self.data:
+            self.issue_id = self.data['issue_id']
         if 'title' in self.data:
             self.title = self.data['title']
         if 'description' in self.data:
@@ -40,21 +40,21 @@ class IssueSnapshot(Object):
             self.filepath = self.data['filepath']
 
     def __lt__(self, other):
-        return self.id < other.id
+        return self.issue_id < other.issue_id
 
     def __eq__(self, other):
-        return self.id == other.id
+        return self.issue_id == other.issue_id
 
     def __gt__(self, other):
-        return self.id > other.id
+        return self.issue_id > other.issue_id
 
     def __hash__(self):
-        sha = hashlib.sha1(self.id.encode())
+        sha = hashlib.sha1(self.issue_id.encode())
         sha = sha.hexdigest()
         return int(sha, 16)
 
     def __str__(self):
-        return 'Issue#' + str(self.id) + ' ' + str(self.hexsha)
+        return 'Issue#' + str(self.issue_id) + ' ' + str(self.hexsha)
 
     @classmethod
     def create_from_hexsha(cls, repo, hexsha):

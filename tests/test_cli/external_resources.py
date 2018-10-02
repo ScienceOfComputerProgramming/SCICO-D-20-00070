@@ -8,13 +8,13 @@ from git.util import hex_to_bin
 safe_create_repo_dir('here')
 repo = IssueRepo('here')
 
-first_data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path',
+first_data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path',
                'description': 'This issue had a description'},
-              {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
-              {'id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
-              {'id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
-              {'id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
-              {'id': '6',
+              {'issue_id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
+              {'issue_id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
+              {'issue_id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
+              {'issue_id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
+              {'issue_id': '6',
                'title': 'The title of your issue',
                'description': 'A description of you issue as you\n'
                + 'want it to be ``markdown`` supported',
@@ -25,14 +25,14 @@ first_data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path
                'priority': 'high',
                'filepath': 'README.md'}]
 
-second_data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
-               {'id': '2', 'title': 'the contents of the file',
+second_data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
+               {'issue_id': '2', 'title': 'the contents of the file',
                 'filepath': 'path'},
-               {'id': '9', 'title': 'the contents of the file',
+               {'issue_id': '9', 'title': 'the contents of the file',
                 'filepath': 'path'},
-               {'id': '6', 'title': 'the contents of the file', 'filepath': 'path',
+               {'issue_id': '6', 'title': 'the contents of the file', 'filepath': 'path',
                 'description': 'description has changed'},
-               {'id': '12', 'title': 'the contents of the file', 'filepath': 'path',
+               {'issue_id': '12', 'title': 'the contents of the file', 'filepath': 'path',
                 'description': 'here is a nice description'}]
 
 first_issues = [IssueSnapshot.create_from_data(repo, d) for d in first_data]

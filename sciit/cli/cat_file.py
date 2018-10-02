@@ -83,7 +83,7 @@ def page_issue(issue):
         :(IssueSnapshot) issue: issue to print to pager
     """
 
-    output = f'{Color.bold_yellow(f"Issue:         {issue.id}")}'
+    output = f'{Color.bold_yellow(f"Issue:         {issue.issue_id}")}'
     output += f'\nTitle:         {issue.title}'
     if hasattr(issue, 'assignees'):
         output += f'\nAssigned To:   {issue.assignees}'

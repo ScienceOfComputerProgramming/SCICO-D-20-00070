@@ -31,9 +31,9 @@ def find_issue_in_comment(comment:str):
         if len(value) > 0:
             issue[key] = value[0]
 
-    update_issue_data_dict_with_value_from_comment(ISSUE.ID, 'id')
+    update_issue_data_dict_with_value_from_comment(ISSUE.ID, 'issue_id')
 
-    if 'id' in issue:
+    if 'issue_id' in issue:
         update_issue_data_dict_with_value_from_comment(ISSUE.TITLE, 'title')
         update_issue_data_dict_with_value_from_comment(ISSUE.DESCRIPTION, 'description')
         update_issue_data_dict_with_value_from_comment(ISSUE.ASSIGNEES, 'assignees')
@@ -167,7 +167,7 @@ class IssueListInCommit(Object):
     def create_from_commit_and_issues(cls, repo, commit, issues):
 
         if not repository_object_exists(repo, commit.hexsha):
-            data = [{'id': issue.data['id'], 'hexsha': issue.hexsha} for issue in issues]
+            data = [{'issue_id': issue.data['issue_id'], 'hexsha': issue.hexsha} for issue in issues]
             serialize_repository_object_as_json(repo, commit.hexsha, IssueListInCommit, data)
 
         size = get_repository_object_size(repo, commit.hexsha)

@@ -8,15 +8,15 @@ class TestIssue(TestCase):
 
     def setUp(self):
 
-        self.data = {'id': '1',
+        self.data = {'issue_id': '1',
                     'title': 'new issue here',
                     'filepath': '.gitignore',
                     'contents': '# Adding a new thing\nAuthor: someone on the team'}
-        self.data1 = {'id': '2',
+        self.data1 = {'issue_id': '2',
                      'title': 'new issue here2',
                      'filepath': '.gitignore',
                      'contents': '# something different'}
-        self.data3 = {'id': '2',
+        self.data3 = {'issue_id': '2',
                      'title': 'The title of your issue',
                      'description': 'A description of you issue as you\n'
                      + 'want it to be ``markdown`` supported',
@@ -74,7 +74,7 @@ class TestIssue(TestCase):
 
     def test_create_issue_full_metadata(self):
         issue = IssueSnapshot.create_from_data(self.repo, self.data3.copy())
-        self.assertTrue(hasattr(issue, 'id'))
+        self.assertTrue(hasattr(issue, 'issue_id'))
         self.assertTrue(hasattr(issue, 'title'))
         self.assertTrue(hasattr(issue, 'description'))
         self.assertTrue(hasattr(issue, 'assignees'))
@@ -88,7 +88,7 @@ class TestIssue(TestCase):
     def test_get_issue_full_metadata(self):
         issue = IssueSnapshot.create_from_data(self.repo, self.data3.copy())
         issue = IssueSnapshot.create_from_binsha(self.repo, issue.binsha)
-        self.assertTrue(hasattr(issue, 'id'))
+        self.assertTrue(hasattr(issue, 'issue_id'))
         self.assertTrue(hasattr(issue, 'title'))
         self.assertTrue(hasattr(issue, 'description'))
         self.assertTrue(hasattr(issue, 'assignees'))

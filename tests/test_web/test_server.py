@@ -16,13 +16,13 @@ class TestWebServerStartup(TestCase):
         safe_create_repo_dir('here')
         self.repo = IssueRepo('here')
 
-        data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path',
+        data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path',
                  'description': 'This issue had a description'},
-                {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '6',
+                {'issue_id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '6',
                  'title': 'The title of your issue',
                  'description': 'A description of you issue as you\n'
                  + 'want it to be ``markdown`` supported',

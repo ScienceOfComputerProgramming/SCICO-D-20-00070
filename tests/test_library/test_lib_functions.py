@@ -94,7 +94,7 @@ class TestGetTypeFromSha(TestCase):
     def setUp(self):
         safe_create_repo_dir('here')
 
-        data = {'id': '3', 'title': 'clean up this mess', 'filepath': 'here'}
+        data = {'issue_id': '3', 'title': 'clean up this mess', 'filepath': 'here'}
 
         self.repo = IssueRepo(issue_dir='here')
 
@@ -121,23 +121,23 @@ class TestCacheIssueHistory(TestCase):
         safe_create_repo_dir('here')
         self.repo = IssueRepo('here')
 
-        data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path',
+        data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path',
                  'description': 'This issue had a description'},
-                {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '6', 'title': 'the contents of the file', 'filepath': 'path',
+                {'issue_id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '6', 'title': 'the contents of the file', 'filepath': 'path',
                  'description': 'here is a nice description'}]
 
         self.issues = [IssueSnapshot.create_from_data(self.repo, d) for d in data]
 
-        new_data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
-                    {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
-                    {'id': '9', 'title': 'the contents of the file', 'filepath': 'path'},
-                    {'id': '6', 'title': 'the contents of the file', 'filepath': 'path',
+        new_data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
+                    {'issue_id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
+                    {'issue_id': '9', 'title': 'the contents of the file', 'filepath': 'path'},
+                    {'issue_id': '6', 'title': 'the contents of the file', 'filepath': 'path',
                      'description': 'description has changed'},
-                    {'id': '12', 'title': 'the contents of the file', 'filepath': 'path',
+                    {'issue_id': '12', 'title': 'the contents of the file', 'filepath': 'path',
                      'description': 'here is a nice description'}]
 
         self.new_issues = [IssueSnapshot.create_from_data(self.repo, d) for d in new_data]

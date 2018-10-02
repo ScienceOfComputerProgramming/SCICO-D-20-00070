@@ -24,13 +24,13 @@ class TestCreateIssueCommit(TestCase):
 
         self.repo = IssueRepo('here')
 
-        data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path',
+        data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path',
                  'description': 'This issue had a description'},
-                {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '6',
+                {'issue_id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '6',
                  'title': 'The title of your issue',
                  'description': 'A description of you issue as you\n'
                  + 'want it to be ``markdown`` supported',
@@ -41,12 +41,12 @@ class TestCreateIssueCommit(TestCase):
                  'priority': 'high',
                  'filepath': 'README.md'}]
 
-        new_data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
-                    {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
-                    {'id': '9', 'title': 'the contents of the file', 'filepath': 'path'},
-                    {'id': '6', 'title': 'the contents of the file', 'filepath': 'path',
+        new_data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
+                    {'issue_id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
+                    {'issue_id': '9', 'title': 'the contents of the file', 'filepath': 'path'},
+                    {'issue_id': '6', 'title': 'the contents of the file', 'filepath': 'path',
                      'description': 'description has changed'},
-                    {'id': '12', 'title': 'the contents of the file', 'filepath': 'path',
+                    {'issue_id': '12', 'title': 'the contents of the file', 'filepath': 'path',
                      'description': 'here is a nice description'}]
 
         self.issues = [IssueSnapshot.create_from_data(self.repo, d) for d in data]
@@ -428,8 +428,8 @@ class TestFindIssueInComment(TestCase):
         @issue 2
         """
         data = find_issue_in_comment(comment)
-        self.assertIn('id', data)
-        self.assertEqual(data['id'], '2')
+        self.assertIn('issue_id', data)
+        self.assertEqual(data['issue_id'], '2')
 
     def test_find_id_and_title(self):
         comment = """
@@ -437,8 +437,8 @@ class TestFindIssueInComment(TestCase):
         @title this is different
         """
         data = find_issue_in_comment(comment)
-        self.assertIn('id', data)
-        self.assertEqual(data['id'], 'something-new')
+        self.assertIn('issue_id', data)
+        self.assertEqual(data['issue_id'], 'something-new')
         self.assertIn('title', data)
         self.assertEqual(data['title'], 'this is different')
 
@@ -448,8 +448,8 @@ class TestFindIssueInComment(TestCase):
         @description something will be found
         """
         data = find_issue_in_comment(comment)
-        self.assertIn('id', data)
-        self.assertEqual(data['id'], '2')
+        self.assertIn('issue_id', data)
+        self.assertEqual(data['issue_id'], '2')
         self.assertIn('description', data)
         self.assertIn('something will be found', data['description'])
 
@@ -460,8 +460,8 @@ class TestFindIssueInComment(TestCase):
                 something will be found
         """
         data = find_issue_in_comment(comment)
-        self.assertIn('id', data)
-        self.assertEqual(data['id'], '2')
+        self.assertIn('issue_id', data)
+        self.assertEqual(data['issue_id'], '2')
         self.assertIn('description', data)
         self.assertIn('something will be found', data['description'])
 
@@ -473,8 +473,8 @@ class TestFindIssueInComment(TestCase):
         @due_date today
         """
         data = find_issue_in_comment(comment)
-        self.assertIn('id', data)
-        self.assertEqual(data['id'], '2')
+        self.assertIn('issue_id', data)
+        self.assertEqual(data['issue_id'], '2')
         self.assertIn('description', data)
         self.assertIn('something will be found', data['description'])
 
@@ -484,8 +484,8 @@ class TestFindIssueInComment(TestCase):
         @assignees mark, peter, paul
         """
         data = find_issue_in_comment(comment)
-        self.assertIn('id', data)
-        self.assertEqual(data['id'], '2')
+        self.assertIn('issue_id', data)
+        self.assertEqual(data['issue_id'], '2')
         self.assertIn('assignees', data)
         self.assertEqual(data['assignees'], 'mark, peter, paul')
 
@@ -495,8 +495,8 @@ class TestFindIssueInComment(TestCase):
         @due_date 10 dec 2018
         """
         data = find_issue_in_comment(comment)
-        self.assertIn('id', data)
-        self.assertEqual(data['id'], '2')
+        self.assertIn('issue_id', data)
+        self.assertEqual(data['issue_id'], '2')
         self.assertIn('due_date', data)
         self.assertEqual(data['due_date'], '10 dec 2018')
 
@@ -506,8 +506,8 @@ class TestFindIssueInComment(TestCase):
         @label in-development, main-feature
         """
         data = find_issue_in_comment(comment)
-        self.assertIn('id', data)
-        self.assertEqual(data['id'], '2')
+        self.assertIn('issue_id', data)
+        self.assertEqual(data['issue_id'], '2')
         self.assertIn('label', data)
         self.assertEqual(data['label'], 'in-development, main-feature')
 
@@ -517,8 +517,8 @@ class TestFindIssueInComment(TestCase):
         @weight 7
         """
         data = find_issue_in_comment(comment)
-        self.assertIn('id', data)
-        self.assertEqual(data['id'], '2')
+        self.assertIn('issue_id', data)
+        self.assertEqual(data['issue_id'], '2')
         self.assertIn('weight', data)
         self.assertEqual(data['weight'], '7')
 
@@ -528,8 +528,8 @@ class TestFindIssueInComment(TestCase):
         @priority mid-high
         """
         data = find_issue_in_comment(comment)
-        self.assertIn('id', data)
-        self.assertEqual(data['id'], '2')
+        self.assertIn('issue_id', data)
+        self.assertEqual(data['issue_id'], '2')
         self.assertIn('priority', data)
         self.assertEqual(data['priority'], 'mid-high')
 
@@ -547,8 +547,8 @@ class TestFindIssueInComment(TestCase):
         @priority high
         """
         data = find_issue_in_comment(comment)
-        self.assertIn('id', data)
-        self.assertEqual(data['id'], 'the-title-of-your-issue')
+        self.assertIn('issue_id', data)
+        self.assertEqual(data['issue_id'], 'the-title-of-your-issue')
         self.assertIn('title', data)
         self.assertEqual(data['title'], 'The Title of Your IssueSnapshot')
         self.assertIn('description', data)

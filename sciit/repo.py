@@ -188,10 +188,10 @@ class IssueRepo(Repo):
                     .replace(' ', '').split('\n')
 
             for issue in issue_commit.issues:
-                if issue.id not in history:
-                    history[issue.id] = IssueHistory(issue.id)
+                if issue.issue_id not in history:
+                    history[issue.issue_id] = IssueHistory(issue.issue_id)
 
-                history[issue.id].update(issue, issue_commit, in_branches)
+                history[issue.issue_id].update(issue, issue_commit, in_branches)
 
         for head in self.heads:
             head_issue_commit = self.find_latest_issue_commit_for_head(rev, head, issue_commits[0])
@@ -200,8 +200,8 @@ class IssueRepo(Repo):
                 continue
 
             for issue in head_issue_commit.issues:
-                if issue.id in history:
-                    history[issue.id].open_in.add(head.name)
+                if issue.issue_id in history:
+                    history[issue.issue_id].open_in.add(head.name)
 
         return history
 
@@ -210,11 +210,11 @@ class IssueRepo(Repo):
 
     def get_open_issues(self, rev=None):
         history = self.build_history(rev)
-        return {id: issue for id, issue in history.items() if issue.status == 'Open'}
+        return {issue_id: issue for issue_id, issue in history.items() if issue.status == 'Open'}
 
     def get_closed_issues(self, rev=None):
         history = self.build_history(rev)
-        return {id: issue for id, issue in history.items() if issue.status == 'Closed'}
+        return {issue_id: issue for issue_id, issue in history.items() if issue.status == 'Closed'}
 
     @property
     def all_issues(self):

@@ -8,9 +8,13 @@ import zlib
 import json
 import pathspec
 from datetime import datetime
+import sqlite3
 from stat import S_IREAD
 from sciit.errors import RepoObjectExistsError, RepoObjectDoesNotExistError
 
+from contextlib import closing
+
+# global_connection = sqlite3.connect('.git/issues.db')
 
 def get_repository_object_path(repo, hexsha):
     return repo.issue_objects_dir + '/' + str(hexsha)[:2] + '/' + str(hexsha)[2:]
@@ -56,8 +60,10 @@ def get_repository_object_size(repo, hexsha):
 
 
 def deserialize_repository_object_from_json(repo, hexsha):
-    path = get_repository_object_path(repo, hexsha)
 
+
+
+    path = get_repository_object_path(repo, hexsha)
     if not os.path.exists(path):
         raise RepoObjectDoesNotExistError(path)
 

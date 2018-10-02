@@ -72,21 +72,21 @@ class TestBuildIterIssueCommits(TestCase):
         safe_create_repo_dir('here')
         self.repo = IssueRepo('here')
 
-        data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path',
+        data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path',
                  'description': 'This issue had a description'},
-                {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'id': '6', 'title': 'the contents of the file', 'filepath': 'path',
+                {'issue_id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '6', 'title': 'the contents of the file', 'filepath': 'path',
                  'description': 'here is a nice description'}]
 
-        new_data = [{'id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
-                    {'id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
-                    {'id': '9', 'title': 'the contents of the file', 'filepath': 'path'},
-                    {'id': '6', 'title': 'the contents of the file', 'filepath': 'path',
+        new_data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
+                    {'issue_id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
+                    {'issue_id': '9', 'title': 'the contents of the file', 'filepath': 'path'},
+                    {'issue_id': '6', 'title': 'the contents of the file', 'filepath': 'path',
                      'description': 'description has changed'},
-                    {'id': '12', 'title': 'the contents of the file', 'filepath': 'path',
+                    {'issue_id': '12', 'title': 'the contents of the file', 'filepath': 'path',
                      'description': 'here is a nice description'}]
 
         self.issues = [IssueSnapshot.create_from_data(self.repo, d) for d in data]
@@ -174,7 +174,7 @@ class TestIssueStatus(TestCase):
         val = [Commit(self.repo, hex_to_bin(second)), Commit(self.repo, hex_to_bin(first))]
         iter_commits.return_value = val
 
-        data = {'id': '1', 'title': 'hello world', 'filepath': 'README.md'}
+        data = {'issue_id': '1', 'title': 'hello world', 'filepath': 'README.md'}
         issue = IssueSnapshot.create_from_data(self.repo, data)
         IssueListInCommit.create_from_commit_and_issues(self.repo, val[1], [issue])
         IssueListInCommit.create_from_commit_and_issues(self.repo, val[0], [issue])
