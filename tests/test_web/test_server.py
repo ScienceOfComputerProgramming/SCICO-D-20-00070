@@ -1,20 +1,16 @@
+import datetime
 from unittest import TestCase
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, MagicMock
 
-from git import Commit
-from git.util import hex_to_bin
-
-from sciit import IssueRepo, IssueListInCommit, IssueSnapshot
+from sciit import IssueRepo, Issue
 from sciit.web.server import app, launch
 
-from tests.external_resources import safe_create_repo_dir
+from tests.external_resources import create_mock_git_repository, create_mock_commit_with_issue_snapshots
 
 
 class TestWebServerStartup(TestCase):
 
     def setUp(self):
-        safe_create_repo_dir('here')
-        self.repo = IssueRepo('here')
 
         data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path',
                  'description': 'This issue had a description'},
@@ -33,28 +29,30 @@ class TestWebServerStartup(TestCase):
                  'priority': 'high',
                  'filepath': 'README.md'}]
 
-        self.issues = [IssueSnapshot.create_from_data(self.repo, d) for d in data]
+        self.commit, self.issue_snapshots = \
+            create_mock_commit_with_issue_snapshots(
+                '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4',
+                'Nystrome',
+                datetime.datetime(2018, 1, 1),
+                data
+            )
 
-        self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
-        self.first_commit = Commit(self.repo, hex_to_bin(self.first))
-        self.first_issue_commit = \
-            IssueListInCommit.create_from_commit_and_issues(self.repo, self.first_commit, self.issues)
+        issue = Issue('1')
+        issue.update(self.issue_snapshots[0])
+
+        self.mock_git_repository = create_mock_git_repository('here', [('master', self.commit)], [self.commit])
+
+        self.mock_issue_repository = MagicMock()
+        self.mock_issue_repository.build_history.return_value = {'1': issue}
 
         self.app = app.test_client()
         self.app.testing = True
 
-    @patch('sciit.repo.IssueRepo.iter_issue_commits')
-    @patch('sciit.repo.IssueRepo.heads')
     @patch('sciit.web.server.app')
-    def test_main_entrance(self, app, heads, issue_commits):
+    def test_main_entrance(self, app):
         args = Mock()
-        args.repo = self.repo
+        args.repo = self.mock_issue_repository
         app = self.app
-        mock_head = Mock()
-        mock_head.commit.hexsha = self.first
-        mock_head.name = 'master'
-        args.repo.heads = [mock_head]
-        issue_commits.return_value = [self.first_issue_commit]
         launch(args)
         pass
 

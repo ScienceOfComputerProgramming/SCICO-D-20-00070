@@ -1,3 +1,2 @@
-from .issue import IssueSnapshot
-from .commit import IssueListInCommit
+from .issue import Issue, IssueSnapshot
 from .repo import IssueRepo

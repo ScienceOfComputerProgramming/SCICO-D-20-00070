@@ -1,14 +1,11 @@
 import random
 import string
 from unittest import TestCase
-from unittest.mock import Mock, patch, mock_open
+from unittest.mock import Mock
 
-from git import Commit
-from git.util import hex_to_bin
-from sciit import IssueSnapshot, IssueListInCommit, IssueRepo
-from sciit.commit import find_issues_in_commit, find_issue_in_comment
-from sciit.functions import write_last_issue_commit_sha, get_sciit_ignore_path_spec
-from tests.external_resources import safe_create_repo_dir
+from pathspec import PathSpec
+
+from sciit.commit import find_issue_snapshots_in_commit_paths_that_changed, find_issue_in_comment
 
 pattern = r'((?:#.*(?:\n\s*#)*.*)|(?:#.*)|(?:#.*$))'
 
@@ -17,70 +14,19 @@ def random_40_chars():
     return [random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(40)]
 
 
-class TestCreateIssueCommit(TestCase):
-
-    def setUp(self):
-        safe_create_repo_dir('here')
-
-        self.repo = IssueRepo('here')
-
-        data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path',
-                 'description': 'This issue had a description'},
-                {'issue_id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'issue_id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'issue_id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'issue_id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'issue_id': '6',
-                 'title': 'The title of your issue',
-                 'description': 'A description of you issue as you\n'
-                 + 'want it to be ``markdown`` supported',
-                 'assignees': 'nystrome, kevin, daniels',
-                 'due_date': '12 oct 2018',
-                 'label': 'in-development',
-                 'weight': '4',
-                 'priority': 'high',
-                 'filepath': 'README.md'}]
-
-        new_data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
-                    {'issue_id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
-                    {'issue_id': '9', 'title': 'the contents of the file', 'filepath': 'path'},
-                    {'issue_id': '6', 'title': 'the contents of the file', 'filepath': 'path',
-                     'description': 'description has changed'},
-                    {'issue_id': '12', 'title': 'the contents of the file', 'filepath': 'path',
-                     'description': 'here is a nice description'}]
-
-        self.issues = [IssueSnapshot.create_from_data(self.repo, d) for d in data]
-        self.new_issues = [IssueSnapshot.create_from_data(self.repo, d) for d in new_data]
-
-        self.second = '622918a4c6539f853320e06804f73d1165df69d0'
-        self.first = '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'
-        self.second_commit = Commit(self.repo, hex_to_bin(self.second))
-        self.first_commit = Commit(self.repo, hex_to_bin(self.first))
-        self.second_issue_commit = IssueListInCommit.create_from_commit_and_issues(self.repo, self.second_commit, self.issues)
-        self.first_issue_commit = IssueListInCommit.create_from_commit_and_issues(self.repo, self.first_commit, self.new_issues)
-
-        write_last_issue_commit_sha(self.repo.issue_dir, self.second)
-
-    def test_create_issue_commit(self):
-        issue_commit = IssueListInCommit.create_from_commit_and_issues(self.repo, self.first_commit, self.issues)
-
-        self.assertEqual(self.first_commit.hexsha, issue_commit.hexsha)
-        self.assertEqual(self.first_commit.binsha, issue_commit.binsha)
-        self.assertEqual(len(issue_commit.issues), 6)
-        self.assertEqual(issue_commit.open_issues, 6)
-
-
 class TestFindIssuesInCommit(TestCase):
 
-    def setUp(self):
-        safe_create_repo_dir('here')
-        self.repo = IssueRepo()
-        self.repo.issue_dir = 'here'
-        self.repo.issue_objects_dir = 'here/objects'
+    @staticmethod
+    def create_tree_mock(trees=list(), blobs=list()):
+        tree = Mock()
+        tree.trees = trees
+        tree.blobs = blobs
+        return tree
 
-    def commit_mock(self, trees=list(), blobs=list(), commit_files=None):
+    @staticmethod
+    def create_commit_mock(trees=list(), blobs=list(), commit_files=None):
         commit = Mock()
-        commit.tree = self.tree_mock(trees, blobs)
+        commit.tree = TestFindIssuesInCommit.create_tree_mock(trees, blobs)
         if not commit_files:
             commit_files = [blob.path for blob in commit.tree.blobs]
         commit.stats.files.keys.return_value = commit_files
@@ -88,14 +34,7 @@ class TestFindIssuesInCommit(TestCase):
         return commit
 
     @staticmethod
-    def tree_mock(trees=list(), blobs=list()):
-        tree = Mock()
-        tree.trees = trees
-        tree.blobs = blobs
-        return tree
-
-    @staticmethod
-    def blob_mock(content=None, mime_type=None, path=None):
+    def create_blob_mock(content=None, mime_type=None, path=None):
         blob = Mock()
         blob.path = path
         blob.type = 'blob'
@@ -105,21 +44,21 @@ class TestFindIssuesInCommit(TestCase):
         return blob
 
     def test_no_issues_one_changed_file(self):
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=b'value that has some contents',
                     mime_type='text',
                     path='README')
             ])
 
-        issues = find_issues_in_commit(self.repo, commit, pattern)
-        self.assertFalse(issues)
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        self.assertFalse(issue_snapshots)
 
     def test_one_cstyle_issue_cleaned(self):
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=b"""
 /*@issue 2
  *@description
@@ -131,14 +70,15 @@ class TestFindIssuesInCommit(TestCase):
             ]
         )
 
-        issues = find_issues_in_commit(self.repo, commit)
-        self.assertEqual(len(issues), 1)
-        self.assertNotIn('*', issues[0].description)
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        print(issue_snapshots)
+        self.assertEqual(1, len(issue_snapshots))
+        self.assertNotIn('*', issue_snapshots[0].description)
 
     def test_one_python_issue_cleaned(self):
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=b'''
                     """
                     @issue 2
@@ -151,15 +91,15 @@ class TestFindIssuesInCommit(TestCase):
             ]
         )
 
-        issues = find_issues_in_commit(self.repo, commit)
-        self.assertEqual(len(issues), 1)
-        self.assertNotIn('*', issues[0].description)
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        self.assertEqual(len(issue_snapshots), 1)
+        self.assertNotIn('*', issue_snapshots[0].description)
 
     def test_one_hashstyle_issue_cleaned(self):
 
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=b"""
 #***
 # @issue 2
@@ -172,14 +112,14 @@ class TestFindIssuesInCommit(TestCase):
             ]
         )
 
-        issues = find_issues_in_commit(self.repo, commit)
-        self.assertEqual(1, len(issues))
-        self.assertNotIn('#', issues[0].description)
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        self.assertEqual(1, len(issue_snapshots))
+        self.assertNotIn('#', issue_snapshots[0].description)
 
     def test_one_markdown_issue_cleaned(self):
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=
                     b"""
 ---
@@ -193,14 +133,14 @@ value that has some contents
             ]
         )
 
-        issues = find_issues_in_commit(self.repo, commit)
-        self.assertEqual(len(issues), 1)
-        self.assertNotIn('#', issues[0].description)
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        self.assertEqual(len(issue_snapshots), 1)
+        self.assertNotIn('#', issue_snapshots[0].description)
 
     def test_two_markdown_issue_cleaned(self):
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=
                     b"""
 ---
@@ -219,14 +159,14 @@ value that has some contents
             ]
         )
 
-        issues = find_issues_in_commit(self.repo, commit)
-        self.assertEqual(len(issues), 2)
-        self.assertNotIn('#', issues[0].description)
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        self.assertEqual(len(issue_snapshots), 2)
+        self.assertNotIn('#', issue_snapshots[0].description)
 
     def test_no_issues_one_changed_supported_file_no_pattern(self):
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=b"""
 <!--
 @issue 3
@@ -238,13 +178,13 @@ value that has some contents
             ]
         )
 
-        issues = find_issues_in_commit(self.repo, commit)
-        self.assertEqual(len(issues), 1)
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        self.assertEqual(len(issue_snapshots), 1)
 
     def test_no_issues_one_changed_unsupported_file_no_pattern(self):
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=b"""
 <!--
 @issue 3
@@ -256,13 +196,13 @@ value that has some contents
             ]
         )
 
-        issues = find_issues_in_commit(self.repo, commit)
-        self.assertFalse(issues)
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        self.assertFalse(issue_snapshots)
 
     def test_no_issues_multiple_changed_files(self):
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=''.join(random_40_chars()).encode(),
                     mime_type='text',
                     path='README'+str(i)
@@ -271,13 +211,13 @@ value that has some contents
             commit_files=['README1', 'README3']
         )
 
-        issues = find_issues_in_commit(self.repo, commit, pattern)
-        self.assertFalse(issues)
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        self.assertFalse(issue_snapshots)
 
     def test_no_issues_renamed_file_change(self):
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=''.join(random_40_chars()).encode(),
                     mime_type='text',
                     path='README'+str(i)
@@ -286,16 +226,16 @@ value that has some contents
             commit_files=['docs/this.py', 'README3']
         )
 
-        issues = find_issues_in_commit(self.repo, commit, pattern)
-        self.assertFalse(issues)
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        self.assertFalse(issue_snapshots)
 
     def test_no_issues_multiple_changed_files_in_trees(self):
 
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             trees=[
-                self.tree_mock(
+                self.create_tree_mock(
                     blobs=[
-                        self.blob_mock(
+                        self.create_blob_mock(
                             content=''.join(random_40_chars()).encode(),
                             mime_type='text',
                             path='docs/file' + str(i) + '.py'
@@ -304,7 +244,7 @@ value that has some contents
                 )
             ],
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=''.join(random_40_chars()).encode(),
                     mime_type='text',
                     path='README'+str(i)
@@ -313,14 +253,14 @@ value that has some contents
             commit_files=['README1', 'README3', 'docs/file9.py']
         )
 
-        issues = find_issues_in_commit(self.repo, commit, pattern)
-        self.assertFalse(issues)
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        self.assertFalse(issue_snapshots)
 
     def test_skips_unicode_error_one_file(self):
 
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content='value that has some contents',
                     mime_type='text',
                     path='README')
@@ -328,13 +268,13 @@ value that has some contents
             commit_files=['README']
         )
 
-        issues = find_issues_in_commit(self.repo, commit, pattern)
-        self.assertFalse(issues)
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        self.assertFalse(issue_snapshots)
 
     def test_contains_issues_multiple_changed_files(self):
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=('#@issue ' + str(i)).encode(),
                     mime_type='text',
                     path='README' + str(i)
@@ -345,15 +285,15 @@ value that has some contents
 
         commit.tree.blobs[3].contents = b'This one has no issue in it'
 
-        issues = find_issues_in_commit(self.repo, commit, pattern)
-        self.assertEqual(len(issues), 3)
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        self.assertEqual(len(issue_snapshots), 3)
 
     def test_contains_issues_multiple_changed_files_multiple_trees(self):
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             trees=[
-                self.tree_mock(
+                self.create_tree_mock(
                     blobs=[
-                        self.blob_mock(
+                        self.create_blob_mock(
                             content=('#@issue w' + str(i)).encode(),
                             mime_type='text',
                             path='docs/file' + str(i) + '.py'
@@ -362,7 +302,7 @@ value that has some contents
                 )
             ],
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=('#@issue ' + str(i)).encode(),
                     mime_type='text',
                     path='README' + str(i)
@@ -373,14 +313,13 @@ value that has some contents
 
         commit.tree.blobs[3].contents = b'This one has no issue in it'
 
-        issues = find_issues_in_commit(self.repo, commit, pattern)
-        self.assertEqual(len(issues), 5)
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        self.assertEqual(len(issue_snapshots), 5)
 
-    @patch('builtins.open', mock_open(read_data='README*'))
     def test_commit_ignores_certain_files(self):
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=('#@issue ' + str(i)).encode(),
                     mime_type='text',
                     path='README' + str(i)
@@ -391,14 +330,14 @@ value that has some contents
 
         commit.tree.blobs[3].contents = b'This one has no issue in it'
 
-        ignored_files = get_sciit_ignore_path_spec(self.repo)
-        issues = find_issues_in_commit(self.repo, commit, pattern, ignored_files)
-        self.assertEqual(len(issues), 0)
+        ignored_files = PathSpec.from_lines('gitignore', ['README*'])
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern, ignored_files)
+        self.assertEqual(len(issue_snapshots), 0)
 
     def test_commit_skip_ignore_file_does_not_exist(self):
-        commit = self.commit_mock(
+        commit = self.create_commit_mock(
             blobs=[
-                self.blob_mock(
+                self.create_blob_mock(
                     content=('#@issue ' + str(i)).encode(),
                     mime_type='text',
                     path='README' + str(i)
@@ -407,11 +346,8 @@ value that has some contents
             commit_files=['README0', 'README1', 'README2']
         )
 
-        with patch('os.path.exists') as p:
-            p.return_value = False
-            ignored_files = get_sciit_ignore_path_spec(self.repo)
-        issues = find_issues_in_commit(self.repo, commit, pattern, ignored_files)
-        self.assertEqual(3, len(issues))
+        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern, None)
+        self.assertEqual(3, len(issue_snapshots))
 
 
 class TestFindIssueInComment(TestCase):

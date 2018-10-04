@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 class EmptyRepositoryError(FileNotFoundError):
     def __init__(self):
         super().__init__('The issue repository is empty.')

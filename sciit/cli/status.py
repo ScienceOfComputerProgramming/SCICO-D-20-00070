@@ -8,9 +8,6 @@ that are currently being tracked on HEAD or revision.
 
             $ git sciit status [-h] [revision]
 """
-from git.exc import GitCommandError
-from sciit.errors import RepoObjectDoesNotExistError
-from sciit import IssueListInCommit
 from sciit.cli.color import CPrint
 
 
@@ -22,6 +19,7 @@ def status(args):
    
     args.repo.sync()
     all_issues = args.repo.get_all_issues(revision)
+    print(all_issues)
     opened = sum(issue.status == 'Open' for issue in all_issues.values())
     closed = len(all_issues) - opened
     CPrint.bold_red(f'Open Issues: ' + str(opened))

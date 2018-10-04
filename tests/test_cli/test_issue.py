@@ -1,10 +1,10 @@
 import sys
 from io import StringIO
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, MagicMock
 
 from sciit.cli.issue import issue
-from tests.test_cli.external_resources import ansi_escape, first_sha, repo, second_sha, second_commit
+from tests.test_cli.external_resources import ansi_escape, first_commit, second_commit, issues
 
 
 class TestIssueCommand(TestCase):
@@ -12,13 +12,10 @@ class TestIssueCommand(TestCase):
     def setUp(self):
         self.held, sys.stdout = sys.stdout, StringIO()
         self.args = Mock()
-        self.args.repo = repo
+        self.args.repo = MagicMock()
 
-    @patch('sciit.repo.IssueRepo.heads')
-    @patch('sciit.repo.IssueRepo.sync')
-    @patch('pydoc.pipepager')
-    def test_command_fails_if_no_issues_matched(self, pager, sync, heads):
-        self.args.revision = second_sha
+    def test_command_fails_if_no_issues_matched(self):
+        self.args.revision = second_commit.hexsha
         self.args.normal = self.args.detailed = self.args.full = False
         self.args.issue_id = ''
 
@@ -28,37 +25,32 @@ class TestIssueCommand(TestCase):
         self.args.repo.heads = [mock_head]
 
         issue(self.args)
+
         self.assertIn('No issues found matching', sys.stdout.getvalue())
         self.assertIn('Here are issues that are in the tracker:', sys.stdout.getvalue())
 
-    @patch('sciit.repo.IssueRepo.build_history')
-    @patch('sciit.repo.IssueRepo.sync')
-    def test_command_returns_no_history(self, sync, history):
-        self.args.revision = first_sha
+    def test_command_returns_no_history(self):
+        self.args.revision = first_commit.hexsha
         self.args.normal = self.args.detailed = self.args.full = False
         self.args.issue_id = ''
-        history.return_value = {}
+
+        self.args.repo.build_history.return_value = {}
 
         issue(self.args)
-        self.assertIn('No issues in the repository',
-                      sys.stdout.getvalue())
+        self.assertIn('No issues in the repository', sys.stdout.getvalue())
 
-    @patch('sciit.repo.IssueRepo.heads')
-    @patch('sciit.repo.IssueRepo.sync')
-    @patch('pydoc.pipepager')
-    def test_command_returns_correct_history_normal_view(self, pager, sync, heads):
-        self.args.revision = second_sha
+    @patch('tests.external_resources.IssueSnapshot.in_branches', new_callable=MagicMock(return_value=['master']))
+    def test_command_returns_correct_history_normal_view(self, in_branches):
+
+        self.args.revision = second_commit.hexsha
         self.args.normal = True
         self.args.detailed = self.args.full = False
         self.args.issue_id = '12'
-
-        mock_head = Mock()
-        mock_head.commit = second_commit
-        mock_head.name = 'master'
-        self.args.repo.heads = [mock_head]
+        self.args.repo.build_history.return_value = {'12': issues[12]}
 
         output = issue(self.args)
         output = ansi_escape.sub('', output)
+
         self.assertIn('ID:                12', output)
         self.assertIn('Status:            Open', output)
         self.assertIn('Description:', output)
@@ -66,19 +58,12 @@ class TestIssueCommand(TestCase):
         self.assertNotIn('IssueSnapshot Revisions:', output)
         self.assertNotIn('Commit Activity:', output)
 
-    @patch('sciit.repo.IssueRepo.heads')
-    @patch('sciit.repo.IssueRepo.sync')
-    @patch('pydoc.pipepager')
-    def test_command_returns_correct_history_detailed_view(self, pager, sync, heads):
-        self.args.revision = second_sha
+    def test_command_returns_correct_history_detailed_view(self):
+        self.args.revision = second_commit.hexsha
         self.args.detailed = True
         self.args.normal = self.args.full = False
         self.args.issue_id = '6'
-
-        mock_head = Mock()
-        mock_head.commit = second_commit
-        mock_head.name = 'master'
-        self.args.repo.heads = [mock_head]
+        self.args.repo.build_history.return_value = {'6': issues[6]}
 
         output = issue(self.args)
 
@@ -88,21 +73,15 @@ class TestIssueCommand(TestCase):
         self.assertIn('Existed in:', output)
         self.assertNotIn('Commit Activity:', output)
 
-    @patch('sciit.repo.IssueRepo.heads')
-    @patch('sciit.repo.IssueRepo.sync')
-    @patch('pydoc.pipepager')
-    def test_command_returns_correct_history_full_view(self, pager, sync, heads):
-        self.args.revision = second_sha
+    def test_command_returns_correct_history_full_view(self):
+        self.args.revision = second_commit.hexsha
         self.args.full = True
         self.args.normal = self.args.detailed = False
         self.args.issue_id = '12'
-
-        mock_head = Mock()
-        mock_head.commit = second_commit
-        mock_head.name = 'master'
-        self.args.repo.heads = [mock_head]
+        self.args.repo.build_history.return_value = {'12': issues[12]}
 
         output = issue(self.args)
+
         output = ansi_escape.sub('', output)
         self.assertIn('ID:                12', output)
         self.assertIn('Status:            Open', output)

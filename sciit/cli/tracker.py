@@ -19,7 +19,6 @@ all tracked issues with issues open in the current repository or from the specif
 """
 from sciit.cli.issue import page_history_items
 from sciit.cli.color import CPrint
-from sciit.functions import cache_history
 
 
 def tracker(args):
@@ -38,7 +37,6 @@ def tracker(args):
         view = 'normal'
 
     args.repo.sync()
-
     if args.open:
         history = args.repo.get_open_issues(args.revision)
     elif args.all:
@@ -49,12 +47,6 @@ def tracker(args):
         history = None
 
     if history:
-        if args.save:
-            cache_history(args.repo.issue_dir, history)
-            CPrint.bold('Issues saved to ' +
-                        args.repo.issue_dir + '/HISTORY\n')
-        else:
-            output = page_history_items(history, view)
-            return output
+        return page_history_items(history, view)
     else:
         CPrint.bold_green('No issues found')

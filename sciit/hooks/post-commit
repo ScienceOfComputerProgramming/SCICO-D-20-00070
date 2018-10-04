@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from sciit import IssueRepo, IssueListInCommit
-from sciit.commit import find_issues_in_commit
+from sciit.commit import find_issue_snapshots_in_commit_paths_that_changed
 from sciit.functions import write_last_issue_commit_sha, get_sciit_ignore_path_spec
 from sciit.cli.color import CPrint
 from sciit.functions import RepoObjectDoesNotExistError
@@ -19,7 +19,7 @@ if not repo.is_init():
 ignored_files = get_sciit_ignore_path_spec(repo)
 commit = repo.head.commit
 try:
-    issues = find_issues_in_commit(repo, commit, ignore_files=ignored_files)
+    issues = find_issue_snapshots_in_commit_paths_that_changed(repo, commit, ignore_files=ignored_files)
 except RepoObjectDoesNotExistError as error:
     CPrint.bold_red(error)
     print('Solve error by rebuilding issue repository using: git sciit init -r')

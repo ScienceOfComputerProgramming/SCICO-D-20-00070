@@ -78,7 +78,7 @@ def index():
             subprocess.run(['git', 'clone', '--mirror',
                             data['project']['url'], CONFIG.path], check=True)
             CONFIG.repo = IssueRepo(path=CONFIG.path)
-            CONFIG.repo.cache_issue_commits_from_all_commits()
+            CONFIG.repo.cache_issue_snapshots_from_all_commits()
 
     logging.info(f'received a {event} event')
     logging.info(f'using repository: {CONFIG.path}')
@@ -139,7 +139,7 @@ def init():
     subprocess.run(['git', 'clone', '--mirror',
                     data['remote'], CONFIG.path], check=True)
     CONFIG.repo = IssueRepo(path=CONFIG.path)
-    CONFIG.repo.cache_issue_commits_from_all_commits()
+    CONFIG.repo.cache_issue_snapshots_from_all_commits()
 
     return json.dumps({"status": "Success", "message": f"{data['remote']} IssueSnapshot Repository Initialized"})
 

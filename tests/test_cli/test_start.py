@@ -1,13 +1,17 @@
 import sys
 from io import StringIO
 from unittest import TestCase
-from unittest.mock import patch, PropertyMock, Mock
+from unittest.mock import patch, PropertyMock, Mock, MagicMock
+
+from git import GitCommandError
+
 from sciit import IssueRepo
 from sciit.cli.init import init
 from sciit.cli.tracker import tracker
 from sciit.cli import start
+from sciit.errors import RepoObjectDoesNotExistError, NoCommitsError
 from tests.external_resources import remove_existing_repo
-from tests.test_cli.external_resources import repo, third_sha, third_commit
+from tests.test_cli.external_resources import third_commit
 from sciit.cli.color import CPrint, Color
 
 
@@ -40,75 +44,79 @@ class TestCLIStartup(TestCase):
             self.assertIn('usage: git sciit [-h] [-v]', sys.stdout.getvalue())
 
     @patch('argparse.ArgumentParser.parse_args', new_callable=Mock)
-    @patch('sciit.repo.IssueRepo.cache_issue_commits_from_all_commits')
-    def test_init_command_runs_smoothly(self, build, args):
-        val = Mock()
-        val.func = init
-        val.reset = False
-        args.return_value = val
+    def test_init_command_runs_smoothly(self, parse_args):
+        args = Mock()
+        args.return_value = Mock()
+        args.func = init
+        args.reset = False
+        parse_args.return_value = args
+
         start.main()
 
     @patch('argparse.ArgumentParser.parse_args', new_callable=Mock)
-    @patch('sciit.cli.start.IssueRepo')
-    def test_tracker_command_error_repo_not_initialized(self, repo, args):
-        val = Mock()
-        val.func = tracker
-        val.reset = False
-        args.return_value = val
-        remove_existing_repo('there')
-        repo.return_value = IssueRepo('there')
+    @patch('sciit.cli.start.IssueRepo.is_init', new_callable=MagicMock)
+    def test_tracker_command_error_repo_not_initialized(self, is_init, parse_args):
+
+        args = Mock()
+        args.func = tracker
+        args.reset = False
+        is_init.return_value=False
+        parse_args.return_value = args
+
         start.main()
         self.assertIn('Repository not initialized', sys.stdout.getvalue())
 
     @patch('argparse.ArgumentParser.parse_args', new_callable=Mock)
     @patch('sciit.cli.start.IssueRepo')
-    @patch('sciit.cli.start.IssueRepo.heads')
-    def test_tracker_command_error_no_commits(self, heads, patch_repo, args):
+    def test_tracker_command_error_no_commits(self, patch_repo, args):
         val = Mock()
         val.func = tracker
         val.reset = False
         val.revision = None
         args.return_value = val
-        remove_existing_repo('there')
-        repo = IssueRepo('there')
-        repo.setup_file_system_resources()
+        repo = Mock()
         repo.heads = []
         patch_repo.return_value = repo
+
+        repo.get_open_issues.side_effect = NoCommitsError()
+
         start.main()
         self.assertIn('git sciit error fatal:', sys.stdout.getvalue())
 
     @patch('argparse.ArgumentParser.parse_args', new_callable=Mock)
     @patch('sciit.cli.start.IssueRepo')
-    @patch('sciit.cli.start.IssueRepo.heads')
-    @patch('sciit.cli.start.IssueRepo.sync')
-    def test_tracker_command_error_incomplete_repository(self, sync, heads, patch_repo, args):
+    def test_tracker_command_error_incomplete_repository(self, patch_repo, args):
         val = Mock()
         val.func = tracker
         val.reset = False
-        val.revision = third_sha
+        val.revision = third_commit.hexsha
         args.return_value = val
         mock_head = Mock()
         mock_head.commit = third_commit
         mock_head.name = 'master'
+        repo = Mock()
         repo.heads = [mock_head]
+
+        repo.get_open_issues.side_effect = RepoObjectDoesNotExistError('there')
+
         patch_repo.return_value = repo
         start.main()
         self.assertIn('Solve error by rebuilding issue repository using', sys.stdout.getvalue())
 
     @patch('argparse.ArgumentParser.parse_args', new_callable=Mock)
-    @patch('sciit.cli.start.IssueRepo')
-    @patch('sciit.cli.start.IssueRepo.heads')
-    @patch('sciit.cli.start.IssueRepo.sync')
-    def test_tracker_command_error_bad_revision(self, sync, heads, patch_repo, args):
-        val = Mock()
-        val.func = tracker
-        val.reset = False
-        val.revision = 'aiansifaisndzzz'
-        args.return_value = val
-        mock_head = Mock()
-        mock_head.commit = third_commit
-        mock_head.name = 'master'
-        repo.heads = [mock_head]
-        patch_repo.return_value = repo
+    @patch('sciit.cli.start.IssueRepo.is_init', new_callable=MagicMock)
+    @patch('sciit.cli.start.IssueRepo.get_open_issues', new_callable=MagicMock)
+    def test_tracker_command_error_bad_revision(self, get_open_issues, is_init, parse_args):
+        args_mock = MagicMock()
+        args_mock.func = tracker
+        args_mock.reset = False
+        args_mock.open = True
+
+        args_mock.revision = 'aiansifaisndzzz'
+
+        parse_args.return_value = args_mock
+
+        is_init.return_value=True
+        get_open_issues.side_effect=GitCommandError('xy', 'xx')
         start.main()
         self.assertIn('git sciit error fatal: bad revision', sys.stdout.getvalue())

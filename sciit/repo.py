@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import markdown2
 import os
 import stat
 import pkg_resources
@@ -8,29 +7,35 @@ import pkg_resources
 from shutil import copyfile
 from datetime import datetime
 
-from git import Repo
+from git import Commit
+from gitdb.util import hex_to_bin
 
-from sciit import IssueListInCommit
 from sciit.errors import EmptyRepositoryError, NoCommitsError
-from sciit.commit import find_issues_in_commit
+from sciit.commit import find_issue_snapshots_in_commit_paths_that_changed
 from sciit.functions import write_last_issue_commit_sha, get_last_issue_commit_sha, get_sciit_ignore_path_spec
 from sciit.cli.functions import print_progress_bar
+
+from sciit.issue import Issue, IssueSnapshot
+
+from contextlib import closing
+import json
+import sqlite3
 
 __all__ = ('IssueRepo', )
 
 
-class IssueRepo(Repo):
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
 
-    def __init__(self, issue_dir=None, path=None):
-        if path:
-            super(IssueRepo, self).__init__(path=path)
-        else:
-            super(IssueRepo, self).__init__(search_parent_directories=True)
-        if issue_dir:
-            self.issue_dir = issue_dir
-        else:
-            self.issue_dir = self.git_dir + '/issue'
-        self.issue_objects_dir = self.issue_dir + '/objects'
+
+class IssueRepo(object):
+
+    def __init__(self, git_repository):
+        self.git_repository = git_repository
+        self.issue_dir = self.git_repository.git_dir + '/issues'
         self.cli = False
 
     def is_init(self):
@@ -41,24 +46,25 @@ class IssueRepo(Repo):
         Ensures that the issue repository issue_commits are synced with the git commits such that there is a
         issue_commit for every commit in the git repository.
         """
-        if not self.heads:
+        if not self.git_repository.heads:
             raise NoCommitsError
 
         last_issue_commit = get_last_issue_commit_sha(self.issue_dir)
-        commits = list(self.iter_commits('--all'))
+        commits = list(self.git_repository.iter_commits('--all'))
 
         latest_commit = commits[0].hexsha
         revision = last_issue_commit + '..' + latest_commit
-        str_commits = self.git.execute(['git', 'rev-list', revision])
-        ignored_files = get_sciit_ignore_path_spec(self)
+        str_commits = self.git_repository.git.execute(['git', 'rev-list', revision])
+        ignored_files = get_sciit_ignore_path_spec(self.git_repository)
 
         # uses git.execute because iter_commits generator cannot correctly identify false or empty list.
         if str_commits != '':
-            commits = list(self.iter_commits(revision))
+            commits = list(self.git_repository.iter_commits(revision))
 
             for commit in reversed(commits):
-                issues = find_issues_in_commit(self, commit, ignore_files=ignored_files)
-                IssueListInCommit.create_from_commit_and_issues(self, commit, issues)
+                issue_snapshots,  files_changed_in_commit =\
+                    find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
+                self._serialize_issue_snapshots_to_db(commit.hexsha, issue_snapshots)
 
             write_last_issue_commit_sha(self.issue_dir, latest_commit)
 
@@ -75,7 +81,6 @@ class IssueRepo(Repo):
 
     def setup_file_system_resources(self):
         os.makedirs(self.issue_dir)
-        os.makedirs(self.issue_objects_dir)
 
         open(self.issue_dir + '/HISTORY', 'w').close()
         open(self.issue_dir + '/LAST', 'w').close()
@@ -85,7 +90,7 @@ class IssueRepo(Repo):
         self._install_hook('post-checkout')
 
     def _install_hook(self, hook_name):
-        git_hooks_dir = self.git_dir + '/hooks/'
+        git_hooks_dir = self.git_repository.git_dir + '/hooks/'
         if not os.path.exists(git_hooks_dir):
             os.makedirs(git_hooks_dir)
 
@@ -95,31 +100,6 @@ class IssueRepo(Repo):
         st = os.stat(destination_path)
         os.chmod(destination_path, st.st_mode | stat.S_IEXEC)
 
-    def iter_issue_commits(self, rev=None, paths='', **kwargs):
-        """
-        A list of IssueCommit objects representing the history of a given ref/commit.
-
-        :param rev:
-            revision specifier, see git-rev-parse for viable options.
-            If None, the active branch will be used.
-
-        :param paths:
-            is an optional path or a list of paths to limit the returned commits to
-            Commits that do not contain that path or the paths will not be returned.
-
-        :param kwargs:
-            Arguments to be passed to git-rev-list - common ones are
-            max_count and skip
-
-        :note: to receive only commits between two named revisions, use the
-            "revA...revB" revision specifier
-
-        :return: ``git.Commit[]``
-        """
-        commits = self.iter_commits(rev, paths, **kwargs)
-        for commit in commits:
-            yield IssueListInCommit.create_from_binsha(self, commit.binsha)
-
     def print_commit_progress(self, now, start, current, total):
         if self.cli:
             duration = now - start
@@ -128,80 +108,90 @@ class IssueRepo(Repo):
 
             print_progress_bar(current, total, prefix=prefix, suffix=suffix)
 
-    def cache_issue_commits_from_all_commits(self):
-        if len(self.heads) < 1:
+    def cache_issue_snapshots_from_all_commits(self):
+        if len(self.git_repository.heads) < 1:
             raise NoCommitsError
 
         start = datetime.now()
         commits_scanned = 0
 
         # get all commits on all branches, enforcing the topology order of parents to children.
-        all_commits = self.iter_commits(['--all', '--topo-order', '--reverse'])
-        num_commits = int(self.git.execute(['git', 'rev-list', '--all', '--count']))
-        ignored_files = get_sciit_ignore_path_spec(self)
+        all_commits = self.git_repository.iter_commits(['--all', '--topo-order', '--reverse'])
+        num_commits = int(self.git_repository.git.execute(['git', 'rev-list', '--all', '--count']))
+        ignored_files = get_sciit_ignore_path_spec(self.git_repository)
+
+        changed_commit_issue_snapshots = dict()
 
         for commit in all_commits:
             commits_scanned += 1
-
             self.print_commit_progress(datetime.now(), start, commits_scanned, num_commits)
-            issues = find_issues_in_commit(self, commit, ignore_files=ignored_files)
 
+            changed_issue_snapshots, files_changed_in_commit = \
+                find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
+            changed_commit_issue_snapshots[commit] = changed_issue_snapshots
 
+            unchanged_issue_snapshots = list()
 
-            IssueListInCommit.create_from_commit_and_issues(self, commit, issues)
+            for parent in commit.parents:
+                parent_commit = parent.commit
+                if parent_commit in changed_commit_issue_snapshots:
+                    parent_issue_snapshots = changed_commit_issue_snapshots[parent_commit]
+                    unchanged_issue_snapshots_in_parent = \
+                        [parent_snapshot for parent_snapshot in parent_issue_snapshots
+                         if parent_snapshot.filepath not in files_changed_in_commit]
+                    unchanged_issue_snapshots.extend(unchanged_issue_snapshots_in_parent)
+
+            all_issue_snapshots = changed_issue_snapshots + unchanged_issue_snapshots
+            self._serialize_issue_snapshots_to_db(commit.hexsha, all_issue_snapshots)
 
         if all_commits:
-            write_last_issue_commit_sha(self.issue_dir, self.head.commit.hexsha)
+            write_last_issue_commit_sha(self.issue_dir, self.git_repository.head.commit.hexsha)
         else:
             raise NoCommitsError
 
-    def find_latest_issue_commit_for_head(self, rev, head, top):
-        if rev is None:
-            return IssueListInCommit.create_from_hexsha(self, head.commit.hexsha)
-        else:
-            rev_list = self.git.execute(['git', 'rev-list', f'{head.name}', '--'])
-            if top.hexsha in rev_list:
-                return top
-            else:
-                return None
+    def find_latest_commit_for_head(self, head):
+        rev_list = self.git_repository.git.execute(['git', 'rev-list', f'{head.name}', '--'])
+        rev_list = rev_list.split('\n')
+        return Commit.new_from_sha(self.git_repository, hex_to_bin(rev_list[0]))
+
+    def find_issue_snapshots_by_commit(self, rev):
+        issue_snapshots = self._deserialize_issue_snapshots_from_db(rev)
+
+        # Need to fix this, so that commits are returned in reverse order.
+        result = dict()
+
+        for issue_snapshot in issue_snapshots:
+            if issue_snapshot.commit not in result:
+                result[issue_snapshot.commit] = list()
+            result[issue_snapshot.commit].append(issue_snapshot)
+
+        return result
 
     def build_history(self, rev=None):
 
-        if not self.heads:
+        if not self.git_repository.heads:
             raise NoCommitsError
 
         history = {}
-        time_format = '%a %b %d %H:%M:%S %Y %z'
 
-        if rev is None:
-            issue_commits = self.iter_issue_commits('--branches')
-        else:
-            issue_commits = self.iter_issue_commits(rev)
+        issue_snapshots = self._deserialize_issue_snapshots_from_db(rev)
 
-        issue_commits = list(issue_commits)
+        for issue_snapshot in issue_snapshots:
 
-        for issue_commit in issue_commits:
+            if issue_snapshot.issue_id not in history:
+                history[issue_snapshot.issue_id] = Issue(issue_snapshot.issue_id)
 
-            in_branches = \
-                self.git.execute(['git', 'branch', '--contains', issue_commit.commit.hexsha])\
-                    .replace('*', '')\
-                    .replace(' ', '').split('\n')
+            history[issue_snapshot.issue_id].update(issue_snapshot)
 
-            for issue in issue_commit.issues:
-                if issue.issue_id not in history:
-                    history[issue.issue_id] = IssueHistory(issue.issue_id)
+        for head in self.git_repository.heads:
+            head_commit = self.find_latest_commit_for_head(head)
 
-                history[issue.issue_id].update(issue, issue_commit, in_branches)
+            head_issue_snapshots = self.get_issue_snapshots_for_commit(head_commit)
+            head_issue_snapshot_ids = [issue_snapshot.issue_id for issue_snapshot in head_issue_snapshots]
 
-        for head in self.heads:
-            head_issue_commit = self.find_latest_issue_commit_for_head(rev, head, issue_commits[0])
-
-            if head_issue_commit is None:
-                continue
-
-            for issue in head_issue_commit.issues:
-                if issue.issue_id in history:
-                    history[issue.issue_id].open_in.add(head.name)
+            for issue_id, issue in history.items():
+                if issue_id in head_issue_snapshot_ids:
+                    issue.open_in.add(head.name)
 
         return history
 
@@ -228,225 +218,52 @@ class IssueRepo(Repo):
     def closed_issues(self):
         return self.get_closed_issues()
 
+    def _serialize_issue_snapshots_to_db(self, commit_hexsha, issue_snapshots):
+        row_values = [(commit_hexsha, issue.issue_id, json.dumps(issue.data)) for issue in issue_snapshots]
+        with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
+            cursor = connection.cursor()
+            cursor.execute("CREATE TABLE IF NOT EXISTS IssueSnapshot(commit_sha TEXT, issue_id TEXT, json_data BLOB)")
+            cursor.executemany("INSERT INTO IssueSnapshot VALUES(?, ?, ?)", row_values)
+            connection.commit()
 
-class IssueHistory(object):
+    def get_issue_snapshots_for_commit(self, commit):
 
-    def __init__(self, issue_id):
+        with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
 
-        self.issue_id = issue_id
+            result = list()
 
-        self.issue_and_issue_commits = list()
+            cursor = connection.cursor()
+            cursor.row_factory = dict_factory
+            cursor.execute("CREATE TABLE IF NOT EXISTS IssueSnapshot(commit_sha TEXT, issue_id TEXT, json_data BLOB)")
 
-        self.open_in = set()
+            row_values = cursor.execute(
+                """
+                SELECT * FROM IssueSnapshot WHERE commit_sha=?
+                """, (commit.hexsha, )).fetchall()
 
-    @property
-    def oldest_issue_and_issue_commit(self):
-        return self.issue_and_issue_commits[-1]
+            for row_value in row_values:
+                data = json.loads(row_value['json_data'])
+                issue_snapshot = IssueSnapshot(commit, data)
+                result.append(issue_snapshot)
 
-    @property
-    def newest_issue_and_issue_commit(self):
-        return self.issue_and_issue_commits[0]
+            return result
 
-    @property
-    def newest_issue_commit(self):
-        return self.newest_issue_and_issue_commit[1]
-
-    @property
-    def oldest_issue_commit(self):
-        return self.oldest_issue_and_issue_commit[1]
-
-    @property
-    def last_author(self):
-        return self.newest_issue_commit.commit.author.name
-
-    @property
-    def creator(self):
-        return self.oldest_issue_commit.commit.author.name
-
-    @property
-    def created_date(self):
-        return self.oldest_issue_commit.date_string
-
-    @property
-    def last_authored_date(self):
-        return self.newest_issue_commit.date_string
-
-    def newest_value_of_issue_property(self, p):
-        for issue_and_issue_commit in self.issue_and_issue_commits:
-            if hasattr(issue_and_issue_commit[0], p):
-                return getattr(issue_and_issue_commit[0], p)
-        return None
-
-    @property
-    def hexsha(self):
-        return self.newest_value_of_issue_property('hexsha')
-
-    @property
-    def title(self):
-        return self.newest_value_of_issue_property('title')
-
-    @property
-    def description(self):
-        return self.newest_value_of_issue_property('description')
-
-    @property
-    def description_as_html(self):
-        return markdown2.markdown(self.description)
-
-    @property
-    def assignees(self):
-        return self.newest_value_of_issue_property('assignees')
-
-    @property
-    def due_date(self):
-        return self.newest_value_of_issue_property('due_date')
-
-    @property
-    def label(self):
-        return self.newest_value_of_issue_property('label')
-
-    @property
-    def weight(self):
-        return self.newest_value_of_issue_property('weight')
-
-    @property
-    def priority(self):
-        return self.newest_value_of_issue_property('priority')
-
-    @property
-    def file_paths(self):
-        result = dict()
-        for issue, issue_commit, branches in self.issue_and_issue_commits:
-            for branch in branches:
-                if branch not in result:
-                    result[branch] = issue.data['filepath']
-        return result
-
-    @property
-    def file_path(self):
-        return self.newest_issue_and_issue_commit[0].data['filepath']
-
-    @property
-    def participants(self):
-        result = set()
-        for issue_and_issue_commit in self.issue_and_issue_commits:
-            result.add(issue_and_issue_commit[1].author_name)
-        return result
-
-    @property
-    def status(self):
-        return 'Open' if len(self.open_in) > 0 else 'Closed'
-
-    @property
-    def closing_commit(self):
-        if self.status == 'Closed':
-            _, last_issue_commit, _ = self.newest_issue_and_issue_commit
-            child = last_issue_commit.children[0]
-            return child
-        else:
-            return None
-
-    @property
-    def closer(self):
-        return self.closing_commit.author.name if self.closing_commit else None
-
-    @property
-    def closed_date(self):
-        time_format = '%a %b %d %H:%M:%S %Y %z'
-        return self.closing_commit.authored_datetime.strftime(time_format) if self.closing_commit else None
-
-    @property
-    def closing_summary(self):
-        return self.closing_commit.summary if self.closing_commit else None
-
-    @property
-    def activity(self):
-        result = list()
-        for issue, issue_commit, _ in self.issue_and_issue_commits:
-            result.append(
-                {
-                    'commitsha': issue_commit.commit.hexsha,
-                    'date': issue_commit.date_string,
-                    'author': issue_commit.author_name,
-                    'summary': issue_commit.commit.summary})
-
-        if self.status == 'Closed':
-
-            closing_activity = \
-                {
-                    'commitsha': self.closing_commit.hexsha,
-                    'date': self.closed_date,
-                    'author': self.closer,
-                    'summary': self.closing_summary + ' (closed)'
-                }
-            result.insert(0, closing_activity)
-
-        return result
-
-
-    @property
-    def revisions(self):
+    def _deserialize_issue_snapshots_from_db(self, rev=None):
         result = list()
 
-        if self.status == 'Closed':
-            result.append(
-                {
-                    'issuesha': self.closing_commit.hexsha,
-                    'date': self.closed_date,
-                    'author': self.closing_commit.author.name,
-                    'changes': {'status': 'Closed'}
-                }
-            )
+        with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
+            cursor = connection.cursor()
+            cursor.row_factory = dict_factory
+            cursor.execute("CREATE TABLE IF NOT EXISTS IssueSnapshot(commit_sha TEXT, issue_id TEXT, json_data BLOB)")
+            if rev is None:
+                row_values = cursor.execute("SELECT * FROM IssueSnapshot").fetchall()
+            else:
+                row_values = cursor.execute("SELECT * FROM IssueSnapshot").fetchall()
 
-        for newer, older in zip(self.issue_and_issue_commits[:-1], self.issue_and_issue_commits[1:]):
-            newer_issue = newer[0]
-            older_issue = older[0]
+            for row_value in row_values:
+                commit = Commit(self.git_repository, hex_to_bin(row_value['commit_sha']))
+                data = json.loads(row_value['json_data'])
+                issue_snapshot = IssueSnapshot(commit, data)
+                result.append(issue_snapshot)
 
-            changes = dict()
-            for k, v in newer_issue.data.items():
-                if k not in older_issue.data or older_issue.data[k] != v:
-                    changes[k] = v
-
-            if 'hexsha' in changes:
-                del changes['hexsha']
-
-            if len(changes) > 0:
-
-                revision = {
-                    'issuesha': newer[1].commit.hexsha,
-                    'date': newer[1].date_string,
-                    'author': newer[1].author_name,
-                    'changes': changes
-                }
-                result.append(revision)
-
-        original_values = self.oldest_issue_and_issue_commit[0].data
-        if 'hexsha' in original_values:
-            del original_values['hexsha']
-
-        oldest_version = {
-            'issuesha': self.oldest_issue_commit.commit.hexsha,
-            'date': self.oldest_issue_commit.date_string,
-            'author': self.oldest_issue_commit.author_name,
-            'changes': original_values
-        }
-        result.append(oldest_version)
-
-        return result
-
-    @property
-    def size(self):
-        return sum([issue_and_issue_commit[1].size for issue_and_issue_commit in self.issue_and_issue_commits])
-
-    @property
-    def in_branches(self):
-        result = set()
-        for issue_and_issue_commit in self.issue_and_issue_commits:
-            result.update(issue_and_issue_commit[2])
-        return result
-
-    def update(self, issue, issue_commit, branches):
-        """
-        Update the content of the issue history, based on newly discovered, *older* information.
-        """
-        self.issue_and_issue_commits.append((issue, issue_commit, branches))
+            return result

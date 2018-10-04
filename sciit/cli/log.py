@@ -19,28 +19,28 @@ def log(args):
         revision = args.repo.head
 
     args.repo.sync()
-    all_issue_commits = list(args.repo.iter_issue_commits(revision))
+    all_issue_commits = args.repo.find_issue_snapshots_by_commit(revision)
     output = page_log(all_issue_commits)
     return output
 
 
-def page_log(issue_commits):
+def page_log(commits_and_issue_snapshots):
     output = ''
-    for issue_commit in issue_commits:
-        output += build_log_item(issue_commit)
+    for commit, issue_snapshot_list in commits_and_issue_snapshots.items():
+        output += build_log_item(commit, issue_snapshot_list)
     page(output)
     return output
 
 
-def build_log_item(issue_commit):
+def build_log_item(commit, issue_snapshot_list):
     time_format = '%a %b %d %H:%M:%S %Y %z'
-    date = issue_commit.commit.authored_datetime.strftime(time_format)
-    output = Color.bold_yellow(f'commit {issue_commit.hexsha}')
-    output += f'\nAuthor:\t {issue_commit.commit.author.name} <{issue_commit.commit.author.email}>'
+    date = commit.authored_datetime.strftime(time_format)
+    output = Color.bold_yellow(f'commit {commit.hexsha}')
+    output += f'\nAuthor:\t {commit.author.name} <{commit.author.email}>'
     output += f'\nDate:\t {date}'
-    output += f'\n{Color.bold_red(f"Open Issues: {issue_commit.open_issues}")}'
+    output += f'\n{Color.bold_red(f"Open Issues: {len(issue_snapshot_list)}")}'
     output += f'\n'
-    output += f'\n{issue_commit.commit.message}'
+    output += f'\n{commit.message}'
     output += f'\n'
     return output
 

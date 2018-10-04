@@ -1,10 +1,10 @@
 import sys
 from io import StringIO
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, MagicMock
 
 from sciit.cli.tracker import tracker
-from tests.test_cli.external_resources import repo, second_sha, second_commit, ansi_escape
+from tests.test_cli.external_resources import ansi_escape, issues, second_commit
 
 
 class TestStatusCommand(TestCase):
@@ -12,193 +12,116 @@ class TestStatusCommand(TestCase):
     def setUp(self):
         self.held, sys.stdout = sys.stdout, StringIO()
 
-    @patch('sciit.repo.IssueRepo.build_history')
-    @patch('sciit.repo.IssueRepo.heads')
-    @patch('sciit.repo.IssueRepo.sync')
-    def test_command_finds_no_history(self, sync, heads, history):
-        args = Mock()
-        args.revision = second_sha
-        args.repo = repo
+        self.args = Mock()
+        self.args.revision = second_commit.hexsha
 
-        args.all = True
-        args.normal = args.detailed = args.full = args.open = args.closed = args.save = False
-        args.repo.heads = []
-        args.repo.build_history.return_value = {}
+        self.args.all = False
+        self.args.normal = False
+        self.args.detailed = False
+        self.args.full = False
+        self.args.open = False
+        self.args.closed = False
 
-        tracker(args)
+    def test_command_finds_no_history(self):
+        self.args.all = True
+
+        self.args.repo.get_all_issues.return_value = {}
+
+        tracker(self.args)
         self.assertIn('No issues found', sys.stdout.getvalue())
 
-    @patch('sciit.repo.IssueRepo.heads')
-    @patch('sciit.repo.IssueRepo.sync')
-    @patch('pydoc.pipepager')
-    def test_prints_correct_tracker_info(self, pager, sync, heads):
-        args = Mock()
-        args.revision = second_sha
-        args.repo = repo
+    def test_prints_correct_tracker_info(self):
+        self.args.open = True
 
-        args.all = args.closed = args.save = args.normal = args.detailed = args.full = False
-        args.open = True
+        self.args.repo.get_open_issues.return_value = {'1': issues[1]}
 
-        mhead = Mock()
-        mhead.commit = second_commit
-        mhead.name = 'master'
-        args.repo.heads = [mhead]
+        output = tracker(self.args)
 
-        output = tracker(args)
         output = ansi_escape.sub('', output)
         self.assertIn('ID:                1\nStatus:            Open', output)
 
-    @patch('sciit.repo.IssueRepo.heads')
-    @patch('sciit.repo.IssueRepo.sync')
-    @patch('pydoc.pipepager')
-    def test_prints_correct_tracker_info_default(self, pager, sync, heads):
-        args = Mock()
-        args.revision = second_sha
-        args.repo = repo
+    def test_prints_correct_tracker_info_default(self):
 
-        args.normal = args.detailed = args.full = False
-        args.closed = args.save = args.open = args.all = False
+        self.args.repo.get_open_issues.return_value = {'2': issues[2], '9': issues[9]}
 
-        mhead = Mock()
-        mhead.commit = second_commit
-        mhead.name = 'master'
-        args.repo.heads = [mhead]
-
-        output = tracker(args)
+        output = tracker(self.args)
         output = ansi_escape.sub('', output)
         self.assertIn('ID:                2\nStatus:            Open', output)
         self.assertIn('ID:                9\nStatus:            Open', output)
 
-    @patch('sciit.repo.IssueRepo.heads')
-    @patch('sciit.repo.IssueRepo.sync')
-    @patch('pydoc.pipepager')
-    def test_prints_correct_tracker_info_all(self, pager, sync, heads):
-        args = Mock()
-        args.revision = second_sha
-        args.repo = repo
+    @patch('tests.test_cli.external_resources.Issue.closer', new_callable=Mock(return_value='Nystrome'))
+    @patch('tests.test_cli.external_resources.Issue.closed_date', new_callable=Mock(return_value='A Date'))
+    def test_prints_correct_tracker_info_all(self,  closed_date, closer):
 
-        args.all = True
-        args.open = args.normal = args.detailed = args.full = args.closed = args.save = False
+        self.args.all = True
 
-        mhead = Mock()
-        mhead.commit = second_commit
-        mhead.name = 'master'
-        args.repo.heads = [mhead]
+        self.args.repo.get_all_issues.return_value = {
+            '5': issues[5], '4': issues[4], 3: issues[3], '2': issues[2], '9': issues[9], '6': issues[6]}
 
-        output = tracker(args)
+        output = tracker(self.args)
         output = ansi_escape.sub('', output)
+
         self.assertIn('ID:                5\nStatus:            Closed', output)
         self.assertIn('ID:                4\nStatus:            Closed', output)
         self.assertIn('ID:                3\nStatus:            Closed', output)
         self.assertIn('ID:                9\nStatus:            Open', output)
         self.assertIn('ID:                6\nStatus:            Open', output)
 
-    @patch('sciit.repo.IssueRepo.heads')
-    @patch('sciit.repo.IssueRepo.sync')
-    @patch('pydoc.pipepager')
-    def test_prints_correct_tracker_info_closed(self, pager, sync, heads):
-        args = Mock()
-        args.revision = second_sha
-        args.repo = repo
+    @patch('tests.test_cli.external_resources.Issue.closer', new_callable=Mock(return_value='Nystrome'))
+    @patch('tests.test_cli.external_resources.Issue.closed_date', new_callable=Mock(return_value='A Date'))
+    def test_prints_correct_tracker_info_closed(self, closed_date, closer):
 
-        args.all = args.normal = args.detailed = args.full = args.save = args.open = False
-        args.closed = True
+        self.args.closed = True
 
-        mhead = Mock()
-        mhead.commit = second_commit
-        mhead.name = 'master'
-        args.repo.heads = [mhead]
+        self.args.repo.get_closed_issues.return_value = {'5': issues[5], '4': issues[4], 3: issues[3]}
 
-        output = tracker(args)
+        output = tracker(self.args)
         output = ansi_escape.sub('', output)
+
         self.assertIn('ID:                5\nStatus:            Closed', output)
         self.assertIn('ID:                4\nStatus:            Closed', output)
         self.assertIn('ID:                3\nStatus:            Closed', output)
         # self.assertIn('ID:                9\nStatus:            Open', output)
 
-    @patch('sciit.repo.IssueRepo.heads')
-    @patch('sciit.repo.IssueRepo.sync')
-    @patch('pydoc.pipepager')
-    def test_prints_correct_tracker_info_and_saves(self, pager, sync, heads):
-        args = Mock()
-        args.revision = second_sha
-        args.repo = repo
+    @patch('tests.test_cli.external_resources.Issue.closer', new_callable=Mock(return_value='Nystrome'))
+    @patch('tests.test_cli.external_resources.Issue.closed_date', new_callable=Mock(return_value='A Date'))
+    def test_prints_normal_tracker_view(self, closed_date, closer):
 
-        args.all = args.normal = args.detailed = args.full = args.closed = False
-        args.open = args.save = True
+        self.args.all = self.args.normal = True
 
-        mhead = Mock()
-        mhead.commit = second_commit
-        mhead.name = 'master'
-        args.repo.heads = [mhead]
+        self.args.repo.get_all_issues.return_value = {'5': issues[5]}
 
-        output = tracker(args)
-        self.assertIsNone(output)
-
-    @patch('sciit.repo.IssueRepo.heads')
-    @patch('sciit.repo.IssueRepo.sync')
-    @patch('pydoc.pipepager')
-    def test_prints_normal_tracker_view(self, pager, sync, heads):
-        args = Mock()
-        args.revision = second_sha
-        args.repo = repo
-
-        args.open = args.save = args.detailed = args.full = args.closed = False
-        args.all = args.normal = True
-
-        mhead = Mock()
-        mhead.commit = second_commit
-        mhead.name = 'master'
-        args.repo.heads = [mhead]
-
-        output = tracker(args)
+        output = tracker(self.args)
         output = ansi_escape.sub('', output)
+
         self.assertNotIn('Descriptions:', output)
         self.assertNotIn('File paths:', output)
         self.assertNotIn('Commit Activities:', output)
         self.assertNotIn('Found In:', output)
         self.assertNotIn('Open In Branches:', output)
 
-    @patch('sciit.repo.IssueRepo.heads')
-    @patch('sciit.repo.IssueRepo.sync')
-    @patch('pydoc.pipepager')
-    def test_prints_detailed_tracker_view(self, pager, sync, heads):
-        args = Mock()
-        args.revision = second_sha
-        args.repo = repo
+    def test_prints_detailed_tracker_view(self):
 
-        args.open = args.save = args.normal = args.full = args.closed = False
-        args.all = args.detailed = True
+        self.args.all = self.args.detailed = True
 
-        mhead = Mock()
-        mhead.commit = second_commit
-        mhead.name = 'master'
-        args.repo.heads = [mhead]
+        self.args.repo.get_all_issues.return_value = {'6': issues[6]}
 
-        output = tracker(args)
+        output = tracker(self.args)
         output = ansi_escape.sub('', output)
+
         self.assertIn('Description:', output)
         self.assertIn('Existed in:', output)
         self.assertIn('Present in Commits (2):', output)
         self.assertNotIn('IssueSnapshot Revisions:', output)
 
-    @patch('sciit.repo.IssueRepo.heads')
-    @patch('sciit.repo.IssueRepo.sync')
-    @patch('pydoc.pipepager')
-    def test_prints_full_tracker_view(self, pager, sync, heads):
-        args = Mock()
-        args.revision = second_sha
-        args.repo = repo
+    def test_prints_full_tracker_view(self):
 
-        args.open = args.save = args.normal = args.detailed = args.closed = False
-        args.all = args.full = True
+        self.args.all = self.args.full = True
 
-        mhead = Mock()
-        mhead.commit = second_commit
-        mhead.name = 'master'
-        args.repo.heads = [mhead]
+        self.args.repo.get_all_issues.return_value = {'6': issues[6]}
 
-        output = tracker(args)
+        output = tracker(self.args)
         output = ansi_escape.sub('', output)
-        self.assertIn('Revisions to Issue (1):', output)
+
+        self.assertIn('Revisions to Issue (2):', output)
         self.assertIn('Present in Commits (2):', output)

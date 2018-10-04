@@ -27,7 +27,7 @@ def init(args):
         try:
             print(' ')
             CPrint.bold('Building repository from commits')
-            args.repo.cache_issue_commits_from_all_commits()
+            args.repo.cache_issue_snapshots_from_all_commits()
             print(' ')
         except NoCommitsError as error:
             CPrint.yellow(error)

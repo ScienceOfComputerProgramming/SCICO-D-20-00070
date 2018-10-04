@@ -2,16 +2,11 @@
 
 import re
 
-from git import Object, Commit
-from git.util import hex_to_bin, bin_to_hex
-
 from sciit import IssueSnapshot
-from sciit.functions import serialize_repository_object_as_json, deserialize_repository_object_from_json, \
-    repository_object_exists, get_repository_object_size
 from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
 
 
-__all__ = ('IssueListInCommit', 'find_issues_in_commit')
+__all__ = 'find_issues_in_commit'
 
 
 def get_blobs_from_commit_tree(tree):
@@ -75,17 +70,7 @@ def read_in_blob_contents(blob):
         return blob_contents
 
 
-def _get_unchanged_issues_from_commit_parents(repo, commit, files_changed_in_commit):
-    result = list()
-    for parent in commit.parents:
-        issue_commit = IssueListInCommit.create_from_hexsha(repo, parent.hexsha)
-        old_issues = [x for x in issue_commit.issues if x.filepath not in files_changed_in_commit]
-        result.extend(old_issues)
-    return result
-
-
-def find_issues_in_commit(repo, commit, comment_pattern=None, ignore_files=None):
-
+def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=None, ignore_files=None):
     issues = list()
 
     files_changed_in_commit = set(commit.stats.files.keys())
@@ -101,6 +86,7 @@ def find_issues_in_commit(repo, commit, comment_pattern=None, ignore_files=None)
             continue
 
         blob = blobs[file_changed]
+
         if not comment_pattern:
             comment_pattern = get_file_object_pattern(blob)
 
@@ -113,85 +99,7 @@ def find_issues_in_commit(repo, commit, comment_pattern=None, ignore_files=None)
         blob_issues = find_issues_in_blob(comment_pattern, blob_contents)
         for issue_data in blob_issues:
             issue_data['filepath'] = file_changed
-            issue = IssueSnapshot.create_from_data(repo, issue_data)
+            issue = IssueSnapshot(commit, issue_data)
             issues.append(issue)
 
-    issues.extend(_get_unchanged_issues_from_commit_parents(repo, commit, files_changed_in_commit))
-    return issues
-
-
-class IssueListInCommit(Object):
-
-    __slots__ = ('data', 'commit', 'size', 'issues', 'time_format')
-
-    def __init__(self, repo, sha, issues, size, time_format='%a %b %d %H:%M:%S %Y %z'):
-        if type(time_format) == int:
-            raise Exception()
-        super(IssueListInCommit, self).__init__(repo, sha)
-        self.issues = issues
-        self.commit = Commit(repo, sha)
-        self.size = size
-        self.time_format = time_format
-
-    @property
-    def children(self):
-        children = list()
-
-        rev_list = self.repo.git.execute(['git', 'rev-list', '--all', '--children'])
-        pattern = re.compile(r'(?:' + self.hexsha + ')(.*)')
-        child_shas = pattern.findall(rev_list)[0]
-        child_shas = child_shas.strip(' ').split(' ')
-        if child_shas[0] != '':
-            for child in child_shas:
-                children.append(Commit(self.repo, hex_to_bin(child)))
-        return children
-
-    @property
-    def open_issues(self):
-        # TODO rename this
-        return len(self.issues)
-
-    @property
-    def author_name(self):
-        return self.commit.author.name
-
-    @property
-    def date_string(self):
-        return self.commit.authored_datetime.strftime(self.time_format)
-
-    @property
-    def summary(self):
-        return self.children[0].summary
-
-    @classmethod
-    def create_from_commit_and_issues(cls, repo, commit, issues):
-
-        if not repository_object_exists(repo, commit.hexsha):
-            data = [{'issue_id': issue.data['issue_id'], 'hexsha': issue.hexsha} for issue in issues]
-            serialize_repository_object_as_json(repo, commit.hexsha, IssueListInCommit, data)
-
-        size = get_repository_object_size(repo, commit.hexsha)
-        return cls(repo, commit.binsha, issues, size)
-
-    @classmethod
-    def create_from_hexsha(cls, repo, hexsha):
-        binsha = hex_to_bin(hexsha)
-        data, size = deserialize_repository_object_from_json(repo, hexsha)
-
-        issues = list()
-        for issue_data in data:
-            issues.append(IssueSnapshot.create_from_hexsha(repo, issue_data['hexsha']))
-
-        return cls(repo, binsha, issues, size)
-
-    @classmethod
-    def create_from_binsha(cls, repo, binsha):
-        hexsha = bin_to_hex(binsha).decode("utf")
-        data, size = deserialize_repository_object_from_json(repo, hexsha)
-
-        issues = list()
-        for issue_data in data:
-            issues.append(IssueSnapshot.create_from_hexsha(repo, issue_data['hexsha']))
-
-        return cls(repo, binsha, issues, size)
-
+    return issues, files_changed_in_commit

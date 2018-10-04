@@ -12,11 +12,11 @@ import argparse
 import sys
 import colorama
 
+from git import Repo
 from git.exc import InvalidGitRepositoryError, GitCommandError
 from sciit.errors import RepoObjectDoesNotExistError, NoCommitsError
 
 from sciit import IssueRepo
-from sciit.cli.cat_file import cat_file
 from sciit.cli.functions import read_sciit_version
 from sciit.cli.color import CPrint, Color
 from sciit.cli.init import init
@@ -103,23 +103,6 @@ def create_command_parser():
 
     add_revision_option(log_parser)
 
-    cat_file_parser = subparsers.add_parser(
-        'cat-file',
-        description=
-        'Prints the content and info of objects stored in our issue repository. Only one flag can be specified')
-    cat_file_parser.set_defaults(func=cat_file)
-    cat_file_parser.add_argument('sha', action='store', type=str, help='The sha of the issue repository object.')
-
-    group = cat_file_parser.add_mutually_exclusive_group(required=True)
-    group.add_argument(
-        '-t', '--type', action='store_true',
-        help='instead of the content, show the object type identified by <object>.')
-    group.add_argument(
-        '-s', '--size', action='store_true',
-        help='instead of the content, show the object size identified by <object>.')
-    group.add_argument(
-        '-p', '--print', action='store_true', help='pretty prints the contents of <object> based on type')
-
     tracker_parser = subparsers.add_parser('tracker', description='Prints a log that shows issues and their status.')
     tracker_parser.set_defaults(func=tracker)
     add_revision_option(tracker_parser)
@@ -157,7 +140,8 @@ def main():
     args = parser.parse_args()
 
     try:
-        repo = IssueRepo()
+        git_repository = Repo(search_parent_directories=True)
+        repo = IssueRepo(git_repository)
         repo.cli = True
         colorama.init()
         if not hasattr(args, 'func'):
