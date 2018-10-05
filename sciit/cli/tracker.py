@@ -17,7 +17,7 @@ all tracked issues with issues open in the current repository or from the specif
                 -s, --save      
                     
 """
-from sciit.cli.issue import page_history_items
+from sciit.cli.issue import page_history_issues
 from sciit.cli.color import CPrint
 
 
@@ -47,6 +47,6 @@ def tracker(args):
         history = None
 
     if history:
-        return page_history_items(history, view)
+        return page_history_issues(history, view)
     else:
         CPrint.bold_green('No issues found')

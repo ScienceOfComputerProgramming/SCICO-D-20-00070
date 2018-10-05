@@ -22,7 +22,7 @@ def read_sciit_version():
         return f.read().decode('utf-8')
 
 
-def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=50, fill='█'):
+def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=50, fill='#'):
     """
     From https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
 

@@ -8,9 +8,11 @@ Implements the git sciit issue commands. Issue tracking information is retrieved
             $ git sciit issue [-h] [-f | -d | -n] [--save] issueid [*revision*]
 """
 
+import datetime
+
 from sciit.cli.color import CPrint, Color
 from slugify import slugify
-from sciit.cli.functions import page
+from sciit.cli.functions import page, print_progress_bar
 
 
 def issue(args):
@@ -30,7 +32,7 @@ def issue(args):
     history = args.repo.build_history(args.revision)
 
     if args.issue_id in history:
-        return page_history_item(history[args.issue_id], view)
+        return page_history_issue(history[args.issue_id], view)
     else:
         if history:
             CPrint.bold_red(f'No issues found matching \'{args.issue_id}\' ')
@@ -40,16 +42,25 @@ def issue(args):
             CPrint.bold_red(f'No issues in the repository')
 
 
-def page_history_item(item, view=None):
+def page_history_issue(item, view=None):
     output = build_issue_history(item, view)
     page(output)
     return output
 
 
-def page_history_items(items, view=None):
+def page_history_issues(items, view=None):
+    start = datetime.datetime.now()
+    num_issues = len(items)
+    cur_issue = 0
     output = ''
     for item in items.values():
         output += build_issue_history(item, view)
+        cur_issue += 1
+        duration = datetime.datetime.now() - start
+        prefix = 'Recovering %d/%d issues: ' % (cur_issue, num_issues)
+        suffix = ' Duration: %s' % str(duration)
+
+        print_progress_bar(cur_issue, num_issues, prefix, suffix)
 
     page(output)
     return output
@@ -82,6 +93,7 @@ def build_issue_history(issue_item, view=None):
     output += f'\nCreated:           {issue_item.creator} | {issue_item.created_date}'
     output += f'\n'
     output += f'\nAssigned To:       {issue_item.assignees}' if issue_item.assignees else ''
+
     output += f'\nParticipants:      {participants}'
     output += f'\nDue Date:          {issue_item.due_date}' if issue_item.due_date else ''
     output += f'\nLabels:            {issue_item.label}' if issue_item.label else ''
