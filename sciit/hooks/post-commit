@@ -19,7 +19,7 @@ if not issue_repository.is_init():
     print('Solve error by building issue repository using: git sciit init')
     exit(127)
 
-ignored_files = get_sciit_ignore_path_spec(issue_repository)
+ignored_files = get_sciit_ignore_path_spec(git_repository)
 commit = git_repository.head.commit
 try:
     issue_snapshots, changed_paths = \

@@ -133,14 +133,13 @@ class IssueRepo(object):
             unchanged_issue_snapshots = list()
 
             for parent in commit.parents:
-                parent_commit = parent.commit
+                parent_commit = parent
                 if parent_commit in changed_commit_issue_snapshots:
                     parent_issue_snapshots = changed_commit_issue_snapshots[parent_commit]
                     unchanged_issue_snapshots_in_parent = \
                         [parent_snapshot for parent_snapshot in parent_issue_snapshots
                          if parent_snapshot.filepath not in files_changed_in_commit]
                     unchanged_issue_snapshots.extend(unchanged_issue_snapshots_in_parent)
-
             all_issue_snapshots = changed_issue_snapshots + unchanged_issue_snapshots
             self._serialize_issue_snapshots_to_db(commit.hexsha, all_issue_snapshots)
 
@@ -188,8 +187,8 @@ class IssueRepo(object):
 
             head_issue_snapshots = self.get_issue_snapshots_for_commit(head_commit)
             head_issue_snapshot_ids = [issue_snapshot.issue_id for issue_snapshot in head_issue_snapshots]
-
             for issue_id, issue in history.items():
+
                 if issue_id in head_issue_snapshot_ids:
                     issue.open_in.add(head.name)
 
@@ -220,6 +219,7 @@ class IssueRepo(object):
 
     def _serialize_issue_snapshots_to_db(self, commit_hexsha, issue_snapshots):
         row_values = [(commit_hexsha, issue.issue_id, json.dumps(issue.data)) for issue in issue_snapshots]
+        print(len(row_values))
         with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
             cursor = connection.cursor()
             cursor.execute("CREATE TABLE IF NOT EXISTS IssueSnapshot(commit_sha TEXT, issue_id TEXT, json_data BLOB)")

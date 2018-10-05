@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 import hashlib
 import markdown2
@@ -167,7 +168,6 @@ class Issue(object):
             for branch in issue_snapshot.in_branches:
                 if branch not in result:
                     result[branch] = issue_snapshot.data['filepath']
-            print(issue_snapshot.in_branches)
         return result
 
     @property
