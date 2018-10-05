@@ -155,7 +155,6 @@ class IssueRepo(object):
 
     def find_issue_snapshots_by_commit(self, rev):
         issue_snapshots = self._deserialize_issue_snapshots_from_db(rev)
-
         # Need to fix this, so that commits are returned in reverse order.
         result = dict()
 
@@ -172,9 +171,7 @@ class IssueRepo(object):
             raise NoCommitsError
 
         history = {}
-
         issue_snapshots = self._deserialize_issue_snapshots_from_db(rev)
-
         for issue_snapshot in issue_snapshots:
 
             if issue_snapshot.issue_id not in history:
@@ -191,7 +188,6 @@ class IssueRepo(object):
 
                 if issue_id in head_issue_snapshot_ids:
                     issue.open_in.add(head.name)
-
         return history
 
     def get_all_issues(self, rev=None):

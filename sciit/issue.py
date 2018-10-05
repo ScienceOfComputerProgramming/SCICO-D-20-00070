@@ -15,6 +15,9 @@ class IssueSnapshot(object):
     __slots__ = ('commit', 'data', 'title', 'description', 'assignees', 'due_date', 'label', 'weight', 'priority',
                  'title','filepath', 'issue_id')
 
+    _in_branches = dict()
+    _children = dict()
+
     def __init__(self, commit, data):
 
         self.commit = commit
@@ -58,16 +61,22 @@ class IssueSnapshot(object):
 
     @property
     def children(self):
-        children = list()
+        if self.commit.hexsha not in IssueSnapshot._children:
 
-        rev_list = self.commit.repo.git.execute(['git', 'rev-list', '--all', '--children'])
-        pattern = re.compile(r'(?:' + self.commit.hexsha + ')(.*)')
-        child_shas = pattern.findall(rev_list)[0]
-        child_shas = child_shas.strip(' ').split(' ')
-        if child_shas[0] != '':
-            for child in child_shas:
-                children.append(Commit(self.commit.repo, hex_to_bin(child)))
-        return children
+            children = list()
+
+            rev_list = self.commit.repo.git.execute(['git', 'rev-list', '--all', '--children'])
+
+            pattern = re.compile(r'(?:' + self.commit.hexsha + ')(.*)')
+            child_shas = pattern.findall(rev_list)[0]
+            child_shas = child_shas.strip(' ').split(' ')
+            if child_shas[0] != '':
+                for child in child_shas:
+                    children.append(Commit(self.commit.repo, hex_to_bin(child)))
+
+            IssueSnapshot._children[self.commit.hexsha] = children
+
+        return IssueSnapshot._children[self.commit.hexsha]
 
     @property
     def size(self):
@@ -84,9 +93,12 @@ class IssueSnapshot(object):
 
     @property
     def in_branches(self):
-        return self.commit.repo.git.execute(['git', 'branch', '--contains', self.commit.hexsha])\
-            .replace('*', '') \
-            .replace(' ', '').split('\n')
+        if self.commit.hexsha not in IssueSnapshot._in_branches:
+            IssueSnapshot._in_branches[self.commit.hexsha] = \
+                self.commit.repo.git.execute(['git', 'branch', '--contains', self.commit.hexsha])\
+                .replace('*', '') \
+                .replace(' ', '').split('\n')
+        return IssueSnapshot._in_branches[self.commit.hexsha]
 
 
 class Issue(object):
@@ -139,7 +151,7 @@ class Issue(object):
 
     @property
     def description_as_html(self):
-        return markdown2.markdown(self.description)
+        return markdown2.markdown(self.description) if self.description else None
 
     @property
     def assignees(self):
