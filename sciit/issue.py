@@ -42,6 +42,8 @@ class IssueSnapshot(object):
         if 'filepath' in self.data:
             self.filepath = self.data['filepath']
 
+
+
     def __lt__(self, other):
         return self.issue_id < other.issue_id
 

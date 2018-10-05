@@ -117,7 +117,7 @@ def create_command_parser():
     add_view_options(issue_parser)
 
     issue_parser.add_argument(
-        'issueid', action='store', type=str,
+        'issue_id', action='store', type=str,
         help='The id of the issue that you are looking for')
 
     add_save_option(issue_parser)
