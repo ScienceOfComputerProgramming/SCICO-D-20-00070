@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from sciit import IssueRepo, IssueListInCommit
+from git import Repo
+
+from sciit import IssueRepo
 from sciit.cli.color import CPrint
 from sciit.errors import RepoObjectDoesNotExistError
 import colorama
 
 colorama.init()
-repo = IssueRepo()
+
+git_repository = Repo(search_parent_directories=True)
+repo = IssueRepo(git_repository)
 
 if not repo.is_init():
     CPrint.bold_red('error: Issue Repository not setup')
@@ -14,24 +18,25 @@ if not repo.is_init():
     exit(127)
 
 repo.sync()
+
+# dealing with a detached head
 try:
-    issue_commit = IssueListInCommit(repo, repo.head.commit.binsha)
+    location = git_repository.head.ref.name
+except TypeError:
+    location = 'DETACHED:' + git_repository.head.commit.hexsha
+
+try:
+    issues = repo.get_open_issues()
+
+    # show issue status at head to the user
+    if len(issues) > 0:
+        result = str(len(issues)) + ' Open Issues @' + location
+        CPrint.bold_red(result)
+    else:
+        result = 'No Open Issues @' + location
+        CPrint.bold_green(result)
+
 except RepoObjectDoesNotExistError as error:
     CPrint.bold_red(error)
     print('Solve error by rebuilding issue repository using: git sciit init -r')
     exit(127)
-
-# dealing with a detached head
-try:
-    location = repo.head.ref.name
-except TypeError:
-    location = 'DETACHED:' + repo.head.commit.hexsha
-
-
-# show issue status at head to the user
-if issue_commit.open_issues > 0:
-    result = str(issue_commit.open_issues) + ' Open Issues @' + location
-    CPrint.bold_red(result)
-else:
-    result = 'No Open Issues @' + location
-    CPrint.bold_green(result)
