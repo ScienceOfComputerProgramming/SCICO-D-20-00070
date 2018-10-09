@@ -13,7 +13,7 @@ __all__ = ('IssueSnapshot', 'Issue')
 
 class IssueSnapshot(object):
     __slots__ = ('commit', 'data', 'title', 'description', 'assignees', 'due_date', 'label', 'weight', 'priority',
-                 'title','filepath', 'issue_id')
+                 'title','filepath', 'issue_id', 'blockers')
 
     _in_branches = dict()
     _children = dict()
@@ -41,8 +41,8 @@ class IssueSnapshot(object):
             self.priority = self.data['priority']
         if 'filepath' in self.data:
             self.filepath = self.data['filepath']
-
-
+        if 'blockers' in self.data:
+            self.blockers = self.data['blockers']
 
     def __lt__(self, other):
         return self.issue_id < other.issue_id
@@ -300,6 +300,12 @@ class Issue(object):
         for issue_snapshot in self.issue_snapshots:
             result.update(issue_snapshot.in_branches)
         return result
+
+    @property
+    def blockers(self):
+        blockers_str = self.newest_value_of_issue_property('blockers')
+        return blockers_str.split(',') if blockers_str is not None else []
+
 
     def __str__(self):
         return self.issue_id + " " + self.status

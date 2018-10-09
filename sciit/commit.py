@@ -36,6 +36,7 @@ def find_issue_in_comment(comment:str):
         update_issue_data_dict_with_value_from_comment(ISSUE.DUE_DATE, 'due_date')
         update_issue_data_dict_with_value_from_comment(ISSUE.PRIORITY, 'priority')
         update_issue_data_dict_with_value_from_comment(ISSUE.WEIGHT, 'weight')
+        update_issue_data_dict_with_value_from_comment(ISSUE.BLOCKERS, 'blockers')
 
     return issue
 
