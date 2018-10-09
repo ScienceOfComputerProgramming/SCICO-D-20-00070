@@ -115,11 +115,11 @@ class Issue(object):
 
     @property
     def newest_issue_snapshot(self):
-        return self.issue_snapshots[0]
+        return self.issue_snapshots[-1]
 
     @property
     def oldest_issue_snapshot(self):
-        return self.issue_snapshots[-1]
+        return self.issue_snapshots[0]
 
     @property
     def last_author(self):
@@ -138,7 +138,7 @@ class Issue(object):
         return self.newest_issue_snapshot.date_string
 
     def newest_value_of_issue_property(self, p):
-        for issue_snapshot in self.issue_snapshots:
+        for issue_snapshot in reversed(self.issue_snapshots):
             if hasattr(issue_snapshot, p):
                 return getattr(issue_snapshot, p)
         return None
@@ -245,48 +245,44 @@ class Issue(object):
 
     @property
     def revisions(self):
+
         result = list()
 
-        if self.status == 'Closed':
+        def record_revision(commit, changes):
+
+            time_format = '%a %b %d %H:%M:%S %Y %z'
+            change_date = commit.authored_datetime.strftime(time_format)
+
             result.append(
                 {
-                    'issuesha': self.closing_commit.hexsha,
-                    'date': self.closed_date,
-                    'author': self.closing_commit.author.name,
-                    'changes': {'status': 'Closed'}
+                    'issuesha': commit.hexsha,
+                    'date': change_date,
+                    'author': commit.author.name,
+                    'changes': changes,
+                    'message': commit.summary
                 }
             )
 
-        for newer, older in zip(self.issue_snapshots[:-1], self.issue_snapshots[1:]):
+        if self.status == 'Closed':
+            record_revision(self.closing_commit, {'status': 'Closed'})
+
+        for older, newer in zip(self.issue_snapshots[:-1], self.issue_snapshots[1:]):
             changes = dict()
-            for k, v in newer.data.items():
-                if k not in older.data or older.data[k] != v:
+            for k, v in older.data.items():
+                if k not in newer.data or newer.data[k] != v:
                     changes[k] = v
 
             if 'hexsha' in changes:
                 del changes['hexsha']
 
             if len(changes) > 0:
-
-                revision = {
-                    'issuesha': newer.commit.hexsha,
-                    'date': newer.date_string,
-                    'author': newer.author_name,
-                    'changes': changes
-                }
-                result.append(revision)
+                record_revision(newer.commit, changes)
 
         original_values = self.oldest_issue_snapshot.data
         if 'hexsha' in original_values:
             del original_values['hexsha']
 
-        oldest_version = {
-            'issuesha': self.oldest_issue_snapshot.commit.hexsha,
-            'date': self.oldest_issue_snapshot.date_string,
-            'author': self.oldest_issue_snapshot.author_name,
-            'changes': original_values
-        }
-        result.append(oldest_version)
+        record_revision(self.oldest_issue_snapshot.commit, original_values)
 
         return result
 

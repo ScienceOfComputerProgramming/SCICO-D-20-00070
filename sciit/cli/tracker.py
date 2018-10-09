@@ -37,16 +37,13 @@ def tracker(args):
         view = 'normal'
 
     args.repo.sync()
-    if args.open:
-        history = args.repo.get_open_issues(args.revision)
-    elif args.all:
-        history = args.repo.get_all_issues(args.revision)
-    elif args.closed:
-        history = args.repo.get_closed_issues(args.revision)
-    else:
-        history = None
-
+    history = args.repo.get_all_issues()
     if history:
-        return page_history_issues(history, view)
+        if args.open:
+            return page_history_issues(history, view, lambda issue: issue.status == 'Open')
+        elif args.all:
+            return page_history_issues(history, view, lambda issue: issue.status == 'Closed')
+        elif args.closed:
+            return page_history_issues(history, view, lambda issue: True)
     else:
         CPrint.bold_green('No issues found')

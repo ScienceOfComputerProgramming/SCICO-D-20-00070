@@ -173,11 +173,12 @@ class IssueRepo(object):
         history = {}
         issue_snapshots = self._deserialize_issue_snapshots_from_db(rev)
         for issue_snapshot in issue_snapshots:
-            issue_id = issue_snapshot.issue_id
-            if (issue_ids is None or issue_id in issue_ids) and issue_id not in history:
-                history[issue_id] = Issue(issue_id)
 
-            history[issue_snapshot.issue_id].update(issue_snapshot)
+            issue_id = issue_snapshot.issue_id
+            if issue_ids is None or issue_id in issue_ids:
+                if issue_id not in history:
+                    history[issue_id] = Issue(issue_id)
+                history[issue_id].update(issue_snapshot)
 
         for head in self.git_repository.heads:
             head_commit = self.find_latest_commit_for_head(head)

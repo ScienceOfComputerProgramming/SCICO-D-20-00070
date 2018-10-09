@@ -48,19 +48,24 @@ def page_history_issue(item, view=None):
     return output
 
 
-def page_history_issues(items, view=None):
+def page_history_issues(items, view=None, issue_filter=None):
+
+    filtered_items = list(filter(issue_filter, items.values()))
+
     start = datetime.datetime.now()
-    num_issues = len(items)
+    num_issues = len(filtered_items)
     cur_issue = 0
     output = ''
-    for item in items.values():
-        output += build_issue_history(item, view)
-        cur_issue += 1
-        duration = datetime.datetime.now() - start
-        prefix = 'Recovering %d/%d issues: ' % (cur_issue, num_issues)
-        suffix = ' Duration: %s' % str(duration)
 
-        print_progress_bar(cur_issue, num_issues, prefix, suffix)
+    for item in filtered_items:
+        if issue_filter is None or issue_filter(item):
+            output += build_issue_history(item, view, items)
+            cur_issue += 1
+            duration = datetime.datetime.now() - start
+            prefix = 'Recovering %d/%d issues: ' % (cur_issue, num_issues)
+            suffix = ' Duration: %s' % str(duration)
+
+            print_progress_bar(cur_issue, num_issues, prefix, suffix)
 
     page(output)
     return output
@@ -89,7 +94,7 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
     output += f'\nStatus:            ' + (Color.red(status) if status == 'Open' else Color.green(status))
     output += f'\n'
     output += f'\nClosed:            {issue_item.closer} | {issue_item.closed_date}' if issue_item.closer else ''
-    output += f'\nLast Authored:     {issue_item.last_author} | {issue_item.last_authored_date}'
+    output += f'\nLast Change:       {issue_item.last_author} | {issue_item.last_authored_date}'
     output += f'\nCreated:           {issue_item.creator} | {issue_item.created_date}'
     output += f'\n'
     output += f'\nAssigned To:       {issue_item.assignees}' if issue_item.assignees else ''
@@ -101,7 +106,6 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
     output += f'\nPriority:          {issue_item.priority}' if issue_item.priority else ''
 
     blocker_issue_ids = issue_item.blockers
-    print(blocker_issue_ids)
     if len(blocker_issue_ids) > 0:
         blockers_status = list()
         for blocker_issue_id in blocker_issue_ids:
@@ -110,7 +114,7 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
             blockers_status.append('%s(%s)' % (blocker_issue_id,blocker_status))
 
         blockers_str = ', '.join(blockers_status)
-        output += f'\nBlockers:          {blockers_str}' if issue_item.blockers else ''
+        output += f'\nBlockers:          {blockers_str}'
 
     if view == 'full' or view == 'detailed':
         branches = ', '.join(issue_item.in_branches)
@@ -144,6 +148,7 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
 
             output += f'\n'
             output += f'{Color.bold_yellow("--> made by: " + revision["author"])} - {revision["date"]}\n'
+            output += f'    {revision["message"]}\n'
 
     if view == 'full' or view == 'detailed':
         num_commits = str(len(issue_item.activity))

@@ -16,7 +16,7 @@ def log(args):
     if args.revision:
         revision = args.revision
     else:
-        revision = args.repo.head
+        revision = args.repo.git_repository.head
 
     args.repo.sync()
     all_issue_commits = args.repo.find_issue_snapshots_by_commit(revision)
