@@ -24,7 +24,7 @@ from sciit.cli.log import log
 from sciit.cli.status import status
 from sciit.cli.tracker import tracker
 from sciit.cli.issue import issue
-from sciit.web.server import launch as launchweb
+from sciit.cli.web import web
 from sciit.gitlab.webservice import launch as launchgitlab
 
 
@@ -126,7 +126,7 @@ def create_command_parser():
     web_parser = subparsers.add_parser(
         'web',
         description='Launches a local web interface for the sciit issue tracker')
-    web_parser.set_defaults(func=launchweb)
+    web_parser.set_defaults(func=web)
 
     gitlab_parser = subparsers.add_parser(
         'gitlab', description='Launches the gitlab webservice that integrates gitlab issues with sciit')

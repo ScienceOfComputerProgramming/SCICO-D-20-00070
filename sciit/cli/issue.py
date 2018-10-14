@@ -105,13 +105,13 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
     output += f'\nWeight:            {issue_item.weight}' if issue_item.weight else ''
     output += f'\nPriority:          {issue_item.priority}' if issue_item.priority else ''
 
-    blocker_issue_ids = issue_item.blockers
-    if len(blocker_issue_ids) > 0:
+    blocker_issues = issue_item.blockers
+
+    if len(blocker_issues) > 0:
         blockers_status = list()
-        for blocker_issue_id in blocker_issue_ids:
-            blocker_status = \
-                other_issue_items[blocker_issue_id].status if blocker_issue_id in other_issue_items else '?'
-            blockers_status.append('%s(%s)' % (blocker_issue_id,blocker_status))
+        for blocker_issue_id, blocker_issue in blocker_issues.items():
+            blocker_status = blocker_issue.status if blocker_issue is not None else '?'
+            blockers_status.append('%s(%s)' % (blocker_issue.issue_id,blocker_status))
 
         blockers_str = ', '.join(blockers_status)
         output += f'\nBlockers:          {blockers_str}'

@@ -5,9 +5,30 @@
             <br>
             <h1>{{ issue.title }}</h1>
             <hr>
-            <p class="{{ issue.status }}">Status: {{ issue.status }}&nbsp;</p>
             <p class="description">{{ issue.description_as_html|safe }}</p>
             <div role="tablist" id="accordion-1">
+                <div class="card">
+                    <div class="card-header" role="tab">
+                        <h5 class="mb-0">
+                            <a data-toggle="collapse" aria-expanded="false" aria-controls="accordion-1 .item-3" href="div#accordion-1 .item-3">Revision History ({{ issue.revisions|length }})</a>
+                        </h5>
+                    </div>
+                    <div class="collapse item-3" role="tabpanel" data-parent="#accordion-1">
+                        <div class="card-body">
+                            {% for item in issue.revisions %}
+                                <p class="card-text">
+                                    Changes were made in <strong>{{ item['issuesha'] }}</strong>. <br> By <strong>{{ item['author'] }}</strong>  on <strong>{{ item['date'] }}</strong>.
+                                </p>
+                                {% for changed_property in item['changes'] %}
+                                    <p class="card-text">
+                                        <strong> {{changed_property}}</strong>  changed to <strong>{{item['changes'][changed_property]}}</strong>
+                                    </p>
+                                {% endfor %}
+                                <hr> 
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
                 <div class="card">
                     <div class="card-header" role="tab">
                         <h5 class="mb-0">
@@ -31,52 +52,46 @@
                         </div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-header" role="tab">
-                        <h5 class="mb-0">
-                            <a data-toggle="collapse" aria-expanded="false" aria-controls="accordion-1 .item-3" href="div#accordion-1 .item-3">IssueSnapshot Revisions ({{ issue.revisions|length }})</a>
-                        </h5>
-                    </div>
-                    <div class="collapse item-3" role="tabpanel" data-parent="#accordion-1">
-                        <div class="card-body">
-                            {% for item in issue.revisions %}
-                                <p class="card-text">
-                                    Changes were made in <strong>{{ item['issuesha'] }}</strong>. <br> By <strong>{{ item['author'] }}</strong>  on <strong>{{ item['date'] }}</strong>.
-                                </p>
-                                {% for changed_property in item['changes'] %}
-                                    <p class="card-text">
-                                        <strong> {{changed_property}}</strong>  changed to <strong>{{item['changes'][changed_property]}}</strong>
-                                    </p>
-                                {% endfor %}
-                                <hr> 
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
+
             </div>
         </div>
         <div class="col-md-4">
             <div class="sidebar">
                 <div>
-                    <label>IssueSnapshot ID</label>
+                    <label>Issue ID</label>
                     <p>{{issue.issue_id}}</p>
                     <hr>
                 </div>
                 <div>
-                    <label>IssueSnapshot Sha</label>
-                    <p>{{issue.hexsha}}</p>
-                    <hr>
+                    <label>Status</label>
+                    <p class="{{ issue.status }}">{{ issue.status }}</p>
                 </div>
                 <div>
-                    <label>Filepath</label>
+                    <label>Latest File Path</label>
                     <p>{{issue.file_path}}</p>
                     <hr>
                 </div>
                 {% if issue.file_paths %}
                 <div>
-                    <label>Filepath in branches</label>
+                    <label>File paths in branches</label>
                     {% for branch, file_path in issue.file_paths.items() %}
                         <p>{{file_path}} @ {{branch}} ({{'open' if branch in issue.open_in else 'closed'}})</p>
+                    {% endfor %}
+                    <hr>
+                </div>
+                {% endif %}
+                {% if issue.blockers|length > 0 %}
+                <div>
+                    <label>Blockers</label>
+                    {% for blocker_id, blocker_issue in issue.blockers.items() %}
+                         <p>
+                             {% if blocker_issue.status == 'Closed' %}
+                                 <strike>{{blocker_id}}</strike>
+                             {% else %}
+                                 {{blocker_id}}
+                             {% endif %}
+                             ,
+                         </p>
                     {% endfor %}
                     <hr>
                 </div>
@@ -129,7 +144,7 @@
                     <hr>
                 </div>
                 {% endif %}
-                {% if issuelabel %}
+                {% if issue.label %}
                 <div>
                     <label>Labels</label>
                     <p>{{issue.label}}</p>

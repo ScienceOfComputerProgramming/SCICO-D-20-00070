@@ -105,9 +105,11 @@ class IssueSnapshot(object):
 
 class Issue(object):
 
-    def __init__(self, issue_id):
+    def __init__(self, issue_id, all_issues):
 
         self.issue_id = issue_id
+
+        self.all_issues = all_issues
 
         self.issue_snapshots = list()
 
@@ -299,9 +301,18 @@ class Issue(object):
 
     @property
     def blockers(self):
-        blockers_str = self.newest_value_of_issue_property('blockers')
-        return blockers_str.split(',') if blockers_str is not None else []
 
+        result = dict()
+
+        latest_blockers_str = self.newest_value_of_issue_property('blockers')
+
+        if latest_blockers_str is not None:
+            blocker_issue_ids = latest_blockers_str.split(',')
+
+            for blocker_issue_id in blocker_issue_ids:
+                result[blocker_issue_id] = self.all_issues.get(blocker_issue_id, None)
+
+        return result
 
     def __str__(self):
         return self.issue_id + " " + self.status

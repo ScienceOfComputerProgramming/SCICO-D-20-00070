@@ -170,14 +170,14 @@ class IssueRepo(object):
         if not self.git_repository.heads:
             raise NoCommitsError
 
-        history = {}
+        history = dict()
         issue_snapshots = self._deserialize_issue_snapshots_from_db(rev)
         for issue_snapshot in issue_snapshots:
 
             issue_id = issue_snapshot.issue_id
             if issue_ids is None or issue_id in issue_ids:
                 if issue_id not in history:
-                    history[issue_id] = Issue(issue_id)
+                    history[issue_id] = Issue(issue_id, history)
                 history[issue_id].update(issue_snapshot)
 
         for head in self.git_repository.heads:
