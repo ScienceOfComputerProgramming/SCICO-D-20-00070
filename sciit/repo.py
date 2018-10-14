@@ -41,44 +41,6 @@ class IssueRepo(object):
     def is_init(self):
         return os.path.exists(self.issue_dir)
 
-    def sync(self):
-        """
-        Ensures that the issue repository issue_commits are synced with the git commits such that there is a
-        issue_commit for every commit in the git repository.
-        """
-        if not self.git_repository.heads:
-            raise NoCommitsError
-
-        last_issue_commit = get_last_issue_commit_sha(self.issue_dir)
-        commits = list(self.git_repository.iter_commits('--all'))
-
-        latest_commit = commits[0].hexsha
-        revision = last_issue_commit + '..' + latest_commit
-        str_commits = self.git_repository.git.execute(['git', 'rev-list', revision])
-        ignored_files = get_sciit_ignore_path_spec(self.git_repository)
-
-        # uses git.execute because iter_commits generator cannot correctly identify false or empty list.
-        if str_commits != '':
-            commits = list(self.git_repository.iter_commits(revision))
-
-            for commit in reversed(commits):
-                issue_snapshots,  files_changed_in_commit =\
-                    find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
-                self._serialize_issue_snapshots_to_db(commit.hexsha, issue_snapshots)
-
-            write_last_issue_commit_sha(self.issue_dir, latest_commit)
-
-    def reset(self):
-        def onerror(func, path, excp_info):
-            os.chmod(path, stat.S_IWUSR)
-            func(path)
-
-        if self.is_init():
-            import shutil
-            shutil.rmtree(self.issue_dir, onerror=onerror)
-        else:
-            raise EmptyRepositoryError
-
     def setup_file_system_resources(self):
         os.makedirs(self.issue_dir)
 
@@ -100,25 +62,56 @@ class IssueRepo(object):
         st = os.stat(destination_path)
         os.chmod(destination_path, st.st_mode | stat.S_IEXEC)
 
-    def print_commit_progress(self, now, start, current, total):
-        if self.cli:
-            duration = now - start
-            prefix = '%d/%d commits: ' % (current, total)
-            suffix = ' Duration: %s' % str(duration)
+    def reset(self):
+        def onerror(func, path, excp_info):
+            os.chmod(path, stat.S_IWUSR)
+            func(path)
 
-            print_progress_bar(current, total, prefix=prefix, suffix=suffix)
+        if self.is_init():
+            import shutil
+            shutil.rmtree(self.issue_dir, onerror=onerror)
+        else:
+            raise EmptyRepositoryError
+
+    def cache_issue_snapshots_from_unprocessed_commits(self):
+
+        if not self.git_repository.heads:
+            raise NoCommitsError
+
+        last_issue_commit = get_last_issue_commit_sha(self.issue_dir)
+        commits = list(self.git_repository.iter_commits('--all'))
+
+        latest_commit = commits[0].hexsha
+        revision = last_issue_commit + '..' + latest_commit
+
+        # uses git.execute for the check because iter_commits generator cannot correctly identify false or empty list.
+        str_commits = self.git_repository.git.execute(['git', 'rev-list', revision])
+
+        if str_commits != '':
+            commits = list(self.git_repository.iter_commits(revision))
+            self._extract_and_synchronisze_issue_snapshots_from_commits(commits, len(commits))
+            write_last_issue_commit_sha(self.issue_dir, latest_commit)
 
     def cache_issue_snapshots_from_all_commits(self):
         if len(self.git_repository.heads) < 1:
             raise NoCommitsError
 
-        start = datetime.now()
-        commits_scanned = 0
-
         # get all commits on all branches, enforcing the topology order of parents to children.
         all_commits = self.git_repository.iter_commits(['--all', '--topo-order', '--reverse'])
         num_commits = int(self.git_repository.git.execute(['git', 'rev-list', '--all', '--count']))
+
+        if all_commits:
+            self._extract_and_synchronisze_issue_snapshots_from_commits(all_commits, num_commits)
+            write_last_issue_commit_sha(self.issue_dir, self.git_repository.head.commit.hexsha)
+        else:
+            raise NoCommitsError
+
+    def _extract_and_synchronisze_issue_snapshots_from_commits(self, all_commits, num_commits):
+
         ignored_files = get_sciit_ignore_path_spec(self.git_repository)
+
+        commits_scanned = 0
+        start = datetime.now()
 
         changed_commit_issue_snapshots = dict()
 
@@ -143,10 +136,13 @@ class IssueRepo(object):
             all_issue_snapshots = changed_issue_snapshots + unchanged_issue_snapshots
             self._serialize_issue_snapshots_to_db(commit.hexsha, all_issue_snapshots)
 
-        if all_commits:
-            write_last_issue_commit_sha(self.issue_dir, self.git_repository.head.commit.hexsha)
-        else:
-            raise NoCommitsError
+    def print_commit_progress(self, now, start, current, total):
+        if self.cli:
+            duration = now - start
+            prefix = '%d/%d commits: ' % (current, total)
+            suffix = ' Duration: %s' % str(duration)
+
+            print_progress_bar(current, total, prefix=prefix, suffix=suffix)
 
     def find_latest_commit_for_head(self, head):
         rev_list = self.git_repository.git.execute(['git', 'rev-list', f'{head.name}', '--'])
@@ -189,6 +185,7 @@ class IssueRepo(object):
 
                 if issue_id in head_issue_snapshot_ids:
                     issue.open_in.add(head.name)
+
         return history
 
     def get_all_issues(self, rev=None):

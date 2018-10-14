@@ -17,7 +17,7 @@ def status(args):
     else:
         revision = args.repo.head
    
-    args.repo.sync()
+    args.repo.cache_issue_snapshots_from_unprocessed_commits()
     all_issues = args.repo.get_all_issues(revision)
     print(all_issues)
     opened = sum(issue.status == 'Open' for issue in all_issues.values())

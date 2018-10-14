@@ -36,14 +36,15 @@ def tracker(args):
     else:
         view = 'normal'
 
-    args.repo.sync()
+    args.repo.cache_issue_snapshots_from_unprocessed_commits()
     history = args.repo.get_all_issues()
+
     if history:
         if args.open:
             return page_history_issues(history, view, lambda issue: issue.status == 'Open')
         elif args.all:
-            return page_history_issues(history, view, lambda issue: issue.status == 'Closed')
-        elif args.closed:
             return page_history_issues(history, view, lambda issue: True)
+        elif args.closed:
+            return page_history_issues(history, view, lambda issue: issue.status == 'Closed')
     else:
         CPrint.bold_green('No issues found')

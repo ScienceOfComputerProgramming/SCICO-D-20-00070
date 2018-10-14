@@ -158,7 +158,7 @@ class TestRepoSync(TestCase):
 
         # write_last_issue_commit_sha(self.repo.issue_dir, self.first)
 
-        self.repo.sync()
+        self.repo.cache_issue_snapshots_from_unprocessed_commits()
         last = get_last_issue_commit_sha(self.repo.issue_dir)
 
         self.assertEqual(self.mock_git_repository.head.commit.hexsha, last)

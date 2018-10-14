@@ -26,7 +26,7 @@ def handle_push_event(CONFIG, data):
         """A function that executes the push handler within a Thread
         """
         CONFIG.repo.git.execute(['git', 'fetch', '--all'])
-        CONFIG.repo.sync()
+        CONFIG.repo.cache_issue_snapshots_from_unprocessed_commits()
 
         # get the new commits pushed to the repository
         if data['before'] == '0000000000000000000000000000000000000000':

@@ -27,7 +27,7 @@ def issue(args):
     elif args.full:
         view = 'full'
 
-    args.repo.sync()
+    args.repo.cache_issue_snapshots_from_unprocessed_commits()
     args.issue_id = slugify(args.issue_id)
     history = args.repo.build_history(args.revision)
 
@@ -111,7 +111,7 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
         blockers_status = list()
         for blocker_issue_id, blocker_issue in blocker_issues.items():
             blocker_status = blocker_issue.status if blocker_issue is not None else '?'
-            blockers_status.append('%s(%s)' % (blocker_issue.issue_id,blocker_status))
+            blockers_status.append('%s(%s)' % (blocker_issue_id,blocker_status))
 
         blockers_str = ', '.join(blockers_status)
         output += f'\nBlockers:          {blockers_str}'

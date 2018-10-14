@@ -17,7 +17,7 @@ if not repo.is_init():
     print('Solve error by building issue repository using: git sciit init')
     exit(127)
 
-repo.sync()
+repo.cache_issue_snapshots_from_unprocessed_commits()
 
 # dealing with a detached head
 try:

@@ -42,7 +42,7 @@ def handle_issue_event(CONFIG, data):
         """A function that executes the issue handler within a Thread
         """
         CONFIG.repo.git.execute(['git', 'fetch', '--all'])
-        CONFIG.repo.sync()
+        CONFIG.repo.cache_issue_snapshots_from_unprocessed_commits()
 
         # get all the issue metadata from the request
         issue = {}

@@ -33,7 +33,7 @@ class TestStatusCommand(TestCase):
     def test_prints_correct_tracker_info(self):
         self.args.open = True
 
-        self.args.repo.get_open_issues.return_value = {'1': issues[1]}
+        self.args.repo.get_all_issues.return_value = {'1': issues['1']}
 
         output = tracker(self.args)
 
@@ -42,7 +42,7 @@ class TestStatusCommand(TestCase):
 
     def test_prints_correct_tracker_info_default(self):
 
-        self.args.repo.get_open_issues.return_value = {'2': issues[2], '9': issues[9]}
+        self.args.repo.get_all_issues.return_value = {'2': issues['2'], '9': issues['9']}
 
         output = tracker(self.args)
         output = ansi_escape.sub('', output)
@@ -56,7 +56,7 @@ class TestStatusCommand(TestCase):
         self.args.all = True
 
         self.args.repo.get_all_issues.return_value = {
-            '5': issues[5], '4': issues[4], 3: issues[3], '2': issues[2], '9': issues[9], '6': issues[6]}
+            '5': issues['5'], '4': issues['4'], 3: issues['3'], '2': issues['2'], '9': issues['9'], '6': issues['6']}
 
         output = tracker(self.args)
         output = ansi_escape.sub('', output)
@@ -73,7 +73,7 @@ class TestStatusCommand(TestCase):
 
         self.args.closed = True
 
-        self.args.repo.get_closed_issues.return_value = {'5': issues[5], '4': issues[4], 3: issues[3]}
+        self.args.repo.get_all_issues.return_value = {'5': issues['5'], '4': issues['4'], 3: issues['3']}
 
         output = tracker(self.args)
         output = ansi_escape.sub('', output)
@@ -89,7 +89,7 @@ class TestStatusCommand(TestCase):
 
         self.args.all = self.args.normal = True
 
-        self.args.repo.get_all_issues.return_value = {'5': issues[5]}
+        self.args.repo.get_all_issues.return_value = {'5': issues['5']}
 
         output = tracker(self.args)
         output = ansi_escape.sub('', output)
@@ -104,7 +104,7 @@ class TestStatusCommand(TestCase):
 
         self.args.all = self.args.detailed = True
 
-        self.args.repo.get_all_issues.return_value = {'6': issues[6]}
+        self.args.repo.get_all_issues.return_value = {'6': issues['6']}
 
         output = tracker(self.args)
         output = ansi_escape.sub('', output)
@@ -118,7 +118,7 @@ class TestStatusCommand(TestCase):
 
         self.args.all = self.args.full = True
 
-        self.args.repo.get_all_issues.return_value = {'6': issues[6]}
+        self.args.repo.get_all_issues.return_value = {'6': issues['6']}
 
         output = tracker(self.args)
         output = ansi_escape.sub('', output)

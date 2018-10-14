@@ -20,14 +20,14 @@ class TestStatusCommand(TestCase):
 
     def test_prints_correct_status_info(self):
         self.args.revision = False
-        self.args.repo.get_all_issues.return_value = {str(i): issues[i] for i in [1, 2, 3, 4, 5, 6, 9, 12]}
+        self.args.repo.get_all_issues.return_value = {str(i): issues[str(i)] for i in [1, 2, 3, 4, 5, 6, 9, 12]}
 
         status(self.args)
         self.assertIn('Open Issues: 5', sys.stdout.getvalue())
         self.assertIn('Closed Issues: 3', sys.stdout.getvalue())
 
     def test_prints_correct_status_info_with_revision(self):
-        self.args.repo.get_all_issues.return_value = {str(i): issues[i] for i in [1, 2, 3, 4, 5, 6, 9, 12]}
+        self.args.repo.get_all_issues.return_value = {str(i): issues[str(i)] for i in [1, 2, 3, 4, 5, 6, 9, 12]}
 
         status(self.args)
         self.assertIn('Open Issues: 5', sys.stdout.getvalue())
