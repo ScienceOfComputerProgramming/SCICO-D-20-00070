@@ -53,6 +53,7 @@ except RepoObjectDoesNotExistError as error:
     exit(127)
 
 
+issue_repository.cache_issue_snapshots_from_unprocessed_commits()
 issues = issue_repository.get_open_issues()
 
 write_last_issue_commit_sha(issue_repository.issue_dir, commit.hexsha)

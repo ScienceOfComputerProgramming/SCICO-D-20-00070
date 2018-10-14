@@ -307,7 +307,7 @@ class Issue(object):
         latest_blockers_str = self.newest_value_of_issue_property('blockers')
 
         if latest_blockers_str is not None:
-            blocker_issue_ids = latest_blockers_str.split(',')
+            blocker_issue_ids = [s.strip() for s in latest_blockers_str.split(',')]
 
             for blocker_issue_id in blocker_issue_ids:
                 result[blocker_issue_id] = self.all_issues.get(blocker_issue_id, None)
