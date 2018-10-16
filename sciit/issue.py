@@ -199,7 +199,21 @@ class Issue(object):
 
     @property
     def status(self):
-        return 'Open' if len(self.open_in) > 0 else 'Closed'
+
+        if len(self.open_in) >= 1 and 'uat' not in self.open_in and 'master' not in self.open_in:
+            return 'Untriaged'
+        elif len(self.open_in) >= 2 and 'uat' in self.open_in and 'master' not in self.open_in:
+            return 'In review'
+        elif len(self.open_in) >= 3 and 'uat' in self.open_in and 'master' in self.open_in:
+            return 'In progress'
+        elif self.open_in == {'uat', 'master'}:
+            return 'Awaiting UAT'
+        elif self.open_in == {'master'}:
+            return 'In UAT'
+        elif self.open_in == set():
+            return 'Closed'
+        else:
+            return 'Open'
 
     @property
     def closing_commit(self):
