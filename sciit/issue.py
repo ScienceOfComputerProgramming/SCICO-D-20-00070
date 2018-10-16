@@ -203,7 +203,7 @@ class Issue(object):
 
     @property
     def closing_commit(self):
-        if self.status == 'Closed':
+        if self.status == 'Closed' and len(self.newest_issue_snapshot.children) > 0:
             return self.newest_issue_snapshot.children[0]
         else:
             return None
