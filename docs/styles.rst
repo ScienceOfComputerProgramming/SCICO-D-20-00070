@@ -3,6 +3,28 @@
 Supported Files and Styles
 ==========================
 
+Issue Format
+------------
+
+Issues can be created in any source code comment.  For example, in a
+C style language:
+
+.. code:: c
+
+       /*
+        * @issue create-new-user-on-client-in-db
+        * @title Create New User on Client in Database
+        * @description
+        *  Create a new user using our command line application
+        *   and register with db.
+        * @label feature
+        * @priority High
+        * @due 12/12/2018
+        */
+
+Notice that every issue must be tagged with an `@issue` followed by a
+*unique* (within a change set) identifier.
+
 Since issues are embedded in block comments, there are different styles
 of block comments and files that support those types.
 
@@ -116,6 +138,28 @@ Supports ``.hs`` files
            @weight 4
            @priority high
        -}
+
+
+Markdown
+--------
+
+Supports ``.md`` files
+
+.. code:: markdown
+
+       ---
+           @issue Eg: The title of your issue
+           @description:
+               A description of an issue as you
+               want it to be even with ``markdown`` supported
+           @issue_assigned to nystrome, kevin, daniels
+           @due date 12 oct 2018
+           @label in-development
+           @weight 4
+           @priority high
+       ---
+
+
 
 Others
 ------

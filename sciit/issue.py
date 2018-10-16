@@ -320,7 +320,6 @@ class Issue(object):
     def __repr__(self):
         return "Issue " + self.issue_id + " (" + self.status + ") as of " + self.newest_issue_snapshot.commit.hexsha
 
-
     def update(self, issue_snapshot):
         """
         Update the content of the issue history, based on newly discovered, *older* information.

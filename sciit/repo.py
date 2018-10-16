@@ -117,7 +117,7 @@ class IssueRepo(object):
 
         for commit in all_commits:
             commits_scanned += 1
-            self.print_commit_progress(datetime.now(), start, commits_scanned, num_commits)
+            self._print_commit_progress(datetime.now(), start, commits_scanned, num_commits)
 
             changed_issue_snapshots, files_changed_in_commit = \
                 find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
@@ -136,18 +136,21 @@ class IssueRepo(object):
             all_issue_snapshots = changed_issue_snapshots + unchanged_issue_snapshots
             self._serialize_issue_snapshots_to_db(commit.hexsha, all_issue_snapshots)
 
-    def print_commit_progress(self, now, start, current, total):
+    def _serialize_issue_snapshots_to_db(self, commit_hexsha, issue_snapshots):
+        row_values = [(commit_hexsha, issue.issue_id, json.dumps(issue.data)) for issue in issue_snapshots]
+        with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
+            cursor = connection.cursor()
+            cursor.execute("CREATE TABLE IF NOT EXISTS IssueSnapshot(commit_sha TEXT, issue_id TEXT, json_data BLOB)")
+            cursor.executemany("INSERT INTO IssueSnapshot VALUES(?, ?, ?)", row_values)
+            connection.commit()
+
+    def _print_commit_progress(self, now, start, current, total):
         if self.cli:
             duration = now - start
             prefix = '%d/%d commits: ' % (current, total)
             suffix = ' Duration: %s' % str(duration)
 
             print_progress_bar(current, total, prefix=prefix, suffix=suffix)
-
-    def find_latest_commit_for_head(self, head):
-        rev_list = self.git_repository.git.execute(['git', 'rev-list', f'{head.name}', '--'])
-        rev_list = rev_list.split('\n')
-        return Commit.new_from_sha(self.git_repository, hex_to_bin(rev_list[0]))
 
     def find_issue_snapshots_by_commit(self, rev):
         issue_snapshots = self._deserialize_issue_snapshots_from_db(rev)
@@ -177,12 +180,11 @@ class IssueRepo(object):
                 history[issue_id].update(issue_snapshot)
 
         for head in self.git_repository.heads:
-            head_commit = self.find_latest_commit_for_head(head)
 
-            head_issue_snapshots = self.get_issue_snapshots_for_commit(head_commit)
+            head_issue_snapshots = self._get_issue_snapshots_for_head(head)
             head_issue_snapshot_ids = [issue_snapshot.issue_id for issue_snapshot in head_issue_snapshots]
-            for issue_id, issue in history.items():
 
+            for issue_id, issue in history.items():
                 if issue_id in head_issue_snapshot_ids:
                     issue.open_in.add(head.name)
 
@@ -195,23 +197,13 @@ class IssueRepo(object):
         history = self.build_history(rev)
         return {issue_id: issue for issue_id, issue in history.items() if issue.status == 'Open'}
 
-    def get_closed_issues(self, rev=None):
-        history = self.build_history(rev)
-        return {issue_id: issue for issue_id, issue in history.items() if issue.status == 'Closed'}
+    def _find_latest_commit_hexsha_for_head(self, head):
+        rev_list = self.git_repository.git.execute(['git', 'rev-list', f'{head.name}', '--'])
+        return rev_list.split('\n')[0]
 
-    @property
-    def all_issues(self):
-        return self.get_all_issues()
+    def _get_issue_snapshots_for_head(self, head):
 
-    def _serialize_issue_snapshots_to_db(self, commit_hexsha, issue_snapshots):
-        row_values = [(commit_hexsha, issue.issue_id, json.dumps(issue.data)) for issue in issue_snapshots]
-        with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
-            cursor = connection.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS IssueSnapshot(commit_sha TEXT, issue_id TEXT, json_data BLOB)")
-            cursor.executemany("INSERT INTO IssueSnapshot VALUES(?, ?, ?)", row_values)
-            connection.commit()
-
-    def get_issue_snapshots_for_commit(self, commit):
+        head_commit_hexsha = self._find_latest_commit_hexsha_for_head(head)
 
         with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
 
@@ -224,11 +216,11 @@ class IssueRepo(object):
             row_values = cursor.execute(
                 """
                 SELECT * FROM IssueSnapshot WHERE commit_sha=?
-                """, (commit.hexsha, )).fetchall()
+                """, (head_commit_hexsha, )).fetchall()
 
             for row_value in row_values:
                 data = json.loads(row_value['json_data'])
-                issue_snapshot = IssueSnapshot(commit, data)
+                issue_snapshot = IssueSnapshot(head_commit_hexsha, data)
                 result.append(issue_snapshot)
 
             return result

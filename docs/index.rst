@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Source Control Integrated IssueSnapshot Tracker (SCIIT)
-===============================================
+=======================================================
 
 Description
 -----------
@@ -38,8 +38,7 @@ plugin for existing software project management tools that allow issues
 to be managed *within* a version control repository rather than as a
 separate database.
 
-Instructions
-============
+## Instructions
 
 This application manages software development issues within your git
 repository. It is structured as a Python command line applications.
@@ -72,7 +71,7 @@ An example of a recommended style for Java:
 
 More styles and supported files can be found in :ref:`styles_toplevel`.
 
-Cheat sheet of commands can be found in :ref:`cheatsheet_toplevel`.
+Guidance on command line interaction can be found in :ref:`commandline_toplevel`.
 
 Installation
 ============

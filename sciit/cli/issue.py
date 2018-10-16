@@ -29,6 +29,7 @@ def issue(args):
 
     args.repo.cache_issue_snapshots_from_unprocessed_commits()
     args.issue_id = slugify(args.issue_id)
+
     history = args.repo.build_history(args.revision)
 
     if args.issue_id in history:
@@ -40,7 +41,6 @@ def issue(args):
             print("\n".join(history.keys()))
         else:
             CPrint.bold_red(f'No issues in the repository')
-
 
 def page_history_issue(item, view=None):
     output = build_issue_history(item, view)
