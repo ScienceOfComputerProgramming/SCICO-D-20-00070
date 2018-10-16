@@ -9,7 +9,7 @@ from git import Repo
 from sciit import IssueRepo
 
 app = Flask(__name__)
-history = None
+global global_issue_repository
 
 
 @app.route("/")
@@ -17,6 +17,7 @@ def index():
     """
     The homepage of the web interface that shows all the open and closed issues stored in the tracker.
     """
+    history = global_issue_repository.build_history()
     data = dict()
     data['Num Open Issues'] = len([x for x in history.values() if x.status == 'Open'])
     data['Num Closed Issues'] = len([x for x in history.values() if x.status == 'Closed'])
@@ -26,21 +27,21 @@ def index():
 @app.route("/<issue_id>")
 def issue(issue_id):
     """
-    The page for showing the content and history of an issue, derived from it's repository commits.
+    Page for showing the content and history of an issue, derived from it's repository commits.
     """
+    history = global_issue_repository.build_history()
     return render_template('issue.html', issue=history[issue_id])
 
 
 def launch(issue_repository=None):
 
+    global global_issue_repository
+
     if issue_repository is None:
         git_repository = Repo(search_parent_directories=True)
-        repo = IssueRepo(git_repository)
+        global_issue_repository = IssueRepo(git_repository)
+    else:
+        global_issue_repository = issue_repository
 
-    """
-    Builds issue tracker history and launches the webserver
-    """
-    global history
-    history = issue_repository.build_history()
     app.run(debug=False)
 

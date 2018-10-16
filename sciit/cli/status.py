@@ -12,17 +12,13 @@ from sciit.cli.color import CPrint
 
 
 def status(args):
-    if args.revision:
-        revision = args.revision
-    else:
-        revision = args.repo.head
-   
+    revision = args.revision if args.revision else args.repo.git_repository.head
+
     args.repo.cache_issue_snapshots_from_unprocessed_commits()
     all_issues = args.repo.get_all_issues(revision)
-    print(all_issues)
-    opened = sum(issue.status == 'Open' for issue in all_issues.values())
-    closed = len(all_issues) - opened
-    CPrint.bold_red(f'Open Issues: ' + str(opened))
+    open = sum(issue.status == 'Open' for issue in all_issues.values())
+    closed = len(all_issues) - open
+    CPrint.bold_red(f'Open Issues: ' + str(open))
     CPrint.bold_green(f'Closed Issues: ' + str(closed))
     print('')
     return
