@@ -41,7 +41,7 @@ def tracker(args):
 
     if history:
         if args.open:
-            return page_history_issues(history, view, lambda issue: issue.status == 'Open')
+            return page_history_issues(history, view, lambda issue: issue.status != 'Closed')
         elif args.all:
             return page_history_issues(history, view, lambda issue: True)
         elif args.closed:
