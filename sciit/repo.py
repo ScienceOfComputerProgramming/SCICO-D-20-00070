@@ -89,7 +89,7 @@ class IssueRepo(object):
 
         if str_commits != '':
             commits = list(self.git_repository.iter_commits(revision))
-            self._extract_and_synchronisze_issue_snapshots_from_commits(commits, len(commits))
+            self._extract_and_synchronise_issue_snapshots_from_commits(commits, len(commits))
             write_last_issue_commit_sha(self.issue_dir, latest_commit)
 
     def cache_issue_snapshots_from_all_commits(self):
@@ -101,12 +101,12 @@ class IssueRepo(object):
         num_commits = int(self.git_repository.git.execute(['git', 'rev-list', '--all', '--count']))
 
         if all_commits:
-            self._extract_and_synchronisze_issue_snapshots_from_commits(all_commits, num_commits)
+            self._extract_and_synchronise_issue_snapshots_from_commits(all_commits, num_commits)
             write_last_issue_commit_sha(self.issue_dir, self.git_repository.head.commit.hexsha)
         else:
             raise NoCommitsError
 
-    def _extract_and_synchronisze_issue_snapshots_from_commits(self, all_commits, num_commits):
+    def _extract_and_synchronise_issue_snapshots_from_commits(self, all_commits, num_commits):
 
         ignored_files = get_sciit_ignore_path_spec(self.git_repository)
 
@@ -202,14 +202,6 @@ class IssueRepo(object):
     @property
     def all_issues(self):
         return self.get_all_issues()
-
-    @property
-    def open_issues(self):
-        return self.get_open_issues()
-
-    @property
-    def closed_issues(self):
-        return self.get_closed_issues()
 
     def _serialize_issue_snapshots_to_db(self, commit_hexsha, issue_snapshots):
         row_values = [(commit_hexsha, issue.issue_id, json.dumps(issue.data)) for issue in issue_snapshots]
