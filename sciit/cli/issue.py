@@ -91,7 +91,7 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
     output = ''
     output += f'\nTitle:             ' + Color.bold_yellow(f"{issue_item.title}")
     output += f'\nID:                {issue_item.issue_id}'
-    output += f'\nStatus:            ' + (Color.red(status) if status == 'Open' else Color.green(status))
+    output += f'\nStatus:            ' + (Color.green(status) if status == 'Closed' else Color.red(status))
     output += f'\n'
     output += f'\nClosed:            {issue_item.closer} | {issue_item.closed_date}' if issue_item.closer else ''
     output += f'\nLast Change:       {issue_item.last_author} | {issue_item.last_authored_date}'
