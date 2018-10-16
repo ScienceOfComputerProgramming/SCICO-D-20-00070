@@ -157,6 +157,10 @@ def main():
                 else:
                     args.func(args)
 
+        # Forces proper clean up of git repository resources on Windows.
+        # See https://github.com/gitpython-developers/GitPython/issues/508
+        git_repository.__del__()
+
     except InvalidGitRepositoryError:
         CPrint.bold('fatal: not a git repository (or any parent up to mount point /)')
         CPrint.bold('Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
