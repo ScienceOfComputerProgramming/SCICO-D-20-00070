@@ -9,7 +9,9 @@ from git import Repo
 from sciit import IssueRepo
 
 app = Flask(__name__)
-global global_issue_repository
+
+
+global_issue_repository = None
 
 
 @app.route("/")
