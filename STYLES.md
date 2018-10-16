@@ -110,6 +110,24 @@ Supports `.hs` files
     -}
 ```
 
+## Markdown
+
+Supports ``.md`` files
+
+```markdown
+    ---
+    @issue Eg: The title of your issue
+    @description:
+       A description of an issue as you
+       want it to be even with ``markdown`` supported
+    @issue_assigned to nystrome, kevin, daniels
+    @due date 12 oct 2018
+    @label in-development
+    @weight 4
+    @priority high
+    ---
+```
+
 ## Others
 
 Supported file extensions:

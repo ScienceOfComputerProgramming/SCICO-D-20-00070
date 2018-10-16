@@ -21,7 +21,9 @@ It is structured as a Python command line applications.
 
 ## Usage
 
-To use the application you can create your issues anywhere in your source code as block comments in a particular format and it will become a trackable versioned object within your git environment. Operations done with git will run git sciit in the background in order to automate issue tracking for you.
+Issues can be crated anywhere in your source code as block comments in the underlying programming language format and
+will become a trackable versioned object within your git repository. Commit, merge and checkout operations  done by git 
+will run git sciit hooks in the background in order to automate issue tracking.
 
 An example of a recommended style for Java:
 
@@ -40,9 +42,16 @@ An example of a recommended style for Java:
     */
 ```
 
+Notice that every issue must be tagged with an `@issue` followed by a
+*unique* (within a change set) identifier.
+
+Since issues are embedded in block comments, there are different styles
+of block comments and files that support those types.
+
+
 More styles and supported files can be found [here](STYLES.md)
 
-Cheat sheet of commands can be found [here](docs/Cheatsheet.png)
+Command line interaction instructions can be found [here](commandline.md)
 
 
 # Installation
@@ -64,7 +73,7 @@ Now, the `git sciit` command is available::
 
     $ git sciit
 
-On Unix-like systems, the installation places a `git-sciit` script into a centralised `bin` directory, which should be in your `PATH`.
+On Unix-like systems, the installation places a `git-sciit` script into a centralised `bin` directory, which should be 
+in the `PATH` environment variable.
 
-On Windows, `git-sciit.exe` is placed into a centralised `Scripts` directory which
-should also be in your `PATH`.
+On Windows, `git-sciit.exe` is placed into a centralised `Scripts` directory which should also be in the `PATH`.
