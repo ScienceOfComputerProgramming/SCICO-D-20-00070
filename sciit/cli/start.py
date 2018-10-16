@@ -28,12 +28,6 @@ from sciit.cli.web import web
 from sciit.gitlab.webservice import launch as launchgitlab
 
 
-def add_save_option(parser):
-    parser.add_argument(
-        '-s', '--save', action='store_true',
-        help='Saves issue history selected to the HISTORY file in your issue repository directory.')
-
-
 def add_revision_option(parser):
     parser.add_argument(
         'revision', action='store', type=str, nargs='?',
@@ -109,7 +103,6 @@ def create_command_parser():
 
     add_issue_filter_options(tracker_parser)
     add_view_options(tracker_parser)
-    add_save_option(tracker_parser)
 
     issue_parser = subparsers.add_parser('issue', description='Prints an issue and it\'s status')
     issue_parser.set_defaults(func=issue)
@@ -120,7 +113,6 @@ def create_command_parser():
         'issue_id', action='store', type=str,
         help='The id of the issue that you are looking for')
 
-    add_save_option(issue_parser)
     add_revision_option(issue_parser)
 
     web_parser = subparsers.add_parser(
