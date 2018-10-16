@@ -3,70 +3,22 @@
 
 from git import Repo
 from sciit import IssueRepo
-from sciit.commit import find_issue_snapshots_in_commit_paths_that_changed
-from sciit.functions import write_last_issue_commit_sha, get_sciit_ignore_path_spec
-from sciit.cli.color import CPrint
-from sciit.errors import RepoObjectDoesNotExistError
-import colorama
+from sciit.functions import write_last_issue_commit_sha
+from sciit.cli.functions import do_repository_is_init_check, do_commit_contains_duplicate_issue_filepaths_check,\
+    print_status_summary
 
+import colorama
 colorama.init()
 
 git_repository = Repo()
 issue_repository = IssueRepo(git_repository)
 
-if not issue_repository.is_init():
-    CPrint.bold_red('error: Issue Repository not setup')
-    print('Solve error by building issue repository using: git sciit init')
-    exit(127)
 
-ignored_files = get_sciit_ignore_path_spec(git_repository)
-commit = git_repository.head.commit
-try:
-    issue_snapshots, changed_paths = \
-        find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
+do_repository_is_init_check(issue_repository)
 
-    # if duplicate issues rollback commit and exit
-    if len(set(issue_snapshots)) != len(issue_snapshots):
-        # get duplicates to print to user
-        freq = {(x.id, x.filepath): issue_snapshots.count(x) for x in issue_snapshots}
-        duplicates = {x for x in freq.keys() if freq[x] > 1}
-        result = {}
-        for duplicate in duplicates:
-            if duplicate[0] not in result:
-                result[duplicate[0]] = [duplicate[1]]
-            else:
-                result[duplicate[0]].append(duplicate[1])
-
-        # print duplicates to user
-        for (ident, files_found) in result.items():
-            CPrint.bold_red(f'Duplicate Issue: {ident}')
-            for file_found in files_found:
-                CPrint.red(f'\tfound in {file_found}')
-
-        git_repository.git.execute(['git', 'reset', 'HEAD~1', '--soft'])
-        CPrint.bold_red(f'HEAD @: {git_repository.head.commit.summary} ~ {git_repository.head.commit.hexsha[:7]}')
-        exit()
-
-except RepoObjectDoesNotExistError as error:
-    CPrint.bold_red(error)
-    print('Solve error by rebuilding issue repository using: git sciit init -r')
-    exit(127)
-
+commit = issue_repository.git_repository.head.commit
+do_commit_contains_duplicate_issue_filepaths_check(issue_repository, commit)
 
 issue_repository.cache_issue_snapshots_from_unprocessed_commits()
-issues = issue_repository.get_open_issues()
-
 write_last_issue_commit_sha(issue_repository.issue_dir, commit.hexsha)
-
-# dealing with a detached head
-try:
-    location = git_repository.head.ref.name
-except TypeError:
-    location = 'DETACHED:' + git_repository.head.commit.hexsha
-
-if len(issues) > 0:
-    result = str(len(issues)) + ' Open Issues @' + location
-    CPrint.bold_red(result)
-else:
-    result = 'No Open Issues @' + location
-    CPrint.bold_green(result)
+print_status_summary(issue_repository)
