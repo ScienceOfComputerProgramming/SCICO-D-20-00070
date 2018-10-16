@@ -37,13 +37,13 @@ class TestWebServerStartup(TestCase):
                 data
             )
 
-        issue = Issue('1', dict())
-        issue.update(self.issue_snapshots[0])
+        self.issue = Issue('1', dict())
+        self.issue.update(self.issue_snapshots[0])
 
         self.mock_git_repository = create_mock_git_repository('here', [('master', self.commit)], [self.commit])
 
         self.mock_issue_repository = MagicMock()
-        self.mock_issue_repository.build_history.return_value = {'1': issue}
+        self.mock_issue_repository.build_history.return_value = {'1': self.issue}
 
         self.app = app.test_client()
         self.app.testing = True
@@ -56,16 +56,17 @@ class TestWebServerStartup(TestCase):
         launch(args)
         pass
 
-    @patch('sciit.web.server.history')
-    def test_index_page(self, history):
-        history = {'issue-1': {'status': 'Open'}, 'issue-2': {'status': 'Closed'}}
+    @patch('sciit.web.server.global_issue_repository')
+    def test_index_page(self, global_issue_repository):
+        global_issue_repository.build_history.return_value = {'1': self.issue}
 
         response = self.app.get('/', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
 
-    @patch('sciit.web.server.history')
-    def test_issue_page(self, history):
-        history = {'issue-1': {'status': 'Open'}, 'issue-2': {'status': 'Closed'}}
+    @patch('sciit.web.server.global_issue_repository')
+    def test_issue_page(self, global_issue_repository):
+        global_issue_repository.build_history.return_value =\
+            {'issue-1': {'status': 'Open'}, 'issue-2': {'status': 'Closed'}}
 
         response = self.app.get('/issue-1', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
