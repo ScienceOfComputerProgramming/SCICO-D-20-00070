@@ -9,7 +9,7 @@ that are currently being tracked on HEAD or revision.
             $ git sciit status [-h] [revision]
 """
 from sciit.cli.color import CPrint
-
+from sciit.cli.functions import print_status_summary
 
 def status(args):
     revision = args.revision if args.revision else args.repo.git_repository.head
