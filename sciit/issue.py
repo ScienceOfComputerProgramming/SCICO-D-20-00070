@@ -11,6 +11,22 @@ from gitdb.util import hex_to_bin
 __all__ = ('IssueSnapshot', 'Issue')
 
 
+def record_revision(commit, changes=None):
+
+    time_format = '%a %b %d %H:%M:%S %Y %z'
+    date_string = commit.authored_datetime.strftime(time_format)
+
+    result = {
+        'commitsha': commit.hexsha,
+        'date': date_string,
+        'author': commit.author.name,
+        'summary': commit.summary
+        }
+    if changes is not None:
+        result['changes'] = changes
+    return result
+
+
 class IssueSnapshot(object):
     __slots__ = ('commit', 'data', 'title', 'description', 'assignees', 'due_date', 'label', 'weight', 'priority',
                  'title','filepath', 'issue_id', 'blockers')
@@ -105,15 +121,13 @@ class IssueSnapshot(object):
 
 class Issue(object):
 
-    def __init__(self, issue_id, all_issues):
+    def __init__(self, issue_id, all_issues, head_commits):
 
         self.issue_id = issue_id
-
         self.all_issues = all_issues
+        self.head_commits = head_commits
 
         self.issue_snapshots = list()
-
-        self.open_in_branches = set()
 
     @property
     def newest_issue_snapshot(self):
@@ -203,22 +217,24 @@ class Issue(object):
         Issue status life cycle based on a github workflow.
 
         open in feature (Proposed)
-        open in feature, master (Accepted)
+        open in feature, master and master branch is equal to or ahead of feature branch (Accepted)
         closed in feature and not in master (Rejected).
-        open in feature, master and feature is ahead of master (In Progress)
+        open in feature, master and feature is ahead of accepting commit in master (In Progress)
         closed in feature, open in master (In Review)
         closed in feature, closed in master (Closed)
-
         """
+
         feature_branch = self.issue_id
 
         if self.open_in_branches == {feature_branch}:
             return 'Open', 'Proposed'
-        elif {feature_branch, 'master'} <= self.open_in_branches and True:
+        elif {feature_branch, 'master'} <= self.open_in_branches and\
+                self.latest_date_in_feature_branch <= self.accepted_date:
             return 'Open', 'Accepted'
         elif feature_branch in self.closed_in_branches and 'master' not in self.in_branches:
             return 'Closed', 'Rejected'
-        elif {feature_branch, 'master'} <= self.open_in_branches and True:
+        elif {feature_branch, 'master'} <= self.open_in_branches and \
+                self.accepted_date < self.latest_date_in_feature_branch:
             return 'Open', 'In Progress'
         elif 'master' in self.open_in_branches  and feature_branch in self.closed_in_branches:
             return 'Open', 'In Review'
@@ -231,8 +247,24 @@ class Issue(object):
 
     @property
     def closing_commit(self):
-        if self.status == 'Closed' and len(self.newest_issue_snapshot.children) > 0:
-            return self.newest_issue_snapshot.children[0]
+
+        def _child_of_last_commit_in_branch(branch_name):
+            for issue_snapshot in reversed(self.issue_snapshots):
+                if branch_name in issue_snapshot.in_branches:
+                    if len(issue_snapshot.children) > 0:
+                        return issue_snapshot.children[0]
+                    else:
+                        break
+            return None
+
+        status, sub_status = self.status
+        if not status == 'Closed':
+            return None
+
+        if sub_status == 'Resolved':
+            return _child_of_last_commit_in_branch('master')
+        elif sub_status == 'Rejected':
+            return _child_of_last_commit_in_branch(self.issue_id)
         else:
             return None
 
@@ -250,26 +282,45 @@ class Issue(object):
         return self.closing_commit.summary if self.closing_commit else None
 
     @property
+    def accepting_commit_in_master(self):
+        """
+        :return: The first commit in the master branch in which the issue appears.
+        """
+        for issue_snapshot in self.issue_snapshots:
+            if 'master' in issue_snapshot.in_branches:
+                return issue_snapshot.commit
+        return None
+
+    @property
+    def accepted_date(self):
+        if self.accepting_commit_in_master is not None:
+            return self.accepting_commit_in_master.authored_datetime
+        else:
+            return None
+
+    @property
+    def latest_commit_in_feature_branch(self):
+        for issue_snapshot in reversed(self.issue_snapshots):
+            if self.issue_id in issue_snapshot.in_branches:
+                return issue_snapshot.commit
+        return None
+
+    @property
+    def latest_date_in_feature_branch(self):
+        if self.latest_commit_in_feature_branch is not None:
+            return self.latest_commit_in_feature_branch.authored_datetime
+        else:
+            return None
+
+    @property
     def activity(self):
         result = list()
+
         for issue_snapshot in self.issue_snapshots:
-            result.append(
-                {
-                    'commitsha': issue_snapshot.commit.hexsha,
-                    'date': issue_snapshot.date_string,
-                    'author': issue_snapshot.author_name,
-                    'summary': issue_snapshot.commit.summary})
+            result.append(record_revision(issue_snapshot.commit))
 
-        if self.status == 'Closed':
-
-            closing_activity = \
-                {
-                    'commitsha': self.closing_commit.hexsha,
-                    'date': self.closed_date,
-                    'author': self.closer,
-                    'summary': self.closing_summary + ' (closed)'
-                }
-            result.insert(0, closing_activity)
+        if self.status[0] == 'Closed':
+            result.append(record_revision(self.closing_commit))
 
         return result
 
@@ -278,23 +329,8 @@ class Issue(object):
 
         result = list()
 
-        def record_revision(commit, changes):
-
-            time_format = '%a %b %d %H:%M:%S %Y %z'
-            change_date = commit.authored_datetime.strftime(time_format)
-
-            result.append(
-                {
-                    'issuesha': commit.hexsha,
-                    'date': change_date,
-                    'author': commit.author.name,
-                    'changes': changes,
-                    'message': commit.summary
-                }
-            )
-
-        if self.status == 'Closed':
-            record_revision(self.closing_commit, {'status': 'Closed'})
+        if self.status[0] == 'Closed':
+            result.append(record_revision(self.closing_commit, {'status': 'Closed'}))
 
         for older, newer in zip(self.issue_snapshots[:-1], self.issue_snapshots[1:]):
             changes = dict()
@@ -306,13 +342,13 @@ class Issue(object):
                 del changes['hexsha']
 
             if len(changes) > 0:
-                record_revision(newer.commit, changes)
+                result.append(record_revision(newer.commit, changes))
 
         original_values = self.oldest_issue_snapshot.data
         if 'hexsha' in original_values:
             del original_values['hexsha']
 
-        record_revision(self.oldest_issue_snapshot.commit, original_values)
+        result.append(record_revision(self.oldest_issue_snapshot.commit, original_values))
 
         return result
 
@@ -325,6 +361,16 @@ class Issue(object):
         result = set()
         for issue_snapshot in self.issue_snapshots:
             result.update(issue_snapshot.in_branches)
+        return result
+
+    @property
+    def open_in_branches(self):
+        issue_snapshot_commit_hexshas = [issue_snapshot.commit.hexsha for issue_snapshot in self.issue_snapshots]
+        result = set()
+        for name, hexsha in self.head_commits.items():
+            if hexsha in issue_snapshot_commit_hexshas:
+                result.add(name)
+
         return result
 
     @property
@@ -347,7 +393,7 @@ class Issue(object):
         return result
 
     def __str__(self):
-        return self.issue_id + " " + self.status
+        return self.issue_id + " " + self.status[0]
 
     def __repr__(self):
         return "Issue " + self.issue_id + " (" + self.status[0] + ") as of " + self.newest_issue_snapshot.commit.hexsha

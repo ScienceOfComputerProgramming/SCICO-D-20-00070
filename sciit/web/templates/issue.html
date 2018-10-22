@@ -64,7 +64,7 @@
                 </div>
                 <div>
                     <label>Status</label>
-                    <p class="{{ issue.status }}">{{ issue.status }}</p>
+                    <p class="{{ issue.status[0] }}">{{ issue.status[0] }} ({{ issue.status[1] }})</p>
                 </div>
                 <div>
                     <label>Latest File Path</label>
@@ -85,7 +85,7 @@
                     <label>Blockers</label>
                     {% for blocker_id, blocker_issue in issue.blockers.items() %}
                          <p>
-                             {% if blocker_issue.status == 'Closed' %}
+                             {% if blocker_issue.status[0] == 'Closed' %}
                                  <strike>{{blocker_id}}</strike>
                              {% else %}
                                  {{blocker_id}}

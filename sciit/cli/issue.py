@@ -88,7 +88,6 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
     status, sub_status = issue_item.status
     status_str = f'{status} ({sub_status})'
 
-
     participants = ', '.join(issue_item.participants)
 
     output = ''
@@ -113,7 +112,7 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
     if len(blocker_issues) > 0:
         blockers_status = list()
         for blocker_issue_id, blocker_issue in blocker_issues.items():
-            blocker_status = blocker_issue.status if blocker_issue is not None else '?'
+            blocker_status = blocker_issue.status[0] if blocker_issue is not None else '?'
             blockers_status.append('%s(%s)' % (blocker_issue_id,blocker_status))
 
         blockers_str = ', '.join(blockers_status)
@@ -126,7 +125,7 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
     output += f'\nSize:              {str(issue_item.size)}' if issue_item.size else ''
     output += f'\nLatest file path:  {issue_item.file_path}' if len(issue_item.file_paths) > 0 else ''
 
-    if issue_item.status == 'Open' and (view == 'full' or view == 'detailed') and len(issue_item.file_paths) > 0:
+    if status == 'Open' and (view == 'full' or view == 'detailed') and len(issue_item.file_paths) > 0:
         output += "\nBranch file paths:\n"
         for branch, path in issue_item.file_paths.items():
             branch_status = 'open' if branch in issue_item.open_in_branches else 'closed'
@@ -144,14 +143,14 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
         for revision in issue_item.revisions:
 
             changes = revision['changes']
-            output += f'\nIn {revision["issuesha"]} ({len(changes)} items changed):\n'
+            output += f'\nIn {revision["commitsha"]} ({len(changes)} items changed):\n'
 
             for changed_property, new_value in changes.items():
                 output += f' {changed_property}: {new_value}\n'
 
             output += f'\n'
             output += f'{Color.bold_yellow("--> made by: " + revision["author"])} - {revision["date"]}\n'
-            output += f'    {revision["message"]}\n'
+            output += f'    {revision["summary"]}\n'
 
     if view == 'full' or view == 'detailed':
         num_commits = str(len(issue_item.activity))

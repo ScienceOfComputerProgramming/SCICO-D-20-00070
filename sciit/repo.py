@@ -172,22 +172,15 @@ class IssueRepo(object):
         history = dict()
         issue_snapshots = self._deserialize_issue_snapshots_from_db(rev)
 
+        head_commits = {head.name: self._find_latest_commit_hexsha_for_head(head) for head in self.git_repository.heads}
+
         for issue_snapshot in issue_snapshots:
 
             issue_id = issue_snapshot.issue_id
             if issue_ids is None or issue_id in issue_ids:
                 if issue_id not in history:
-                    history[issue_id] = Issue(issue_id, history)
+                    history[issue_id] = Issue(issue_id, history, head_commits)
                 history[issue_id].update(issue_snapshot)
-
-        for head in self.git_repository.heads:
-
-            head_issue_snapshots = self._get_issue_snapshots_for_head(head)
-            head_issue_snapshot_ids = [issue_snapshot.issue_id for issue_snapshot in head_issue_snapshots]
-
-            for issue_id, issue in history.items():
-                if issue_id in head_issue_snapshot_ids:
-                    issue.open_in_branches.add(head.name)
 
         return history
 

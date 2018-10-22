@@ -21,8 +21,8 @@ def index():
     """
     history = global_issue_repository.build_history()
     data = dict()
-    data['Num Open Issues'] = len([x for x in history.values() if x.status == 'Open'])
-    data['Num Closed Issues'] = len([x for x in history.values() if x.status == 'Closed'])
+    data['Num Open Issues'] = len([issue for issue in history.values() if issue.status[0] == 'Open'])
+    data['Num Closed Issues'] = len([issue for issue in history.values() if issue.status[0] == 'Closed'])
     return render_template('home.html', history=history, data=data)
 
 

@@ -38,6 +38,8 @@ first_commit, first_issue_snapshots = create_mock_commit_with_issue_snapshots(
     first_data,
 )
 
+heads_at_first_commit = {'master': '43e8d11ec2cb9802151533ae8d9c5dcc5dec91a4'}
+
 second_commit, second_issue_snapshots = create_mock_commit_with_issue_snapshots(
     '622918a4c6539f853320e06804f73d1165df69d0',
     'Nystrome',
@@ -45,6 +47,8 @@ second_commit, second_issue_snapshots = create_mock_commit_with_issue_snapshots(
     second_data,
     create_mock_parents(first_commit)
 )
+
+heads_at_second_commit = {'master': '622918a4c6539f853320e06804f73d1165df69d0'}
 
 third_commit = create_mock_commit('7a13fb71dfc40675176ce28b8ad6df9132039711', 'Nystrome', datetime.datetime(2018, 1, 1))
 
@@ -55,35 +59,35 @@ repo = IssueRepo(mock_git_repository)
 
 issues = dict()
 
-issues['1'] = Issue('1', issues)
+issues['1'] = Issue('1', issues, heads_at_second_commit)
 issues['1'].update(first_issue_snapshots[0])
 issues['1'].open_in_branches.add('master')
 issues['1'].update(second_issue_snapshots[0])
 
-issues['2'] = Issue('2', issues)
+issues['2'] = Issue('2', issues, heads_at_second_commit)
 issues['2'].update(first_issue_snapshots[1])
 issues['2'].open_in_branches.add('master')
 issues['2'].update(second_issue_snapshots[1])
 
-issues['3'] = Issue('3', issues)
+issues['3'] = Issue('3', issues, heads_at_second_commit)
 issues['3'].update(first_issue_snapshots[2])
 
-issues['4'] = Issue('4', issues)
+issues['4'] = Issue('4', issues, heads_at_second_commit)
 issues['4'].update(first_issue_snapshots[3])
 
-issues['5'] = Issue('5', issues)
+issues['5'] = Issue('5', issues, heads_at_second_commit)
 issues['5'].update(first_issue_snapshots[4])
 
-issues['6'] = Issue('6', issues)
+issues['6'] = Issue('6', issues, heads_at_second_commit)
 issues['6'].update(first_issue_snapshots[5])
 issues['6'].open_in_branches.add('master')
 issues['6'].update(second_issue_snapshots[3])
 
-issues['9'] = Issue('9', issues)
+issues['9'] = Issue('9', issues, heads_at_second_commit)
 issues['9'].update(second_issue_snapshots[3])
 issues['9'].open_in_branches.add('master')
 
-issues['12'] = Issue('12', issues)
+issues['12'] = Issue('12', issues, heads_at_second_commit)
 issues['12'].update(second_issue_snapshots[4])
 issues['12'].open_in_branches.add('master')
 
