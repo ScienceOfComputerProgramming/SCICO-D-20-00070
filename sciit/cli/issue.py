@@ -124,7 +124,7 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
     output += f'\nSize:              {str(issue_item.size)}' if issue_item.size else ''
     output += f'\nLatest file path:  {issue_item.file_path}' if len(issue_item.file_paths) > 0 else ''
 
-    if status == 'Open' and (view == 'full' or view == 'detailed') and len(issue_item.file_paths) > 0:
+    if (view == 'full' or view == 'detailed') and len(issue_item.file_paths) > 0:
         output += "\nBranch file paths:\n"
         for branch, path in issue_item.file_paths.items():
             branch_status = 'open' if branch in issue_item.open_in_branches else 'closed'
