@@ -228,14 +228,13 @@ class Issue(object):
 
         if self.open_in_branches == {feature_branch}:
             return 'Open', 'Proposed'
-        elif {feature_branch, 'master'} <= self.open_in_branches and\
-                self.latest_date_in_feature_branch <= self.accepted_date:
-            return 'Open', 'Accepted'
-        elif feature_branch in self.closed_in_branches and 'master' not in self.in_branches:
-            return 'Closed', 'Rejected'
         elif {feature_branch, 'master'} <= self.open_in_branches and \
                 self.accepted_date < self.latest_date_in_feature_branch:
             return 'Open', 'In Progress'
+        elif {'master'} <= self.open_in_branches:
+            return 'Open', 'Accepted'
+        elif feature_branch in self.closed_in_branches and 'master' not in self.in_branches:
+            return 'Closed', 'Rejected'
         elif 'master' in self.open_in_branches  and feature_branch in self.closed_in_branches:
             return 'Open', 'In Review'
         elif {'master'} <= self.closed_in_branches:
