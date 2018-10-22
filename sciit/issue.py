@@ -231,13 +231,13 @@ class Issue(object):
         elif {feature_branch, 'master'} <= self.open_in_branches and \
                 self.accepted_date < self.latest_date_in_feature_branch:
             return 'Open', 'In Progress'
-        elif {'master'} <= self.open_in_branches:
+        elif 'master' in self.open_in_branches:
             return 'Open', 'Accepted'
         elif feature_branch in self.closed_in_branches and 'master' not in self.in_branches:
             return 'Closed', 'Rejected'
         elif 'master' in self.open_in_branches  and feature_branch in self.closed_in_branches:
             return 'Open', 'In Review'
-        elif {'master'} <= self.closed_in_branches:
+        elif 'master' in self.closed_in_branches:
             return 'Closed', 'Resolved'
         elif self.open_in_branches == set():
             return 'Closed', 'Unknown'
@@ -369,7 +369,6 @@ class Issue(object):
         for name, hexsha in self.head_commits.items():
             if hexsha in issue_snapshot_commit_hexshas:
                 result.add(name)
-
         return result
 
     @property
