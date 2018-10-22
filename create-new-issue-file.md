@@ -1,4 +1,4 @@
-<!--
+---
 @issue create-new-issue-file
 @title Create New IssueSnapshot File command
 @description
@@ -9,4 +9,4 @@
 
  Similar pattern generators would be useful for popular IDEs,
  such as PyCharm and Intellij.
-->
+---
