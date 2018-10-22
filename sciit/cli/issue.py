@@ -28,7 +28,6 @@ def issue(args):
         view = 'full'
 
     args.repo.cache_issue_snapshots_from_unprocessed_commits()
-    args.issue_id = slugify(args.issue_id)
 
     history = args.repo.build_history(args.revision)
 
