@@ -78,13 +78,11 @@ class IssueRepo(object):
         if not self.git_repository.heads:
             raise NoCommitsError
 
-        last_issue_commit = get_last_issue_commit_sha(self.issue_dir)
-        commits = list(self.git_repository.iter_commits('--all'))
-
-        latest_commit = commits[0].hexsha
-        revision = last_issue_commit + '..' + latest_commit
-
         # uses git.execute for the check because iter_commits generator cannot correctly identify false or empty list.
+        last_issue_commit = get_last_issue_commit_sha(self.issue_dir)
+        all_commits = list(self.git_repository.iter_commits('--all'))
+        latest_commit = all_commits[0].hexsha
+        revision = last_issue_commit + '~1..' + latest_commit
         str_commits = self.git_repository.git.execute(['git', 'rev-list', revision])
 
         if str_commits != '':
@@ -113,7 +111,7 @@ class IssueRepo(object):
         commits_scanned = 0
         start = datetime.now()
 
-        changed_commit_issue_snapshots = dict()
+        all_commit_issue_snapshots = dict()
 
         for commit in all_commits:
             commits_scanned += 1
@@ -121,20 +119,19 @@ class IssueRepo(object):
 
             changed_issue_snapshots, files_changed_in_commit = \
                 find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
-            changed_commit_issue_snapshots[commit] = changed_issue_snapshots
 
             unchanged_issue_snapshots = list()
 
-            for parent in commit.parents:
-                parent_commit = parent
-                if parent_commit in changed_commit_issue_snapshots:
-                    parent_issue_snapshots = changed_commit_issue_snapshots[parent_commit]
+            for parent_commit in commit.parents:
+                if parent_commit in all_commit_issue_snapshots:
+                    parent_issue_snapshots = all_commit_issue_snapshots[parent_commit]
                     unchanged_issue_snapshots_in_parent = \
                         [parent_snapshot for parent_snapshot in parent_issue_snapshots
                          if parent_snapshot.filepath not in files_changed_in_commit]
                     unchanged_issue_snapshots.extend(unchanged_issue_snapshots_in_parent)
-            all_issue_snapshots = changed_issue_snapshots + unchanged_issue_snapshots
-            self._serialize_issue_snapshots_to_db(commit.hexsha, all_issue_snapshots)
+
+            all_commit_issue_snapshots[commit] = changed_issue_snapshots + unchanged_issue_snapshots
+            self._serialize_issue_snapshots_to_db(commit.hexsha, all_commit_issue_snapshots[commit])
 
     def _serialize_issue_snapshots_to_db(self, commit_hexsha, issue_snapshots):
         row_values = [(commit_hexsha, issue.issue_id, json.dumps(issue.data)) for issue in issue_snapshots]
