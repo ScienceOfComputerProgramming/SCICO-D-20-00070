@@ -1,6 +1,6 @@
 ---
 @issue create-new-issue-file
-@title Create New IssueSnapshot File command
+@title Create New Issue File command
 @description
  It would be nice if there was a command line command for
  automatically generating a new issue file with some default
