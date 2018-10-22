@@ -113,7 +113,7 @@ class Issue(object):
 
         self.issue_snapshots = list()
 
-        self.open_in = set()
+        self.open_in_branches = set()
 
     @property
     def newest_issue_snapshot(self):
@@ -199,21 +199,35 @@ class Issue(object):
 
     @property
     def status(self):
+        """
+        Issue status life cycle based on a github workflow.
 
-        if len(self.open_in) >= 1 and 'uat' not in self.open_in and 'master' not in self.open_in:
-            return 'Untriaged'
-        elif len(self.open_in) >= 2 and 'uat' in self.open_in and 'master' not in self.open_in:
-            return 'In review'
-        elif len(self.open_in) >= 3 and 'uat' in self.open_in and 'master' in self.open_in:
-            return 'In progress'
-        elif self.open_in == {'uat', 'master'}:
-            return 'Awaiting UAT'
-        elif self.open_in == {'master'}:
-            return 'In UAT'
-        elif self.open_in == set():
-            return 'Closed'
+        open in feature (Proposed)
+        open in feature, master (Accepted)
+        closed in feature and not in master (Rejected).
+        open in feature, master and feature is ahead of master (In Progress)
+        closed in feature, open in master (In Review)
+        closed in feature, closed in master (Closed)
+
+        """
+        feature_branch = self.issue_id
+
+        if self.open_in_branches == {feature_branch}:
+            return 'Open', 'Proposed'
+        elif {feature_branch, 'master'} <= self.open_in_branches and True:
+            return 'Open', 'Accepted'
+        elif feature_branch in self.closed_in_branches and 'master' not in self.in_branches:
+            return 'Closed', 'Rejected'
+        elif {feature_branch, 'master'} <= self.open_in_branches and True:
+            return 'Open', 'In Progress'
+        elif 'master' in self.open_in_branches  and feature_branch in self.closed_in_branches:
+            return 'Open', 'In Review'
+        elif {feature_branch, 'master'} <= self.closed_in_branches:
+            return 'Closed', 'Resolved'
+        elif self.open_in_branches == set():
+            return 'Closed', 'Unknown'
         else:
-            return 'Open'
+            return 'Open', 'Unknown'
 
     @property
     def closing_commit(self):
@@ -314,6 +328,10 @@ class Issue(object):
         return result
 
     @property
+    def closed_in_branches(self):
+        return self.in_branches - self.open_in_branches
+
+    @property
     def blockers(self):
 
         result = dict()
@@ -332,7 +350,7 @@ class Issue(object):
         return self.issue_id + " " + self.status
 
     def __repr__(self):
-        return "Issue " + self.issue_id + " (" + self.status + ") as of " + self.newest_issue_snapshot.commit.hexsha
+        return "Issue " + self.issue_id + " (" + self.status[0] + ") as of " + self.newest_issue_snapshot.commit.hexsha
 
     def update(self, issue_snapshot):
         """

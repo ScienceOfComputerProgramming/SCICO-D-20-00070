@@ -39,13 +39,15 @@ def handle_issue_event(CONFIG, data):
                            "message": "This request must not be handled"})
 
     def worker(CONFIG, data):
-        """A function that executes the issue handler within a Thread
         """
+        Executes the issue handler within a Thread
+        """
+
         CONFIG.repo.git.execute(['git', 'fetch', '--all'])
         CONFIG.repo.cache_issue_snapshots_from_unprocessed_commits()
 
         # get all the issue metadata from the request
-        issue = {}
+        issue = dict()
         issue['iid'] = data['object_attributes']['iid']
         issue['title'] = data['object_attributes']['title']
         issue['description'] = data['object_attributes']['description']

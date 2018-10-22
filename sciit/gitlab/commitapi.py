@@ -126,7 +126,7 @@ def create_commit(CONFIG, issue, commit):
         # update file with new commit info
         commit['branch'] = list(new_issue['open_in'])[0]
         commit['commit_message'] = f'Updating issue \'{new_issue["title"]}\''
-        r = requests.get(f'{CONFIG.project_url}/raw/{commit["branch"]}/{new_issue["filepath"]}', headers={
+        r = requests.get(f'{WEBSERVICE_CONFIG.project_url}/raw/{commit["branch"]}/{new_issue["filepath"]}', headers={
             'Private-Token': CONFIG.api_token})
         source = r.content.decode()
         updated_source = update_issue_source(new_issue, source)
@@ -147,7 +147,7 @@ def create_commit(CONFIG, issue, commit):
         ]
 
         # check for issues.txt existance in gitlab.com on master
-        r = requests.get(f'{CONFIG.project_url}/raw/master/issues.txt', headers={
+        r = requests.get(f'{WEBSERVICE_CONFIG.project_url}/raw/master/issues.txt', headers={
             'Private-Token': CONFIG.api_token})
 
         # if issues.txt does not exist
@@ -191,9 +191,9 @@ def create_commit(CONFIG, issue, commit):
                 commit['actions'][0]['action'] = 'update'
 
     # create commit
-    r = requests.post(f'{CONFIG.api_url}/projects/{CONFIG.project_id}/repository/commits', headers={
+    r = requests.post(f'{WEBSERVICE_CONFIG.api_url}/projects/{WEBSERVICE_CONFIG.project_id}/repository/commits', headers={
         'Private-Token': CONFIG.api_token}, json=commit)
-    logging.info(f'commit created on {CONFIG.path}')
+    logging.info(f'commit created on {WEBSERVICE_CONFIG.path}')
 
     # save issue to cache if it was not there
     if not pair:

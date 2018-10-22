@@ -171,6 +171,7 @@ class IssueRepo(object):
 
         history = dict()
         issue_snapshots = self._deserialize_issue_snapshots_from_db(rev)
+
         for issue_snapshot in issue_snapshots:
 
             issue_id = issue_snapshot.issue_id
@@ -186,7 +187,7 @@ class IssueRepo(object):
 
             for issue_id, issue in history.items():
                 if issue_id in head_issue_snapshot_ids:
-                    issue.open_in.add(head.name)
+                    issue.open_in_branches.add(head.name)
 
         return history
 
@@ -195,7 +196,7 @@ class IssueRepo(object):
 
     def get_open_issues(self, rev=None):
         history = self.build_history(rev)
-        return {issue_id: issue for issue_id, issue in history.items() if issue.status == 'Open'}
+        return {issue_id: issue for issue_id, issue in history.items() if issue.status != 'Closed'}
 
     def _find_latest_commit_hexsha_for_head(self, head):
         rev_list = self.git_repository.git.execute(['git', 'rev-list', f'{head.name}', '--'])

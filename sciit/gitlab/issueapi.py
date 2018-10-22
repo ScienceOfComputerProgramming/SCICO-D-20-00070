@@ -38,7 +38,7 @@ def create_issue_note(CONFIG, data, iid, note_type, last=None):
     if note:
 
         logging.info(f'{note_type} added')
-        url = f'{CONFIG.api_url}/projects/{CONFIG.project_id}/issues/{iid}/notes'
+        url = f'{WEBSERVICE_CONFIG.api_url}/projects/{WEBSERVICE_CONFIG.project_id}/issues/{iid}/notes'
         requests.post(url,
                       headers={'Private-Token': CONFIG.api_token},
                       json=note)
@@ -49,7 +49,7 @@ def format_description(CONFIG, issue):
     output += '\n\n\n`SCIIT locations`'
     for path in issue['filepaths']:
         output += f'\n* [{path["filepath"]} @{path["branch"]}]' + \
-            f'({CONFIG.project_url}/blob/{path["branch"]}/{path["filepath"]})'
+            f'({WEBSERVICE_CONFIG.project_url}/blob/{path["branch"]}/{path["filepath"]})'
     return output
 
 
@@ -67,7 +67,7 @@ def create_issue(CONFIG, issue_data, multi_list):
         issue['due_date'] = issue_data['due_date']
     issue['created_at'] = issue_data['created_date']
 
-    r = requests.post(f'{CONFIG.api_url}/projects/{CONFIG.project_id}/issues',
+    r = requests.post(f'{WEBSERVICE_CONFIG.api_url}/projects/{WEBSERVICE_CONFIG.project_id}/issues',
                       headers={'Private-Token': CONFIG.api_token},
                       json=issue)
     if r.status_code == 201:
@@ -92,7 +92,7 @@ def create_issue(CONFIG, issue_data, multi_list):
             issue = {}
             issue['state_event'] = 'close'
             issue['updated_at'] = issue_data['activity'][0]['date']
-            requests.put(f'{CONFIG.api_url}projects/{CONFIG.project_id}/issues/{iid}',
+            requests.put(f'{WEBSERVICE_CONFIG.api_url}projects/{WEBSERVICE_CONFIG.project_id}/issues/{iid}',
                          headers={'Private-Token': CONFIG.api_token},
                          json=issue)
 
@@ -101,7 +101,7 @@ def edit_issue(CONFIG, issue_data, pair):
     """Edits an issue in gitlab
     """
     # get issue from gitlab
-    url = f'{CONFIG.api_url}projects/{CONFIG.project_id}/issues/{pair[1]}'
+    url = f'{WEBSERVICE_CONFIG.api_url}projects/{WEBSERVICE_CONFIG.project_id}/issues/{pair[1]}'
     gitlab_issue = requests.get(url, headers={
         'Private-Token': CONFIG.api_token})
     gitlab_issue = json.loads(gitlab_issue.content)

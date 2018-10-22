@@ -16,7 +16,7 @@ def status(args):
 
     args.repo.cache_issue_snapshots_from_unprocessed_commits()
     all_issues = args.repo.get_all_issues(revision)
-    open = sum(issue.status == 'Open' for issue in all_issues.values())
+    open = sum(issue.status[0] == 'Open' for issue in all_issues.values())
     closed = len(all_issues) - open
     CPrint.bold_red(f'Open Issues: ' + str(open))
     CPrint.bold_green(f'Closed Issues: ' + str(closed))

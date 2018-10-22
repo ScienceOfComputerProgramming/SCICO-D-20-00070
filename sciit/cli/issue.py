@@ -85,13 +85,16 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
     Returns:
         :(str): string representation of issue history item
     """
-    status = issue_item.status
+    status, sub_status = issue_item.status
+    status_str = f'{status} ({sub_status})'
+
+
     participants = ', '.join(issue_item.participants)
 
     output = ''
     output += f'\nTitle:             ' + Color.bold_yellow(f"{issue_item.title}")
     output += f'\nID:                {issue_item.issue_id}'
-    output += f'\nStatus:            ' + (Color.green(status) if status == 'Closed' else Color.red(status))
+    output += f'\nStatus:            ' + (Color.green(status_str) if status == 'Closed' else Color.red(status_str))
     output += f'\n'
     output += f'\nClosed:            {issue_item.closer} | {issue_item.closed_date}' if issue_item.closer else ''
     output += f'\nLast Change:       {issue_item.last_author} | {issue_item.last_authored_date}'
@@ -126,7 +129,7 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
     if issue_item.status == 'Open' and (view == 'full' or view == 'detailed') and len(issue_item.file_paths) > 0:
         output += "\nBranch file paths:\n"
         for branch, path in issue_item.file_paths.items():
-            branch_status = 'open' if branch in issue_item.open_in else 'closed'
+            branch_status = 'open' if branch in issue_item.open_in_branches else 'closed'
             output += f'\n                   {path} @{branch} ({branch_status})'
 
     if issue_item.description:

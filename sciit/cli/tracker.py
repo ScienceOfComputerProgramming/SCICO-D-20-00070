@@ -41,10 +41,10 @@ def tracker(args):
 
     if history:
         if args.open:
-            return page_history_issues(history, view, lambda issue: issue.status != 'Closed')
+            return page_history_issues(history, view, lambda issue: issue.status[0] == 'Open')
         elif args.all:
             return page_history_issues(history, view, lambda issue: True)
         elif args.closed:
-            return page_history_issues(history, view, lambda issue: issue.status == 'Closed')
+            return page_history_issues(history, view, lambda issue: issue.status[0] == 'Closed')
     else:
         CPrint.bold_green('No issues found')

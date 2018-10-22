@@ -57,12 +57,12 @@ issues = dict()
 
 issues['1'] = Issue('1', issues)
 issues['1'].update(first_issue_snapshots[0])
-issues['1'].open_in.add('master')
+issues['1'].open_in_branches.add('master')
 issues['1'].update(second_issue_snapshots[0])
 
 issues['2'] = Issue('2', issues)
 issues['2'].update(first_issue_snapshots[1])
-issues['2'].open_in.add('master')
+issues['2'].open_in_branches.add('master')
 issues['2'].update(second_issue_snapshots[1])
 
 issues['3'] = Issue('3', issues)
@@ -76,16 +76,16 @@ issues['5'].update(first_issue_snapshots[4])
 
 issues['6'] = Issue('6', issues)
 issues['6'].update(first_issue_snapshots[5])
-issues['6'].open_in.add('master')
+issues['6'].open_in_branches.add('master')
 issues['6'].update(second_issue_snapshots[3])
 
 issues['9'] = Issue('9', issues)
 issues['9'].update(second_issue_snapshots[3])
-issues['9'].open_in.add('master')
+issues['9'].open_in_branches.add('master')
 
 issues['12'] = Issue('12', issues)
 issues['12'].update(second_issue_snapshots[4])
-issues['12'].open_in.add('master')
+issues['12'].open_in_branches.add('master')
 
 
 ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
