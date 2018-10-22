@@ -86,7 +86,7 @@ class IssueRepo(object):
         str_commits = self.git_repository.git.execute(['git', 'rev-list', revision])
 
         if str_commits != '':
-            commits = reversed(list(self.git_repository.iter_commits(revision)))
+            commits = list(reversed(list(self.git_repository.iter_commits(revision))))
             self._extract_and_synchronise_issue_snapshots_from_commits(commits, len(commits))
             write_last_issue_commit_sha(self.issue_dir, latest_commit)
 
