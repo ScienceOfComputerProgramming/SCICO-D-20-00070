@@ -189,7 +189,7 @@ class IssueRepo(object):
 
     def get_open_issues(self, rev=None):
         history = self.build_history(rev)
-        return {issue_id: issue for issue_id, issue in history.items() if issue.status != 'Closed'}
+        return {issue_id: issue for issue_id, issue in history.items() if issue.status[0] != 'Closed'}
 
     def _find_latest_commit_hexsha_for_head(self, head):
         rev_list = self.git_repository.git.execute(['git', 'rev-list', f'{head.name}', '--'])
