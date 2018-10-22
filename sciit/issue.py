@@ -238,7 +238,7 @@ class Issue(object):
             return 'Open', 'In Progress'
         elif 'master' in self.open_in_branches  and feature_branch in self.closed_in_branches:
             return 'Open', 'In Review'
-        elif {feature_branch, 'master'} <= self.closed_in_branches:
+        elif {'master'} <= self.closed_in_branches:
             return 'Closed', 'Resolved'
         elif self.open_in_branches == set():
             return 'Closed', 'Unknown'
