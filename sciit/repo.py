@@ -84,6 +84,7 @@ class IssueRepo(object):
         latest_commit = all_commits[0].hexsha
         revision = last_issue_commit + '~1..' + latest_commit
         str_commits = self.git_repository.git.execute(['git', 'rev-list', revision])
+        print(str_commits)
 
         if str_commits != '':
             commits = list(self.git_repository.iter_commits(revision))
