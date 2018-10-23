@@ -72,7 +72,7 @@ def read_in_blob_contents(blob):
 
 
 def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=None, ignore_files=None):
-    issues = list()
+    issue_snapshots = list()
 
     files_changed_in_commit = set(commit.stats.files.keys())
     blobs = get_blobs_from_commit_tree(commit.tree)
@@ -100,7 +100,7 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=No
         blob_issues = find_issues_in_blob(comment_pattern, blob_contents)
         for issue_data in blob_issues:
             issue_data['filepath'] = file_changed
-            issue = IssueSnapshot(commit, issue_data)
-            issues.append(issue)
+            issue_snapshot = IssueSnapshot(commit, issue_data)
+            issue_snapshots.append(issue_snapshot)
 
-    return issues, files_changed_in_commit
+    return issue_snapshots, files_changed_in_commit

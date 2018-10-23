@@ -120,18 +120,30 @@ class IssueRepo(object):
             changed_issue_snapshots, files_changed_in_commit = \
                 find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
 
-            unchanged_issue_snapshots = list()
-
-            for parent_commit in commit.parents:
-                if parent_commit in all_commit_issue_snapshots:
-                    parent_issue_snapshots = all_commit_issue_snapshots[parent_commit]
-                    unchanged_issue_snapshots_in_parent = \
-                        [parent_snapshot for parent_snapshot in parent_issue_snapshots
-                         if parent_snapshot.filepath not in files_changed_in_commit]
-                    unchanged_issue_snapshots.extend(unchanged_issue_snapshots_in_parent)
+            unchanged_issue_snapshots = self._find_unchanged_issue_snapshots_in_parents(
+                commit, all_commit_issue_snapshots, files_changed_in_commit)
 
             all_commit_issue_snapshots[commit] = changed_issue_snapshots + unchanged_issue_snapshots
             self._serialize_issue_snapshots_to_db(commit.hexsha, all_commit_issue_snapshots[commit])
+
+    @staticmethod
+    def _find_unchanged_issue_snapshots_in_parents(commit, all_commit_issue_snapshots, files_changed_in_commit):
+
+        result = list()
+
+        for parent_commit in commit.parents:
+            if parent_commit in all_commit_issue_snapshots:
+                parent_issue_snapshots = all_commit_issue_snapshots[parent_commit]
+
+                unchanged_issue_snapshots_in_parent = \
+                    [parent_snapshot for parent_snapshot in parent_issue_snapshots
+                     if parent_snapshot.filepath not in files_changed_in_commit]
+
+                for unchanged_issue_snapshot_in_parent in unchanged_issue_snapshots_in_parent:
+                    result.append(
+                        IssueSnapshot(parent_commit, unchanged_issue_snapshot_in_parent.data))
+
+        return result
 
     def _serialize_issue_snapshots_to_db(self, commit_hexsha, issue_snapshots):
         row_values = [(commit_hexsha, issue.issue_id, json.dumps(issue.data)) for issue in issue_snapshots]
