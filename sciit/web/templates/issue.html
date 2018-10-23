@@ -85,8 +85,14 @@
                     <label>Blockers</label>
                     {% for blocker_id, blocker_issue in issue.blockers.items() %}
                          <p>
-                             {% if blocker_issue.status[0] == 'Closed' %}
-                                 <strike>{{blocker_id}}</strike>
+                             {% if blocker_issue %}
+                                <a href='/{{ blocker_issue.issue_id }}'>
+                                {% if blocker_issue.status[0] == 'Closed' %}
+                                    <strike>{{blocker_id}}</strike>
+                                {% else %}
+                                    {{blocker_id}}
+                                {% endif %}
+                                </a>
                              {% else %}
                                  {{blocker_id}}
                              {% endif %}
