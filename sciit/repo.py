@@ -161,6 +161,13 @@ class IssueRepo(object):
 
             print_progress_bar(current, total, prefix=prefix, suffix=suffix)
 
+    def find_issue_snapshots_by_revision(self, revision):
+        result = dict()
+        str_commits = self.git_repository.git.execute(['git', 'rev-list', '--reverse', revision])
+        for commit_hexsha in str_commits:
+            result[commit_hexsha] = self.find_issue_snapshots_by_commit(commit_hexsha)
+        return result
+
     def find_issue_snapshots_by_commit(self, commit_hexsha):
         if commit_hexsha not in self.issue_snapshot_cache:
             issue_snapshots = self._deserialize_issue_snapshots_from_db(commit_hexsha)

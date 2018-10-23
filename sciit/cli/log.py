@@ -19,7 +19,7 @@ def log(args):
         revision = args.repo.git_repository.head
 
     args.repo.cache_issue_snapshots_from_unprocessed_commits()
-    all_issue_commits = args.repo.find_issue_snapshots_by_commit(revision)
+    all_issue_commits = args.repo.find_issue_snapshots_by_revision(revision)
     output = page_log(all_issue_commits)
     return output
 
