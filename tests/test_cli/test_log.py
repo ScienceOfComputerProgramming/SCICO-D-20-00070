@@ -18,7 +18,7 @@ class TestLogCommand(TestCase):
         args = Mock()
         args.revision = False
         args.repo = MagicMock()
-        args.repo.find_issue_snapshots_by_revision.return_value=\
+        args.repo.find_issue_snapshots.return_value=\
             {second_commit: second_issue_snapshots, first_commit: first_issue_snapshots}
 
         args.repo.head = second_commit.hexsha
@@ -33,7 +33,7 @@ class TestLogCommand(TestCase):
         args = Mock()
         args.revision = second_commit.hexsha
         args.repo = MagicMock()
-        args.repo.find_issue_snapshots_by_revision.return_value=\
+        args.repo.find_issue_snapshots.return_value=\
             {second_commit: second_issue_snapshots, first_commit: first_issue_snapshots}
         args.repo.head = second_commit.hexsha
         output = log(args)

@@ -157,19 +157,6 @@ class IssueRepo(object):
 
             print_progress_bar(current, total, prefix=prefix, suffix=suffix)
 
-    def find_issue_snapshots_by_revision(self, revision):
-        result = dict()
-        str_commits = self.git_repository.git.execute(['git', 'rev-list', '--reverse', revision])
-        for commit_hexsha in str_commits:
-            result[commit_hexsha] = self.find_issue_snapshots_by_commit(commit_hexsha)
-        return result
-
-    def find_issue_snapshots_by_commit(self, commit_hexsha):
-        if commit_hexsha not in self.issue_snapshot_cache:
-            issue_snapshots = self._deserialize_issue_snapshots_from_db(commit_hexsha)
-            self.issue_snapshot_cache[commit_hexsha] = issue_snapshots
-        return self.issue_snapshot_cache[commit_hexsha]
-
     def get_all_issues(self, rev=None):
         return self.build_history(rev)
 
@@ -177,16 +164,15 @@ class IssueRepo(object):
         history = self.build_history(rev)
         return {issue_id: issue for issue_id, issue in history.items() if issue.status[0] == 'Open'}
 
-    def build_history(self, rev=None, issue_ids=None):
+    def build_history(self, revision=None, issue_ids=None):
 
         if not self.git_repository.heads:
             raise NoCommitsError
 
         history = dict()
-        issue_snapshots = self._deserialize_issue_snapshots_from_db(rev)
+        issue_snapshots = self.find_issue_snapshots(revision)
 
-        head_commits = {head.name: self._find_latest_commit_hexsha_for_head(head) for head in self.git_repository.heads}
-
+        head_commits = self._find_head_commits_within_issue_snapshot_list(issue_snapshots)
         for issue_snapshot in issue_snapshots:
 
             issue_id = issue_snapshot.issue_id
@@ -197,13 +183,43 @@ class IssueRepo(object):
 
         return history
 
-    def _find_latest_commit_hexsha_for_head(self, head):
-        rev_list = self.git_repository.git.execute(['git', 'rev-list', f'{head.name}', '--'])
-        return rev_list.split('\n')[0]
+    def find_issue_snapshots(self, revision=None):
+        if revision is not None:
+            commit_hexshas_str = self.git_repository.git.execute(['git', 'rev-list', '--reverse', revision])
+            if commit_hexshas_str != '':
+                commit_hexshas = commit_hexshas_str.split('\n')
+                return self._deserialize_issue_snapshots_from_db(commit_hexshas)
+        else:
+            return self._deserialize_issue_snapshots_from_db()
+
+    def find_issue_snapshots_by_commit(self, commit_hexsha):
+        if commit_hexsha not in self.issue_snapshot_cache:
+            issue_snapshots = self._deserialize_issue_snapshots_from_db(commit_hexsha)
+            self.issue_snapshot_cache[commit_hexsha] = issue_snapshots
+        return self.issue_snapshot_cache[commit_hexsha]
+
+    @staticmethod
+    def _find_head_commits_within_issue_snapshot_list(issue_snaphots):
+
+        processed_commits = set()
+        result = dict()
+
+        for issue_snapshot in reversed(issue_snaphots):
+            if issue_snapshot.commit.hexsha in processed_commits:
+                continue
+            else:
+                processed_commits.add(issue_snapshot.commit.hexsha)
+            for branch in issue_snapshot.in_branches:
+                if branch in result:
+                    continue
+                else:
+                    result[branch] = issue_snapshot.commit.hexsha
+
+        return result
 
     def _serialize_issue_snapshots_to_db(self, commit_hexsha, issue_snapshots):
         row_values = [
-            (commit_hexsha, issue.issue_id, json.dumps(issue.data), ','.join(issue.in_branches))
+            (commit_hexsha, issue.issue_id, json.dumps(issue.data), ', '.join(issue.in_branches))
             for issue in issue_snapshots]
 
         with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
@@ -213,18 +229,22 @@ class IssueRepo(object):
             connection.commit()
         self.issue_snapshot_cache[commit_hexsha] = issue_snapshots
 
-    def _deserialize_issue_snapshots_from_db(self, commit_hexsha=None):
+    def _deserialize_issue_snapshots_from_db(self, commit_hexshas=None):
         result = list()
 
         with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
             cursor = connection.cursor()
             cursor.row_factory = dict_factory
             self._create_issue_snapshot_table(cursor)
-            if commit_hexsha is None:
+            if commit_hexshas is None:
                 row_values = cursor.execute("SELECT * FROM IssueSnapshot").fetchall()
             else:
-                row_values =\
-                    cursor.execute("SELECT * FROM IssueSnapshot WHERE commit_sha=?", (commit_hexsha,)).fetchall()
+                question_marks = ','.join(['?'] * len(commit_hexshas))
+                row_values = cursor.execute(
+                    f"""
+                    SELECT * FROM IssueSnapshot WHERE commit_sha in({question_marks})
+                    """,
+                    commit_hexshas).fetchall()
 
             for row_value in row_values:
                 commit = Commit(self.git_repository, hex_to_bin(row_value['commit_sha']))

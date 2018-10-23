@@ -37,7 +37,7 @@ def tracker(args):
         view = 'normal'
 
     args.repo.cache_issue_snapshots_from_unprocessed_commits()
-    history = args.repo.get_all_issues()
+    history = args.repo.get_all_issues(args.revision)
     if history:
         if args.open:
             return page_history_issues(history, view, lambda issue: issue.status[0] == 'Open')

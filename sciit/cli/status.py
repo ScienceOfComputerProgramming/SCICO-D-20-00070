@@ -12,7 +12,7 @@ from sciit.cli.color import CPrint
 from sciit.cli.functions import print_status_summary
 
 def status(args):
-    revision = args.revision if args.revision else args.repo.git_repository.head
+    revision = args.revision if args.revision else None
 
     args.repo.cache_issue_snapshots_from_unprocessed_commits()
     all_issues = args.repo.get_all_issues(revision)
