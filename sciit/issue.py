@@ -29,15 +29,15 @@ def record_revision(commit, changes=None):
 
 class IssueSnapshot(object):
     __slots__ = ('commit', 'data', 'title', 'description', 'assignees', 'due_date', 'label', 'weight', 'priority',
-                 'title','filepath', 'issue_id', 'blockers')
+                 'title','filepath', 'issue_id', 'blockers', 'in_branches')
 
-    _in_branches = dict()
     _children = dict()
 
-    def __init__(self, commit, data):
+    def __init__(self, commit, data, in_branches):
 
         self.commit = commit
         self.data = data
+        self.in_branches = in_branches
 
         if 'issue_id' in self.data:
             self.issue_id = self.data['issue_id']
@@ -109,15 +109,6 @@ class IssueSnapshot(object):
         time_format = '%a %b %d %H:%M:%S %Y %z'
         return self.commit.authored_datetime.strftime(time_format)
 
-    @property
-    def in_branches(self):
-        if self.commit.hexsha not in IssueSnapshot._in_branches:
-            IssueSnapshot._in_branches[self.commit.hexsha] = \
-                self.commit.repo.git.execute(['git', 'branch', '--contains', self.commit.hexsha])\
-                .replace('*', '') \
-                .replace(' ', '').split('\n')
-        return IssueSnapshot._in_branches[self.commit.hexsha]
-
 
 class Issue(object):
 
@@ -128,6 +119,8 @@ class Issue(object):
         self.head_commits = head_commits
 
         self.issue_snapshots = list()
+
+        self._open_in_branches = None
 
     @property
     def newest_issue_snapshot(self):
@@ -223,23 +216,27 @@ class Issue(object):
         closed in feature, open in master (In Review)
         closed in feature, closed in master (Closed)
         """
-
         feature_branch = self.issue_id
 
-        if self.open_in_branches == {feature_branch}:
+        in_branches = self.in_branches
+        open_in_branches = self.open_in_branches
+        closed_in_branches = self.closed_in_branches
+        accepted_date = self.accepted_date
+        latest_date_in_feature_branch = self.latest_date_in_feature_branch
+
+        if open_in_branches == {feature_branch}:
             return 'Open', 'Proposed'
-        elif {feature_branch, 'master'} <= self.open_in_branches and \
-                self.accepted_date < self.latest_date_in_feature_branch:
+        elif {feature_branch, 'master'} <= open_in_branches and accepted_date < latest_date_in_feature_branch:
             return 'Open', 'In Progress'
-        elif 'master' in self.open_in_branches:
+        elif 'master' in open_in_branches:
             return 'Open', 'Accepted'
-        elif feature_branch in self.closed_in_branches and 'master' not in self.in_branches:
+        elif feature_branch in closed_in_branches and 'master' not in in_branches:
             return 'Closed', 'Rejected'
-        elif 'master' in self.open_in_branches  and feature_branch in self.closed_in_branches:
+        elif 'master' in open_in_branches and feature_branch in closed_in_branches:
             return 'Open', 'In Review'
-        elif 'master' in self.closed_in_branches:
+        elif 'master' in closed_in_branches:
             return 'Closed', 'Resolved'
-        elif self.open_in_branches == set():
+        elif open_in_branches == set():
             return 'Closed', 'Unknown'
         else:
             return 'Open', 'Unknown'
@@ -364,12 +361,13 @@ class Issue(object):
 
     @property
     def open_in_branches(self):
-        issue_snapshot_commit_hexshas = [issue_snapshot.commit.hexsha for issue_snapshot in self.issue_snapshots]
-        result = set()
-        for name, hexsha in self.head_commits.items():
-            if hexsha in issue_snapshot_commit_hexshas:
-                result.add(name)
-        return result
+        if not self._open_in_branches:
+            issue_snapshot_commit_hexshas = [issue_snapshot.commit.hexsha for issue_snapshot in self.issue_snapshots]
+            self._open_in_branches = set()
+            for name, hexsha in self.head_commits.items():
+                if hexsha in issue_snapshot_commit_hexshas:
+                    self._open_in_branches.add(name)
+        return self._open_in_branches
 
     @property
     def closed_in_branches(self):

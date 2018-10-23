@@ -38,6 +38,7 @@ class IssueRepo(object):
         self.issue_dir = self.git_repository.git_dir + '/issues'
 
         self.issue_snapshot_cache = dict()
+        self.commit_branches_cache = dict()
 
         self.cli = False
 
@@ -140,18 +141,13 @@ class IssueRepo(object):
                  if parent_snapshot.filepath not in files_changed_in_commit]
 
             for unchanged_issue_snapshot_in_parent in unchanged_issue_snapshots_in_parent:
-                result.append(IssueSnapshot(parent_commit, unchanged_issue_snapshot_in_parent.data))
+                result.append(
+                    IssueSnapshot(
+                        parent_commit,
+                        unchanged_issue_snapshot_in_parent.data,
+                        unchanged_issue_snapshot_in_parent.in_branches))
 
         return result
-
-    def _serialize_issue_snapshots_to_db(self, commit_hexsha, issue_snapshots):
-        row_values = [(commit_hexsha, issue.issue_id, json.dumps(issue.data)) for issue in issue_snapshots]
-        with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
-            cursor = connection.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS IssueSnapshot(commit_sha TEXT, issue_id TEXT, json_data BLOB)")
-            cursor.executemany("INSERT INTO IssueSnapshot VALUES(?, ?, ?)", row_values)
-            connection.commit()
-        self.issue_snapshot_cache[commit_hexsha] = issue_snapshots
 
     def _print_commit_progress(self, now, start, current, total):
         if self.cli:
@@ -174,6 +170,13 @@ class IssueRepo(object):
             self.issue_snapshot_cache[commit_hexsha] = issue_snapshots
         return self.issue_snapshot_cache[commit_hexsha]
 
+    def get_all_issues(self, rev=None):
+        return self.build_history(rev)
+
+    def get_open_issues(self, rev=None):
+        history = self.build_history(rev)
+        return {issue_id: issue for issue_id, issue in history.items() if issue.status[0] == 'Open'}
+
     def build_history(self, rev=None, issue_ids=None):
 
         if not self.git_repository.heads:
@@ -194,16 +197,21 @@ class IssueRepo(object):
 
         return history
 
-    def get_all_issues(self, rev=None):
-        return self.build_history(rev)
-
-    def get_open_issues(self, rev=None):
-        history = self.build_history(rev)
-        return {issue_id: issue for issue_id, issue in history.items() if issue.status[0] == 'Open'}
-
     def _find_latest_commit_hexsha_for_head(self, head):
         rev_list = self.git_repository.git.execute(['git', 'rev-list', f'{head.name}', '--'])
         return rev_list.split('\n')[0]
+
+    def _serialize_issue_snapshots_to_db(self, commit_hexsha, issue_snapshots):
+        row_values = [
+            (commit_hexsha, issue.issue_id, json.dumps(issue.data), ','.join(issue.in_branches))
+            for issue in issue_snapshots]
+
+        with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
+            cursor = connection.cursor()
+            self._create_issue_snapshot_table(cursor)
+            cursor.executemany("INSERT INTO IssueSnapshot VALUES(?, ?, ?, ?)", row_values)
+            connection.commit()
+        self.issue_snapshot_cache[commit_hexsha] = issue_snapshots
 
     def _deserialize_issue_snapshots_from_db(self, commit_hexsha=None):
         result = list()
@@ -211,7 +219,7 @@ class IssueRepo(object):
         with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
             cursor = connection.cursor()
             cursor.row_factory = dict_factory
-            cursor.execute("CREATE TABLE IF NOT EXISTS IssueSnapshot(commit_sha TEXT, issue_id TEXT, json_data BLOB)")
+            self._create_issue_snapshot_table(cursor)
             if commit_hexsha is None:
                 row_values = cursor.execute("SELECT * FROM IssueSnapshot").fetchall()
             else:
@@ -221,7 +229,22 @@ class IssueRepo(object):
             for row_value in row_values:
                 commit = Commit(self.git_repository, hex_to_bin(row_value['commit_sha']))
                 data = json.loads(row_value['json_data'])
-                issue_snapshot = IssueSnapshot(commit, data)
+                in_branches = row_value['in_branches'].split(',')
+                issue_snapshot = IssueSnapshot(commit, data, in_branches)
                 result.append(issue_snapshot)
 
-            return result
+        return result
+
+    @staticmethod
+    def _create_issue_snapshot_table(cursor):
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS IssueSnapshot(
+             commit_sha TEXT,
+             issue_id TEXT,
+             json_data BLOB,
+             in_branches TEXT,
+             UNIQUE (commit_sha, issue_id) ON CONFLICT IGNORE
+            )
+            """
+        )

@@ -80,6 +80,8 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=No
     if ignore_files:
         files_changed_in_commit -= set(ignore_files.match_files(files_changed_in_commit))
 
+    in_branches = _find_branches_for_commit(commit)
+
     for file_changed in files_changed_in_commit:
 
         # Handles renamed and deleted files they won't exist.
@@ -100,7 +102,20 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=No
         blob_issues = find_issues_in_blob(comment_pattern, blob_contents)
         for issue_data in blob_issues:
             issue_data['filepath'] = file_changed
-            issue_snapshot = IssueSnapshot(commit, issue_data)
+            issue_snapshot = IssueSnapshot(commit, issue_data, in_branches)
             issue_snapshots.append(issue_snapshot)
 
     return issue_snapshots, files_changed_in_commit
+
+
+_commit_branches_cache = dict()
+
+
+def _find_branches_for_commit(commit):
+    if commit.hexsha not in _commit_branches_cache:
+        _commit_branches_cache[commit.hexsha] = \
+            commit.repo.git.execute(['git', 'branch', '--contains', commit.hexsha])\
+            .replace('*', '') \
+            .replace(' ', '').split('\n')
+    return _commit_branches_cache[commit.hexsha]
+
