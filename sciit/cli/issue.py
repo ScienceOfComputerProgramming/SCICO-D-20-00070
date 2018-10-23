@@ -11,7 +11,6 @@ Implements the git sciit issue commands. Issue tracking information is retrieved
 import datetime
 
 from sciit.cli.color import CPrint, Color
-from slugify import slugify
 from sciit.cli.functions import page, print_progress_bar
 
 

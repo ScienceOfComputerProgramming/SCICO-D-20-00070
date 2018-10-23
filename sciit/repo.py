@@ -208,7 +208,8 @@ class IssueRepo(object):
             if commit_hexsha is None:
                 row_values = cursor.execute("SELECT * FROM IssueSnapshot").fetchall()
             else:
-                row_values = cursor.execute("SELECT * FROM IssueSnapshot WHERE", (commit_hexsha,)).fetchall()
+                row_values =\
+                    cursor.execute("SELECT * FROM IssueSnapshot WHERE commit_sha='?'", (commit_hexsha,)).fetchall()
 
             for row_value in row_values:
                 commit = Commit(self.git_repository, hex_to_bin(row_value['commit_sha']))
