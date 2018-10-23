@@ -36,6 +36,9 @@ class IssueRepo(object):
     def __init__(self, git_repository):
         self.git_repository = git_repository
         self.issue_dir = self.git_repository.git_dir + '/issues'
+
+        self.issue_snapshot_cache = dict()
+
         self.cli = False
 
     def is_init(self):
@@ -82,11 +85,11 @@ class IssueRepo(object):
         last_issue_commit = get_last_issue_commit_sha(self.issue_dir)
         all_commits = list(self.git_repository.iter_commits('--all'))
         latest_commit = all_commits[0].hexsha
-        revision = last_issue_commit + '~1..' + latest_commit
-        str_commits = self.git_repository.git.execute(['git', 'rev-list', revision])
+        revision = last_issue_commit + '..' + latest_commit
+        str_commits = self.git_repository.git.execute(['git', 'rev-list', '--reverse', revision])
 
         if str_commits != '':
-            commits = list(reversed(list(self.git_repository.iter_commits(revision))))
+            commits = list(self.git_repository.iter_commits(revision))
             self._extract_and_synchronise_issue_snapshots_from_commits(commits, len(commits))
             write_last_issue_commit_sha(self.issue_dir, latest_commit)
 
@@ -111,8 +114,6 @@ class IssueRepo(object):
         commits_scanned = 0
         start = datetime.now()
 
-        all_commit_issue_snapshots = dict()
-
         for commit in all_commits:
             commits_scanned += 1
             self._print_commit_progress(datetime.now(), start, commits_scanned, num_commits)
@@ -121,27 +122,25 @@ class IssueRepo(object):
                 find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
 
             unchanged_issue_snapshots = self._find_unchanged_issue_snapshots_in_parents(
-                commit, all_commit_issue_snapshots, files_changed_in_commit)
+                commit, files_changed_in_commit)
 
-            all_commit_issue_snapshots[commit] = changed_issue_snapshots + unchanged_issue_snapshots
-            self._serialize_issue_snapshots_to_db(commit.hexsha, all_commit_issue_snapshots[commit])
+            all_commit_issue_snapshots = changed_issue_snapshots + unchanged_issue_snapshots
+            self._serialize_issue_snapshots_to_db(commit.hexsha, all_commit_issue_snapshots)
 
-    @staticmethod
-    def _find_unchanged_issue_snapshots_in_parents(commit, all_commit_issue_snapshots, files_changed_in_commit):
+    def _find_unchanged_issue_snapshots_in_parents(self, commit, files_changed_in_commit):
 
         result = list()
 
         for parent_commit in commit.parents:
-            if parent_commit in all_commit_issue_snapshots:
-                parent_issue_snapshots = all_commit_issue_snapshots[parent_commit]
 
-                unchanged_issue_snapshots_in_parent = \
-                    [parent_snapshot for parent_snapshot in parent_issue_snapshots
-                     if parent_snapshot.filepath not in files_changed_in_commit]
+            parent_issue_snapshots = self.find_issue_snapshots_by_commit(parent_commit.hexsha)
 
-                for unchanged_issue_snapshot_in_parent in unchanged_issue_snapshots_in_parent:
-                    result.append(
-                        IssueSnapshot(parent_commit, unchanged_issue_snapshot_in_parent.data))
+            unchanged_issue_snapshots_in_parent = \
+                [parent_snapshot for parent_snapshot in parent_issue_snapshots
+                 if parent_snapshot.filepath not in files_changed_in_commit]
+
+            for unchanged_issue_snapshot_in_parent in unchanged_issue_snapshots_in_parent:
+                result.append(IssueSnapshot(parent_commit, unchanged_issue_snapshot_in_parent.data))
 
         return result
 
@@ -152,6 +151,7 @@ class IssueRepo(object):
             cursor.execute("CREATE TABLE IF NOT EXISTS IssueSnapshot(commit_sha TEXT, issue_id TEXT, json_data BLOB)")
             cursor.executemany("INSERT INTO IssueSnapshot VALUES(?, ?, ?)", row_values)
             connection.commit()
+        self.issue_snapshot_cache[commit_hexsha] = issue_snapshots
 
     def _print_commit_progress(self, now, start, current, total):
         if self.cli:
@@ -161,17 +161,11 @@ class IssueRepo(object):
 
             print_progress_bar(current, total, prefix=prefix, suffix=suffix)
 
-    def find_issue_snapshots_by_commit(self, rev):
-        issue_snapshots = self._deserialize_issue_snapshots_from_db(rev)
-        # Need to fix this, so that commits are returned in reverse order.
-        result = dict()
-
-        for issue_snapshot in issue_snapshots:
-            if issue_snapshot.commit not in result:
-                result[issue_snapshot.commit] = list()
-            result[issue_snapshot.commit].append(issue_snapshot)
-
-        return result
+    def find_issue_snapshots_by_commit(self, commit_hexsha):
+        if commit_hexsha not in self.issue_snapshot_cache:
+            issue_snapshots = self._deserialize_issue_snapshots_from_db(commit_hexsha)
+            self.issue_snapshot_cache[commit_hexsha] = issue_snapshots
+        return self.issue_snapshot_cache[commit_hexsha]
 
     def build_history(self, rev=None, issue_ids=None):
 
@@ -204,41 +198,17 @@ class IssueRepo(object):
         rev_list = self.git_repository.git.execute(['git', 'rev-list', f'{head.name}', '--'])
         return rev_list.split('\n')[0]
 
-    def _get_issue_snapshots_for_head(self, head):
-
-        head_commit_hexsha = self._find_latest_commit_hexsha_for_head(head)
-
-        with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
-
-            result = list()
-
-            cursor = connection.cursor()
-            cursor.row_factory = dict_factory
-            cursor.execute("CREATE TABLE IF NOT EXISTS IssueSnapshot(commit_sha TEXT, issue_id TEXT, json_data BLOB)")
-
-            row_values = cursor.execute(
-                """
-                SELECT * FROM IssueSnapshot WHERE commit_sha=?
-                """, (head_commit_hexsha, )).fetchall()
-
-            for row_value in row_values:
-                data = json.loads(row_value['json_data'])
-                issue_snapshot = IssueSnapshot(head_commit_hexsha, data)
-                result.append(issue_snapshot)
-
-            return result
-
-    def _deserialize_issue_snapshots_from_db(self, rev=None):
+    def _deserialize_issue_snapshots_from_db(self, commit_hexsha=None):
         result = list()
 
         with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
             cursor = connection.cursor()
             cursor.row_factory = dict_factory
             cursor.execute("CREATE TABLE IF NOT EXISTS IssueSnapshot(commit_sha TEXT, issue_id TEXT, json_data BLOB)")
-            if rev is None:
+            if commit_hexsha is None:
                 row_values = cursor.execute("SELECT * FROM IssueSnapshot").fetchall()
             else:
-                row_values = cursor.execute("SELECT * FROM IssueSnapshot").fetchall()
+                row_values = cursor.execute("SELECT * FROM IssueSnapshot WHERE", (commit_hexsha,)).fetchall()
 
             for row_value in row_values:
                 commit = Commit(self.git_repository, hex_to_bin(row_value['commit_sha']))
