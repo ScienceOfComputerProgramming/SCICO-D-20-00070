@@ -54,7 +54,7 @@ def create_mock_commit(hexsha, author_name, authored_datetime, parents=list()):
 
 def create_mock_commit_with_issue_snapshots(hexsha, author_name, authored_datetime, issue_snapshot_data, parents=list()):
     mock_commit = create_mock_commit(hexsha, author_name, authored_datetime, parents)
-    mock_issue_snapshots = [IssueSnapshot(mock_commit, d) for d in issue_snapshot_data]
+    mock_issue_snapshots = [IssueSnapshot(mock_commit, d, 'master') for d in issue_snapshot_data]
     return mock_commit, mock_issue_snapshots
 
 

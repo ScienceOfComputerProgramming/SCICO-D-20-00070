@@ -33,17 +33,17 @@ class TestIssue(TestCase):
 
         self.commit = MagicMock()
 
-        self.issue = IssueSnapshot(self.commit, self.data.copy())
-        self.issue1 = IssueSnapshot(self.commit, self.data1.copy())
+        self.issue = IssueSnapshot(self.commit, self.data.copy(), ['master'])
+        self.issue1 = IssueSnapshot(self.commit, self.data1.copy(), ['master'])
 
     def test_create_issue(self):
-        issue = IssueSnapshot(self.commit, self.data.copy())
+        issue = IssueSnapshot(self.commit, self.data.copy(), ['master'])
         self.assertTrue(issue.size > 0)
         self.assertIn(self.data['filepath'], issue.data['filepath'])
         self.assertIn(self.data['contents'], issue.data['contents'])
 
     def test_create_existing_issue_returns_existing_issue(self):
-        issue = IssueSnapshot(self.commit, self.data)
+        issue = IssueSnapshot(self.commit, self.data, ['master'])
         self.assertEqual(self.issue, issue)
 
     def test_second_issue_created_gt_first(self):
@@ -56,7 +56,7 @@ class TestIssue(TestCase):
         self.assertTrue('Issue#' in str(self.issue))
 
     def test_create_issue_full_metadata(self):
-        issue = IssueSnapshot(self.commit, self.data3.copy())
+        issue = IssueSnapshot(self.commit, self.data3.copy(), ['master'])
         self.assertTrue(hasattr(issue, 'issue_id'))
         self.assertTrue(hasattr(issue, 'title'))
         self.assertTrue(hasattr(issue, 'description'))
@@ -69,7 +69,7 @@ class TestIssue(TestCase):
         self.assertTrue(hasattr(issue, 'size'))
 
     def test_get_issue_full_metadata(self):
-        issue = IssueSnapshot(self.commit, self.data3.copy())
+        issue = IssueSnapshot(self.commit, self.data3.copy(), ['master'])
         self.assertTrue(hasattr(issue, 'issue_id'))
         self.assertTrue(hasattr(issue, 'title'))
         self.assertTrue(hasattr(issue, 'description'))
