@@ -14,7 +14,7 @@ from git import Repo
 from datetime import datetime, timezone, timedelta
 
 from sciit import IssueRepo
-from sciit.cli.color import CPrint
+from sciit.cli.color import ColorPrint
 from sciit.gitlab.pushhook import handle_push_event
 from sciit.gitlab.issuehook import handle_issue_event
 
@@ -151,9 +151,9 @@ def launch(args):
         WEBSERVICE_CONFIG.api_token = os.environ['GITLAB_API_TOKEN']
         app.run(host='0.0.0.0', port=5000)
     else:
-        CPrint.bold_red(
+        ColorPrint.bold_red(
             'Must specify gitlab api access token as environment variable')
-        CPrint.bold('Set token to environment variable GITLAB_API_TOKEN')
+        ColorPrint.bold('Set token to environment variable GITLAB_API_TOKEN')
         exit(127)
 
 
