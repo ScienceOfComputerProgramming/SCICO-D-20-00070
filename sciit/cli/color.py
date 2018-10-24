@@ -3,42 +3,43 @@
 from termcolor import colored
 
 
-class Color:
-    """A simple class wrapper that helps to add color to strings
+class ColorText:
+    """
+    A simple class wrapper that helps to add color to strings
     """
 
     @classmethod
     def red(cls, string):
-        return(colored(string, 'red'))
+        return colored(string, 'red')
 
     @classmethod
     def green(cls, string):
-        return(colored(string, 'green'))
+        return colored(string, 'green')
 
     @classmethod
     def yellow(cls, string):
-        return(colored(string, 'yellow'))
+        return colored(string, 'yellow')
 
     @classmethod
     def bold(cls, string):
-        return(colored(string, attrs=['bold']))
+        return colored(string, attrs=['bold'])
 
     @classmethod
     def bold_red(cls, string):
-        return(colored(string, 'red', attrs=['bold']))
+        return colored(string, 'red', attrs=['bold'])
 
     @classmethod
     def bold_green(cls, string):
-        return(colored(string, 'green', attrs=['bold']))
+        return colored(string, 'green', attrs=['bold'])
 
     @classmethod
     def bold_yellow(cls, string):
-        return(colored(string, 'yellow', attrs=['bold']))
+        return colored(string, 'yellow', attrs=['bold'])
 
 
-class CPrint:
-    """A simple class wrapper that helps to print messages to the
-    shell terminals
+class ColorPrint:
+    """
+    A simple class wrapper that helps to print messages to the shell terminals
     """
 
     @classmethod

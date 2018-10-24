@@ -6,7 +6,7 @@ import pkg_resources
 from sciit.functions import get_sciit_ignore_path_spec
 from sciit.commit import find_issue_snapshots_in_commit_paths_that_changed
 from sciit.errors import RepoObjectDoesNotExistError
-from .color import CPrint
+from .color import ColorPrint
 
 
 def page(output):
@@ -29,7 +29,7 @@ def read_sciit_version():
 
 def do_repository_is_init_check(issue_repository):
     if not issue_repository.is_init():
-        CPrint.bold_red('Error: Issue repository not setup.')
+        ColorPrint.bold_red('Error: Issue repository not setup.')
         print('Solve this error by building issue repository using: git sciit init')
         exit(127)
 
@@ -78,12 +78,12 @@ def do_commit_contains_duplicate_issue_filepaths_check(issue_repository, commit)
             {issue_id: file_paths for issue_id, file_paths in file_paths_by_issue_id.items() if len(file_paths) > 1}
 
         for (issue_id, file_paths) in duplicates.items():
-            CPrint.bold_red(f'Duplicate Issue: {issue_id}')
+            ColorPrint.bold_red(f'Duplicate Issue: {issue_id}')
             for file_found in file_paths:
-                CPrint.red(f'\tfound in {file_found}')
+                ColorPrint.red(f'\tfound in {file_found}')
 
         git_repository.git.execute(['git', 'reset', 'HEAD~1', '--soft'])
-        CPrint.bold_red(f'HEAD @: {git_repository.head.commit.summary} ~ {git_repository.head.commit.hexsha[:7]}')
+        ColorPrint.bold_red(f'HEAD @: {git_repository.head.commit.summary} ~ {git_repository.head.commit.hexsha[:7]}')
         exit()
 
 
@@ -98,12 +98,12 @@ def print_status_summary(issue_repository):
         # show issue status at head to the user
         if len(issues) > 0:
             result = str(len(issues)) + ' Open Issues @' + location
-            CPrint.bold_red(result)
+            ColorPrint.bold_red(result)
         else:
             result = 'No Open Issues @' + location
-            CPrint.bold_green(result)
+            ColorPrint.bold_green(result)
 
     except RepoObjectDoesNotExistError as error:
-        CPrint.bold_red(error)
+        ColorPrint.bold_red(error)
         print('Solve error by rebuilding issue repository using: git sciit init -r')
         exit(127)

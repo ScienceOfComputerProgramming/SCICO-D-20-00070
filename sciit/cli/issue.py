@@ -10,7 +10,7 @@ Implements the git sciit issue commands. Issue tracking information is retrieved
 
 import datetime
 
-from sciit.cli.color import CPrint, Color
+from sciit.cli.color import ColorPrint, ColorText
 from sciit.cli.functions import page, print_progress_bar
 
 
@@ -34,11 +34,11 @@ def issue(args):
         return page_history_issue(history[args.issue_id], view)
     else:
         if history:
-            CPrint.bold_red(f'No issues found matching \'{args.issue_id}\' ')
+            ColorPrint.bold_red(f'No issues found matching \'{args.issue_id}\' ')
             print('\nHere are issues that are in the tracker:\n')
             print("\n".join(history.keys()))
         else:
-            CPrint.bold_red(f'No issues in the repository')
+            ColorPrint.bold_red(f'No issues in the repository')
 
 def page_history_issue(item, view=None):
     output = build_issue_history(item, view)
@@ -70,7 +70,7 @@ def page_history_issues(items, view=None, issue_filter=None):
 
 
 def subheader(header):
-    return Color.bold(f'\n{header}')
+    return ColorText.bold(f'\n{header}')
 
 
 def build_issue_history(issue_item, view=None, other_issue_items=dict()):
@@ -89,9 +89,9 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
     participants = ', '.join(issue_item.participants)
 
     output = ''
-    output += f'\nTitle:             ' + Color.bold_yellow(f"{issue_item.title}")
+    output += f'\nTitle:             ' + ColorText.bold_yellow(f"{issue_item.title}")
     output += f'\nID:                {issue_item.issue_id}'
-    output += f'\nStatus:            ' + (Color.green(status_str) if status == 'Closed' else Color.red(status_str))
+    output += f'\nStatus:            ' + (ColorText.green(status_str) if status == 'Closed' else ColorText.red(status_str))
     output += f'\n'
     output += f'\nClosed:            {issue_item.closer} | {issue_item.closed_date}' if issue_item.closer else ''
     output += f'\nLast Change:       {issue_item.last_author} | {issue_item.last_authored_date}'
@@ -147,7 +147,7 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
                 output += f' {changed_property}: {new_value}\n'
 
             output += f'\n'
-            output += f'{Color.bold_yellow("--> made by: " + revision["author"])} - {revision["date"]}\n'
+            output += f'{ColorText.bold_yellow("--> made by: " + revision["author"])} - {revision["date"]}\n'
             output += f'    {revision["summary"]}\n'
 
     if view == 'full' or view == 'detailed':
@@ -158,6 +158,6 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
             if view == 'full':
                 output += f' | {commit["commitsha"]} | {commit["author"]} | {commit["summary"]}'
 
-    output += f'\n{Color.yellow("*"*90)}\n'
+    output += f'\n{ColorText.yellow("*"*90)}\n'
 
     return output

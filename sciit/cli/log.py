@@ -8,7 +8,7 @@ Assists with running git sciit log commands, similar to the git log command but 
             $ git sciit log [-h] [revision]
 """
 
-from sciit.cli.color import Color
+from sciit.cli.color import ColorText
 from sciit.cli.functions import page
 
 
@@ -43,10 +43,10 @@ def build_log_item(commit, issue_snapshot_list):
 
     time_format = '%a %b %d %H:%M:%S %Y %z'
     date = commit.authored_datetime.strftime(time_format)
-    output = Color.bold_yellow(f'commit {commit.hexsha}')
+    output = ColorText.bold_yellow(f'commit {commit.hexsha}')
     output += f'\nAuthor:\t {commit.author.name} <{commit.author.email}>'
     output += f'\nDate:\t {date}'
-    output += f'\n{Color.bold_red(f"Open Issues: {issue_snapshot_ids_str}")}'
+    output += f'\n{ColorText.bold_red(f"Open Issues: {issue_snapshot_ids_str}")}'
     output += f'\n'
     output += f'\n{commit.message}'
     output += f'\n'

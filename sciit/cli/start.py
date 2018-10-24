@@ -18,7 +18,7 @@ from sciit.errors import RepoObjectDoesNotExistError, NoCommitsError
 
 from sciit import IssueRepo
 from sciit.cli.functions import read_sciit_version
-from sciit.cli.color import CPrint, Color
+from sciit.cli.color import ColorPrint, ColorText
 from sciit.cli.init import init
 from sciit.cli.log import log
 from sciit.cli.status import status
@@ -42,7 +42,7 @@ def add_issue_filter_options(parser):
     group.add_argument(
         '-a', '--all', help='show all the issues currently tracked and their status', action='store_true')
     group.add_argument(
-        '-o', '--open', help=Color.green('default:') +' show only issues that are open', action='store_true')
+        '-o', '--open', help=ColorText.green('default:') + ' show only issues that are open', action='store_true')
     group.add_argument('-c', '--closed', help='show only issues that are closed', action='store_true')
 
 
@@ -58,7 +58,7 @@ def add_view_options(parser):
         help='View tracker information including commit activity, multiple filepaths, open in, and found in branches')
     group.add_argument(
         '-n', '--normal', action='store_true',
-        help=Color.green('default:') + ' view tracker information normally needed.')
+        help=ColorText.green('default:') + ' view tracker information normally needed.')
 
 
 def create_command_parser():
@@ -144,8 +144,8 @@ def main():
                 args.func(args)
             else:
                 if not args.repo.is_init():
-                    CPrint.red('Repository not initialized')
-                    CPrint.bold_red('Run: git scitt init')
+                    ColorPrint.red('Repository not initialized')
+                    ColorPrint.bold_red('Run: git scitt init')
                 else:
                     args.func(args)
 
@@ -154,14 +154,14 @@ def main():
         git_repository.__del__()
 
     except InvalidGitRepositoryError:
-        CPrint.bold('fatal: not a git repository (or any parent up to mount point /)')
-        CPrint.bold('Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
+        ColorPrint.bold('fatal: not a git repository (or any parent up to mount point /)')
+        ColorPrint.bold('Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
     except NoCommitsError as error:
-        CPrint.bold_red(f'git sciit error fatal: {str(error)}')
+        ColorPrint.bold_red(f'git sciit error fatal: {str(error)}')
     except GitCommandError as error:
-        CPrint.bold_red(f'git sciit error fatal: bad revision \'{args.revision}\'')
+        ColorPrint.bold_red(f'git sciit error fatal: bad revision \'{args.revision}\'')
     except RepoObjectDoesNotExistError as error:
-        CPrint.bold_red(error)
+        ColorPrint.bold_red(error)
         print('Solve error by rebuilding issue repository using: git sciit init -r')
 
 

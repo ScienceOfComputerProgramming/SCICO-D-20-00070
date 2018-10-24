@@ -18,7 +18,7 @@ all tracked issues with issues open in the current repository or from the specif
                     
 """
 from sciit.cli.issue import page_history_issues
-from sciit.cli.color import CPrint
+from sciit.cli.color import ColorPrint
 
 
 def tracker(args):
@@ -46,4 +46,4 @@ def tracker(args):
         elif args.closed:
             return page_history_issues(history, view, lambda issue: issue.status[0] == 'Closed')
     else:
-        CPrint.bold_green('No issues found')
+        ColorPrint.bold_green('No issues found')

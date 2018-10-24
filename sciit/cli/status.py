@@ -8,7 +8,7 @@ that are currently being tracked on HEAD or revision.
 
             $ git sciit status [-h] [revision]
 """
-from sciit.cli.color import CPrint
+from sciit.cli.color import ColorPrint
 from sciit.cli.functions import print_status_summary
 
 def status(args):
@@ -18,7 +18,7 @@ def status(args):
     all_issues = args.repo.get_all_issues(revision)
     open = sum(issue.status[0] == 'Open' for issue in all_issues.values())
     closed = len(all_issues) - open
-    CPrint.bold_red(f'Open Issues: ' + str(open))
-    CPrint.bold_green(f'Closed Issues: ' + str(closed))
+    ColorPrint.bold_red(f'Open Issues: ' + str(open))
+    ColorPrint.bold_green(f'Closed Issues: ' + str(closed))
     print('')
     return

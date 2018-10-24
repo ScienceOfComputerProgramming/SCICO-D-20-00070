@@ -10,7 +10,7 @@ to create a repository from source code comments in past commits. It is similar 
             $ git sciit init [-h] [-r] [-y]
 """
 
-from sciit.cli.color import CPrint
+from sciit.cli.color import ColorPrint
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 
 
@@ -19,29 +19,29 @@ def init(args):
         try:
             args.repo.reset()
         except EmptyRepositoryError as error:
-            CPrint.bold_red(error)
+            ColorPrint.bold_red(error)
             return
 
     if not args.repo.is_init():
         args.repo.setup_file_system_resources()
         try:
             print(' ')
-            CPrint.bold('Building repository from commits')
+            ColorPrint.bold('Building repository from commits')
             args.repo.cache_issue_snapshots_from_all_commits()
             print(' ')
         except NoCommitsError as error:
-            CPrint.yellow(error)
-            CPrint.green('Empty issue repository created')
+            ColorPrint.yellow(error)
+            ColorPrint.green('Empty issue repository created')
         except KeyboardInterrupt:
             print('\n')
-            CPrint.bold_red('Setup issue repository process interrupted')
+            ColorPrint.bold_red('Setup issue repository process interrupted')
             print('Cleaning up')
             args.repo.reset()
-            CPrint.yellow('Done.')
-            CPrint.bold_yellow(' Re-run command to setup repository')
+            ColorPrint.yellow('Done.')
+            ColorPrint.bold_yellow(' Re-run command to setup repository')
             return
     else:
-        CPrint.green('Issue repository already setup')
+        ColorPrint.green('Issue repository already setup')
         print('Use -r or --reset flag to force reset and rebuild of repository')
 
     return
