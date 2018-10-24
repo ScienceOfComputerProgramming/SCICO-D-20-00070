@@ -12,7 +12,7 @@ from sciit.cli import start
 from sciit.errors import RepoObjectDoesNotExistError, NoCommitsError
 from tests.external_resources import remove_existing_repo
 from tests.test_cli.external_resources import third_commit
-from sciit.cli.color import CPrint, Color
+from sciit.cli.color import ColorPrint, ColorText
 
 
 class TestCLIStartup(TestCase):
@@ -21,8 +21,8 @@ class TestCLIStartup(TestCase):
         self.held, sys.stdout = sys.stdout, StringIO()
 
     def test_main_entrance(self):
-        CPrint.bold_yellow('test')
-        Color.bold_green('test')
+        ColorPrint.bold_yellow('test')
+        ColorText.bold_green('test')
         with \
                 patch.object(start, "main", return_value=42), \
                 patch.object(start, "__name__", "__main__"),\

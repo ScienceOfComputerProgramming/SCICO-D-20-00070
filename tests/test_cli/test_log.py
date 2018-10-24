@@ -18,26 +18,22 @@ class TestLogCommand(TestCase):
         args = Mock()
         args.revision = False
         args.repo = MagicMock()
-        args.repo.find_issue_snapshots.return_value=\
-            {second_commit: second_issue_snapshots, first_commit: first_issue_snapshots}
+        args.repo.find_issue_snapshots.return_value= first_issue_snapshots + second_issue_snapshots
 
         args.repo.head = second_commit.hexsha
         output = log(args)
         self.assertIn('commit ' + second_commit.hexsha, output)
-        self.assertIn('Open Issues: 5', output)
+        self.assertIn('Open Issues: 6, 5, 4, 3, 2, 1', output)
         self.assertIn('commit ' + first_commit.hexsha, output)
-        self.assertIn('Open Issues: 6', output)
 
     @patch('pydoc.pipepager')
     def test_log_generates_correctly_from_revision(self, pager):
         args = Mock()
         args.revision = second_commit.hexsha
         args.repo = MagicMock()
-        args.repo.find_issue_snapshots.return_value=\
-            {second_commit: second_issue_snapshots, first_commit: first_issue_snapshots}
+        args.repo.find_issue_snapshots.return_value= first_issue_snapshots + second_issue_snapshots
         args.repo.head = second_commit.hexsha
         output = log(args)
         self.assertIn('commit ' + second_commit.hexsha, output)
-        self.assertIn('Open Issues: 5', output)
+        self.assertIn('Open Issues: 6, 5, 4, 3, 2, 1', output)
         self.assertIn('commit ' + first_commit.hexsha, output)
-        self.assertIn('Open Issues: 6', output)
