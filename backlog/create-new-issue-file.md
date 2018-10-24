@@ -9,4 +9,7 @@
 
  Similar pattern generators would be useful for popular IDEs,
  such as PyCharm and Intellij.
+
+ This should take a title and suggest a slug, then allow users to
+ specify other metadata which gets dropped if blank.
 ---
