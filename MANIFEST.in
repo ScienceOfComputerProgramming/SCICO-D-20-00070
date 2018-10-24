@@ -1,5 +1,8 @@
 include sciit/hooks/*
 include sciit/man/*
+include COMMANDS.md
+include INSTALL.md
 include README.md
+include STYLES.md
 recursive-include sciit/web/templates *
 recursive-include sciit/web/static *
