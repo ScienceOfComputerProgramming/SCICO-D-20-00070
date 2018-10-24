@@ -219,7 +219,7 @@ class IssueRepo(object):
 
     def _serialize_issue_snapshots_to_db(self, commit_hexsha, issue_snapshots):
         row_values = [
-            (commit_hexsha, issue.issue_id, json.dumps(issue.data), ', '.join(issue.in_branches))
+            (commit_hexsha, issue.issue_id, json.dumps(issue.data), ','.join(issue.in_branches))
             for issue in issue_snapshots]
 
         with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
