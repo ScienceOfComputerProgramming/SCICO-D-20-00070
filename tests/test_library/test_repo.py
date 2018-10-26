@@ -107,18 +107,15 @@ class TestBuildIssueRepo(TestCase):
         self.assertTrue('The repository has no commits.' in str(context.exception))
 
     @patch('sciit.repo.Commit', new_callable=MagicMock)
-    @patch('sciit.repo.IssueRepo._find_head_commits_within_issue_snapshot_list', new_callable=MagicMock)
     @patch('sciit.repo.find_issue_snapshots_in_commit_paths_that_changed', new_callable=MagicMock)
     def test_build_issue_cache_from_mocked_git_repo(
             self, find_issues_in_commit_paths_that_changed,
-            _find_head_commits_within_issue_snapshot_list,
             commit_constructor):
 
         find_issues_in_commit_paths_that_changed.side_effect = [
             [self.first_issue_snapshots, ['path', 'another/path']],
             [self.head_issue_snapshots, ['another/path']]
         ]
-        _find_head_commits_within_issue_snapshot_list.return_value = {'master': self.head_commit.hexsha}
         commit_constructor.side_effect = [self.first_commit] * 6 + [self.head_commit] * 5
 
         self.issue_repository.cache_issue_snapshots_from_all_commits()

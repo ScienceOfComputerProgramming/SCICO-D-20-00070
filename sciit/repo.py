@@ -86,38 +86,43 @@ class IssueRepo(object):
         last_issue_commit = get_last_issue_commit_sha(self.issue_dir)
         all_commits = list(self.git_repository.iter_commits('--all'))
         latest_commit = all_commits[0].hexsha
+
         revision = last_issue_commit + '..' + latest_commit
         str_commits = self.git_repository.git.execute(['git', 'rev-list', '--reverse', revision])
 
-        if str_commits != '':
-            commits = list(self.git_repository.iter_commits(revision))
-            self._extract_and_synchronise_issue_snapshots_from_commits(commits, len(commits))
-            write_last_issue_commit_sha(self.issue_dir, latest_commit)
+        new_commits = list(self.git_repository.iter_commits(revision)) if str_commits != '' else list()
+
+        # Reprocess head commits in case branch membership has changed.
+        head_commits = [head.commit for head in self.git_repository.heads]
+
+        commits_for_processing = new_commits + head_commits
+
+        self._extract_and_synchronise_issue_snapshots_from_commits(commits_for_processing)
+        write_last_issue_commit_sha(self.issue_dir, latest_commit)
 
     def cache_issue_snapshots_from_all_commits(self):
         if len(self.git_repository.heads) < 1:
             raise NoCommitsError
 
         # get all commits on all branches, enforcing the topology order of parents to children.
-        all_commits = self.git_repository.iter_commits(['--all', '--topo-order', '--reverse'])
-        num_commits = int(self.git_repository.git.execute(['git', 'rev-list', '--all', '--count']))
+        all_commits = list(self.git_repository.iter_commits(['--all', '--topo-order', '--reverse']))
 
         if all_commits:
-            self._extract_and_synchronise_issue_snapshots_from_commits(all_commits, num_commits)
+            self._extract_and_synchronise_issue_snapshots_from_commits(all_commits)
             write_last_issue_commit_sha(self.issue_dir, self.git_repository.head.commit.hexsha)
         else:
             raise NoCommitsError
 
-    def _extract_and_synchronise_issue_snapshots_from_commits(self, all_commits, num_commits):
+    def _extract_and_synchronise_issue_snapshots_from_commits(self, commits_for_processing):
 
         ignored_files = get_sciit_ignore_path_spec(self.git_repository)
 
         commits_scanned = 0
         start = datetime.now()
 
-        for commit in all_commits:
+        for commit in commits_for_processing:
             commits_scanned += 1
-            self._print_commit_progress(datetime.now(), start, commits_scanned, num_commits)
+            self._print_commit_progress(datetime.now(), start, commits_scanned, len(commits_for_processing))
 
             changed_issue_snapshots, files_changed_in_commit = \
                 find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
@@ -152,7 +157,7 @@ class IssueRepo(object):
     def _print_commit_progress(self, now, start, current, total):
         if self.cli:
             duration = now - start
-            prefix = '%d/%d commits: ' % (current, total)
+            prefix = 'Processing %d/%d commits: ' % (current, total)
             suffix = ' Duration: %s' % str(duration)
 
             print_progress_bar(current, total, prefix=prefix, suffix=suffix)
@@ -170,9 +175,10 @@ class IssueRepo(object):
             raise NoCommitsError
 
         history = dict()
-        issue_snapshots = self.find_issue_snapshots(revision)
 
-        head_commits = self._find_head_commits_within_issue_snapshot_list(issue_snapshots)
+        issue_snapshots = self.find_issue_snapshots(revision)
+        head_commits = {head.name: head.commit.hexsha for head in self.git_repository.heads}
+
         for issue_snapshot in issue_snapshots:
 
             issue_id = issue_snapshot.issue_id
@@ -197,25 +203,6 @@ class IssueRepo(object):
             issue_snapshots = self._deserialize_issue_snapshots_from_db(commit_hexsha)
             self.issue_snapshot_cache[commit_hexsha] = issue_snapshots
         return self.issue_snapshot_cache[commit_hexsha]
-
-    @staticmethod
-    def _find_head_commits_within_issue_snapshot_list(issue_snaphots):
-
-        processed_commits = set()
-        result = dict()
-
-        for issue_snapshot in reversed(issue_snaphots):
-            if issue_snapshot.commit.hexsha in processed_commits:
-                continue
-            else:
-                processed_commits.add(issue_snapshot.commit.hexsha)
-            for branch in issue_snapshot.in_branches:
-                if branch in result:
-                    continue
-                else:
-                    result[branch] = issue_snapshot.commit.hexsha
-
-        return result
 
     def _serialize_issue_snapshots_to_db(self, commit_hexsha, issue_snapshots):
         row_values = [
@@ -264,7 +251,7 @@ class IssueRepo(object):
              issue_id TEXT,
              json_data BLOB,
              in_branches TEXT,
-             UNIQUE (commit_sha, issue_id) ON CONFLICT IGNORE
+             UNIQUE (commit_sha, issue_id) ON CONFLICT REPLACE
             )
             """
         )
