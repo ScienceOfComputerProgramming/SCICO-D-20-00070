@@ -26,8 +26,6 @@ def issue(args):
     elif args.full:
         view = 'full'
 
-    args.repo.cache_issue_snapshots_from_unprocessed_commits()
-
     history = args.repo.build_history(args.revision)
 
     if args.issue_id in history:
