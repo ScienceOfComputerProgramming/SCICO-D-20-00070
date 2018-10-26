@@ -91,7 +91,7 @@ class IssueRepo(object):
         str_commits = self.git_repository.git.execute(['git', 'rev-list', '--reverse', revision])
 
         new_commits = list(self.git_repository.iter_commits(revision)) if str_commits != '' else list()
-
+        print(new_commits)
         # Reprocess head commits in case branch membership has changed.
         head_commits = [head.commit for head in self.git_repository.heads]
 
