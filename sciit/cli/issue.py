@@ -60,7 +60,7 @@ def page_history_issues(items, view=None, issue_filter=None):
             output += build_issue_history(item, view, items)
             cur_issue += 1
             duration = datetime.datetime.now() - start
-            prefix = 'Recovering %d/%d issues: ' % (cur_issue, num_issues)
+            prefix = 'Recovering %d/%d issues:  ' % (cur_issue, num_issues)
             suffix = ' Duration: %s' % str(duration)
 
             print_progress_bar(cur_issue, num_issues, prefix, suffix)
