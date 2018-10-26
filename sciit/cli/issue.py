@@ -40,6 +40,7 @@ def issue(args):
         else:
             ColorPrint.bold_red(f'No issues in the repository')
 
+
 def page_history_issue(item, view=None):
     output = build_issue_history(item, view)
     page(output)
