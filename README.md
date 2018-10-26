@@ -45,4 +45,4 @@ Installation instructions can be found [here](INSTALL.md)
 More styles and supported files can be found [here](STYLES.md)
 
 Command line interaction instructions can be found [here](COMMAND.md)
- 
+
