@@ -13,7 +13,7 @@ colorama.init()
 
 git_repository = Repo(search_parent_directories=True)
 issue_repository = IssueRepo(git_repository)
-
+issue_repository.cli = True
 
 do_repository_is_init_check(issue_repository)
 
