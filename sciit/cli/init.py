@@ -2,12 +2,7 @@
 """
 Assists with creating a git sciit repository. It contains functions that allows the creation of an empty repository or
 to create a repository from source code comments in past commits. It is similar to the git init command but  helps build
- issues for existing repositories.
-
-    Example:
-        This command is accessed via::
-        
-            $ git sciit init [-h] [-r] [-y]
+issues for existing repositories.
 """
 
 from sciit.cli.color import ColorPrint

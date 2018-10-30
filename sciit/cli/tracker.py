@@ -3,19 +3,6 @@
 Assists with running git sciit tracker commands, and is similar to any other git command. It compares
 all tracked issues with issues open in the current repository or from the specified revision.
 
-    Example:
-        This module is accessed via::
-
-            $ git sciit tracker [-h] [-a | -o | -c] [-f | -d | -n] [-s] [*revision*]
-
-                -a, --all       
-                -o, --open      
-                -c, --closed    
-                -f, --full      
-                -d, --detailed  
-                -n, --normal    
-                -s, --save      
-                    
 """
 from sciit.cli.issue import page_history_issues
 from sciit.cli.color import ColorPrint

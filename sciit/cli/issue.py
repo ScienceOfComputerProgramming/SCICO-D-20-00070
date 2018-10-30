@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Implements the git sciit issue commands. Issue tracking information is retrieved for a particular issue.
-
-    Example:
-        This module is accessed via::
-
-            $ git sciit issue [-h] [-f | -d | -n] [--save] issueid [*revision*]
 """
 
 import datetime
@@ -16,15 +11,10 @@ from sciit.cli.functions import page, print_progress_bar
 
 def issue(args):
 
-    if not args.normal and not args.detailed and not args.full:
-        args.normal = True
-
-    if args.normal:
-        view = 'normal'
-    elif args.detailed:
-        view = 'detailed'
-    elif args.full:
+    if args.full:
         view = 'full'
+    else:
+        view = 'normal'
 
     history = args.repo.build_history(args.revision)
 
@@ -115,14 +105,14 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
         blockers_str = ', '.join(blockers_status)
         output += f'\nBlockers:          {blockers_str}'
 
-    if view == 'full' or view == 'detailed':
+    if view == 'full':
         branches = ', '.join(issue_item.in_branches)
         output += f'\nExisted in:        {branches}'
 
     output += f'\nSize:              {str(issue_item.size)}' if issue_item.size else ''
     output += f'\nLatest file path:  {issue_item.file_path}' if len(issue_item.file_paths) > 0 else ''
 
-    if (view == 'full' or view == 'detailed') and len(issue_item.file_paths) > 0:
+    if (view == 'full') and len(issue_item.file_paths) > 0:
         output += "\nBranch file paths:\n"
         for branch, path in issue_item.file_paths.items():
             branch_status = 'open' if branch in issue_item.open_in_branches else 'closed'
@@ -149,13 +139,11 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
             output += f'{ColorText.bold_yellow("--> made by: " + revision["author"])} - {revision["date"]}\n'
             output += f'    {revision["summary"]}\n'
 
-    if view == 'full' or view == 'detailed':
+    if view == 'full':
         num_commits = str(len(issue_item.activity))
         output += subheader(f'\nPresent in Commits ({num_commits}):')
         for commit in issue_item.activity:
-            output += f'\n{commit["date"]}'
-            if view == 'full':
-                output += f' | {commit["commitsha"]} | {commit["author"]} | {commit["summary"]}'
+            output += f'\n{commit["date"]} | {commit["commitsha"]} | {commit["author"]} | {commit["summary"]}'
 
     output += f'\n{ColorText.yellow("*"*90)}\n'
 

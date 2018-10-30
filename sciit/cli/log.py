@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Assists with running git sciit log commands, similar to the git log command but shows the open issues for each commit.
-
-    Example:
-        This command is accessed via:
-        
-            $ git sciit log [-h] [revision]
 """
 
 from sciit.cli.color import ColorText

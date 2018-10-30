@@ -2,10 +2,6 @@
 """
 main() entry point of the command line interface that accepts the command line arguments and pass them to the
 appropriate module for handling.
-
-    Example:
-
-            $ git sciit
 """
 
 import argparse
@@ -53,9 +49,6 @@ def add_view_options(parser):
         help=
         'view the full tracker information for all issues including, description revisions, commit activity, '
         'issue revisions, multiple filepaths, open in, and found in branches ')
-    group.add_argument(
-        '-d', '--detailed', action='store_true',
-        help='View tracker information including commit activity, multiple filepaths, open in, and found in branches')
     group.add_argument(
         '-n', '--normal', action='store_true',
         help=ColorText.green('default:') + ' view tracker information normally needed.')

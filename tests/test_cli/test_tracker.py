@@ -100,20 +100,6 @@ class TestStatusCommand(TestCase):
         self.assertNotIn('Found In:', output)
         self.assertNotIn('Open In Branches:', output)
 
-    def test_prints_detailed_tracker_view(self):
-
-        self.args.all = self.args.detailed = True
-
-        self.args.repo.get_all_issues.return_value = {'6': issues['6']}
-
-        output = tracker(self.args)
-        output = ansi_escape.sub('', output)
-
-        self.assertIn('Description:', output)
-        self.assertIn('Existed in:', output)
-        self.assertIn('Present in Commits (2):', output)
-        self.assertNotIn('IssueSnapshot Revisions:', output)
-
     def test_prints_full_tracker_view(self):
 
         self.args.all = self.args.full = True

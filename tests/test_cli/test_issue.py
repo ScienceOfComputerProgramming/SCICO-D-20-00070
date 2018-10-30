@@ -58,21 +58,6 @@ class TestIssueCommand(TestCase):
         self.assertNotIn('IssueSnapshot Revisions:', output)
         self.assertNotIn('Commit Activity:', output)
 
-    def test_command_returns_correct_history_detailed_view(self):
-        self.args.revision = second_commit.hexsha
-        self.args.detailed = True
-        self.args.normal = self.args.full = False
-        self.args.issue_id = '6'
-        self.args.repo.build_history.return_value = {'6': issues['6']}
-
-        output = issue(self.args)
-
-        output = ansi_escape.sub('', output)
-        self.assertIn('ID:                6', output)
-        self.assertIn('Status:            Open', output)
-        self.assertIn('Existed in:', output)
-        self.assertNotIn('Commit Activity:', output)
-
     def test_command_returns_correct_history_full_view(self):
         self.args.revision = second_commit.hexsha
         self.args.full = True
