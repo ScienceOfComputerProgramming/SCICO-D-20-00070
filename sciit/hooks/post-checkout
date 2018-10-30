@@ -17,5 +17,3 @@ do_repository_is_init_check(issue_repository)
 
 issue_repository.cache_issue_snapshots_from_unprocessed_commits()
 print_status_summary(issue_repository)
-
-

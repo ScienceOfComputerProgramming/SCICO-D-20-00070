@@ -3,7 +3,6 @@
 
 from git import Repo
 from sciit import IssueRepo
-from sciit.functions import write_last_issue_commit_sha
 from sciit.cli.functions import do_repository_is_init_check, do_commit_contains_duplicate_issue_filepaths_check,\
     print_status_summary
 
