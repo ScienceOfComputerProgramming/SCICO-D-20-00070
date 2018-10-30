@@ -62,7 +62,7 @@ def do_commit_contains_duplicate_issue_filepaths_check(issue_repository, commit)
 
     ignored_files = get_sciit_ignore_path_spec(issue_repository.git_repository)
 
-    issue_snapshots, changed_paths = \
+    issue_snapshots, changed_paths, in_branchesgitgit  = \
         find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
 
     if len(set(issue_snapshots)) != len(issue_snapshots):
