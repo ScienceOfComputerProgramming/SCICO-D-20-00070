@@ -53,7 +53,7 @@ class TestIssue(TestCase):
         self.assertLess(self.issue, self.issue1)
 
     def test_issue_string_printed_properly(self):
-        self.assertTrue('Issue#' in str(self.issue))
+        self.assertTrue('@' in str(self.issue))
 
     def test_create_issue_full_metadata(self):
         issue = IssueSnapshot(self.commit, self.data3.copy(), ['master'])

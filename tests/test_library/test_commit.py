@@ -52,7 +52,7 @@ class TestFindIssuesInCommit(TestCase):
                     path='README')
             ])
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertFalse(issue_snapshots)
 
     def test_one_cstyle_issue_cleaned(self):
@@ -70,7 +70,7 @@ class TestFindIssuesInCommit(TestCase):
             ]
         )
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         print(issue_snapshots)
         self.assertEqual(1, len(issue_snapshots))
         self.assertNotIn('*', issue_snapshots[0].description)
@@ -91,7 +91,7 @@ class TestFindIssuesInCommit(TestCase):
             ]
         )
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertEqual(len(issue_snapshots), 1)
         self.assertNotIn('*', issue_snapshots[0].description)
 
@@ -112,7 +112,7 @@ class TestFindIssuesInCommit(TestCase):
             ]
         )
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertEqual(1, len(issue_snapshots))
         self.assertNotIn('#', issue_snapshots[0].description)
 
@@ -133,7 +133,7 @@ value that has some contents
             ]
         )
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertEqual(len(issue_snapshots), 1)
         self.assertNotIn('#', issue_snapshots[0].description)
 
@@ -159,7 +159,7 @@ value that has some contents
             ]
         )
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertEqual(len(issue_snapshots), 2)
         self.assertNotIn('#', issue_snapshots[0].description)
 
@@ -178,7 +178,7 @@ value that has some contents
             ]
         )
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertEqual(len(issue_snapshots), 1)
 
     def test_no_issues_one_changed_unsupported_file_no_pattern(self):
@@ -196,7 +196,7 @@ value that has some contents
             ]
         )
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertFalse(issue_snapshots)
 
     def test_no_issues_multiple_changed_files(self):
@@ -211,7 +211,7 @@ value that has some contents
             commit_files=['README1', 'README3']
         )
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertFalse(issue_snapshots)
 
     def test_no_issues_renamed_file_change(self):
@@ -226,7 +226,7 @@ value that has some contents
             commit_files=['docs/this.py', 'README3']
         )
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertFalse(issue_snapshots)
 
     def test_no_issues_multiple_changed_files_in_trees(self):
@@ -253,7 +253,7 @@ value that has some contents
             commit_files=['README1', 'README3', 'docs/file9.py']
         )
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertFalse(issue_snapshots)
 
     def test_skips_unicode_error_one_file(self):
@@ -268,7 +268,7 @@ value that has some contents
             commit_files=['README']
         )
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertFalse(issue_snapshots)
 
     def test_contains_issues_multiple_changed_files(self):
@@ -285,7 +285,7 @@ value that has some contents
 
         commit.tree.blobs[3].contents = b'This one has no issue in it'
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertEqual(len(issue_snapshots), 3)
 
     def test_contains_issues_multiple_changed_files_multiple_trees(self):
@@ -313,7 +313,7 @@ value that has some contents
 
         commit.tree.blobs[3].contents = b'This one has no issue in it'
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        issue_snapshots, _, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertEqual(len(issue_snapshots), 5)
 
     def test_commit_ignores_certain_files(self):
@@ -331,7 +331,7 @@ value that has some contents
         commit.tree.blobs[3].contents = b'This one has no issue in it'
 
         ignored_files = PathSpec.from_lines('gitignore', ['README*'])
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern, ignored_files)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern, ignored_files)
         self.assertEqual(len(issue_snapshots), 0)
 
     def test_commit_skip_ignore_file_does_not_exist(self):
@@ -346,7 +346,7 @@ value that has some contents
             commit_files=['README0', 'README1', 'README2']
         )
 
-        issue_snapshots, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern, None)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern, None)
         self.assertEqual(3, len(issue_snapshots))
 
 

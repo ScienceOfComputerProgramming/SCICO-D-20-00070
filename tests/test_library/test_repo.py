@@ -113,8 +113,8 @@ class TestBuildIssueRepo(TestCase):
             commit_constructor):
 
         find_issues_in_commit_paths_that_changed.side_effect = [
-            [self.first_issue_snapshots, ['path', 'another/path']],
-            [self.head_issue_snapshots, ['another/path']]
+            [self.first_issue_snapshots, ['path', 'another/path'], ['master']],
+            [self.head_issue_snapshots, ['another/path'], ['master']]
         ]
         commit_constructor.side_effect = [self.first_commit] * 6 + [self.head_commit] * 5
 
