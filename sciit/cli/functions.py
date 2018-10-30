@@ -6,7 +6,7 @@ import pkg_resources
 from sciit.functions import get_sciit_ignore_path_spec
 from sciit.commit import find_issue_snapshots_in_commit_paths_that_changed
 from sciit.errors import RepoObjectDoesNotExistError
-from .color import ColorPrint
+from .color import ColorPrint, ColorText
 
 
 def page(output):
@@ -87,23 +87,69 @@ def do_commit_contains_duplicate_issue_filepaths_check(issue_repository, commit)
         exit()
 
 
-def print_status_summary(issue_repository):
-    try:
-        location = issue_repository.git_repository.head.ref.name
-    except TypeError:
-        location = 'DETACHED:' + issue_repository.git_repository.head.commit.hexsha
+def make_status_summary_string(all_issues):
+    open = sum(issue.status[0] == 'Open' for issue in all_issues.values())
+    closed_str = str(len(all_issues) - open)
+    open_str = str(open)
+
+    padding = max(len(closed_str), len(open_str))
+
+    output = '\n'
+    output += ColorText.bold_red(f'Open Issues:   ' + str(open_str.rjust(padding)))
+    output += '\n'
+    output += ColorText.bold_green(f'Closed Issues: ' + str(closed_str.rjust(padding)))
+    output += '\n'
+
+    return output
+
+
+def print_status_summary(issue_repository, revision=None):
 
     try:
-        issues = issue_repository.get_open_issues()
-        # show issue status at head to the user
-        if len(issues) > 0:
-            result = str(len(issues)) + ' Open Issues @' + location
-            ColorPrint.bold_red(result)
-        else:
-            result = 'No Open Issues @' + location
-            ColorPrint.bold_green(result)
+        all_issues = issue_repository.get_all_issues(revision)
+        print(make_status_summary_string(all_issues))
 
     except RepoObjectDoesNotExistError as error:
         ColorPrint.bold_red(error)
         print('Solve error by rebuilding issue repository using: git sciit init -r')
         exit(127)
+
+
+def print_status_table(issue_repository, revision=None):
+
+    all_issues = issue_repository.get_all_issues(revision)
+
+    output = make_status_summary_string(all_issues)
+
+    table_width = 120
+    title_width = table_width - 12
+
+    output += '\n'
+    output += '| Issue '+ ' ' * (title_width-7) + ' | Status |'
+    output += '\n'
+    output += '-' * table_width
+
+    for issue_id, issue in all_issues.items():
+        issue_title = issue.title
+        if issue_title is None:
+            issue_title = str(issue_id)
+            issue_title = issue_title.capitalize()
+            issue_title.replace('-', ' ')
+            issue_title.replace('_', ' ')
+
+        if len(issue_title) > title_width - 3:
+            output += '\n| ' + ColorText.bold_yellow(issue_title[0:title_width-3] + '...')
+        else:
+            output += '\n| ' + ColorText.bold_yellow(issue_title.ljust(title_width))
+
+        status_string = ColorText.bold_red(issue.status[0].ljust(6)) \
+            if issue.status[0] is 'Closed' else ColorText.bold_green(issue.status[0].ljust(6))
+        output += '| ' + status_string + ' |'
+        output += "\n| id: " + issue_id.ljust(title_width + 4) + ' |'
+
+        output += '\n'
+        output += '-' * table_width
+    output += '\n'
+
+    page(output)
+

@@ -313,7 +313,7 @@ value that has some contents
 
         commit.tree.blobs[3].contents = b'This one has no issue in it'
 
-        issue_snapshots, _, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertEqual(len(issue_snapshots), 5)
 
     def test_commit_ignores_certain_files(self):
