@@ -29,3 +29,4 @@ gitlab
 ## ignore test folders
 tests/here
 here
+demo/
