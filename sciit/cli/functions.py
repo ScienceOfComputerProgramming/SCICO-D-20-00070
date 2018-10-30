@@ -142,8 +142,8 @@ def print_status_table(issue_repository, revision=None):
         else:
             output += '\n| ' + ColorText.bold_yellow(issue_title.ljust(title_width))
 
-        status_string = ColorText.bold_red(issue.status[0].ljust(6)) \
-            if issue.status[0] is 'Closed' else ColorText.bold_green(issue.status[0].ljust(6))
+        status_string = ColorText.bold_green(issue.status[0].ljust(6)) \
+            if issue.status[0] is 'Closed' else ColorText.bold_red(issue.status[0].ljust(6))
         output += '| ' + status_string + ' |'
         output += "\n| id: " + issue_id.ljust(title_width + 4) + ' |'
 
