@@ -75,7 +75,11 @@ class IssueSnapshot(object):
         return int(sha, 16)
 
     def __str__(self):
-        return 'Issue#' + str(self.issue_id) + ' in commit ' + str(self.commit.hexsha)
+        return str(self.issue_id) + '@' + str(self.commit.hexsha) +  ' in ' + str(self.in_branches)
+
+    def __repr__(self):
+        return self.__str__()
+
 
     @property
     def children(self):
