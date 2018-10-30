@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+from os import path
 
 from sciit import IssueSnapshot
 from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
@@ -9,9 +10,24 @@ from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
 __all__ = 'find_issues_in_commit'
 
 
+def _get_files_changed_in_commit(commit):
+    result = set()
+    for key in set(commit.stats.files.keys()):
+        if ' => ' in key:
+            # Handle for file rename key format.
+            directory = path.dirname(key)
+            filename = path.split(key)[-1]
+            source_file = filename.split(' => ')[0][1:]
+            destination_file = filename.split(' => ')[1][0:-1]
+            result.add(directory + '/' + destination_file)
+            result.add(directory + '/' + source_file)
+        else:
+            result.add(key)
+    return result
+
+
 def get_blobs_from_commit_tree(tree):
-    blobs = dict()
-    blobs.update({x.path: x for x in tree.blobs})
+    blobs = {blob.path: blob for blob in tree.blobs}
     for tree in tree.trees:
         blobs.update(get_blobs_from_commit_tree(tree))
     return blobs
@@ -74,7 +90,7 @@ def read_in_blob_contents(blob):
 def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=None, ignore_files=None):
     issue_snapshots = list()
 
-    files_changed_in_commit = set(commit.stats.files.keys())
+    files_changed_in_commit = _get_files_changed_in_commit(commit)
     blobs = get_blobs_from_commit_tree(commit.tree)
 
     if ignore_files:
@@ -83,8 +99,7 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=No
     in_branches = _find_branches_for_commit(commit)
 
     for file_changed in files_changed_in_commit:
-
-        # Handles renamed and deleted files they won't exist.
+        # Handles deleted files they won't exist.
         if file_changed not in blobs:
             continue
 
