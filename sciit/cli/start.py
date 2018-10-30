@@ -83,6 +83,7 @@ def create_command_parser():
     )
     status_parser.set_defaults(func=status)
     add_revision_option(status_parser)
+    add_view_options(status_parser)
 
     log_parser = subparsers.add_parser(
         'log', description='Prints a log that is similar to the git log but shows open issues')

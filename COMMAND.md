@@ -12,6 +12,15 @@ Creates an empty repository or builds from past commits.
 
 `[--reset | -r]` Removes all existing issue repository artifacts, including git hooks and cached issue snapshot database before rebulding.
 
+## Status
+
+`git sciit status [-f | -n] [revision]
+
+Shows the user how many issues are open and how many are closed on all branches.
+
+`[--full | -f]` Shows a table of open and closed issues.
+`[--normal | -n]` Shows a count of open and closed issues.
+
 ## Log
 
 `git sciit log [revision]`
@@ -22,12 +31,11 @@ Outputs a log that is similar to the git command, but includes a summary of open
 
 ## Issue
 
-`git scitt issue [-f | -d | -n ] issueid [revision]`
+`git scitt issue [-f | -n ] issueid [revision]`
 
 Shows information about the issue with the given id.
 
 `[--full | -f]` Shows the full history of changes to the issue.
-`[--detailed | -d]` Shows the detailed view of the  issue, including a summary of commits the issue was present in.
 `[--normal | -n]` Shows the normal summary of the current state of the issue.
 
 ## Web
@@ -38,10 +46,9 @@ Launches the web interface for viewing issue information.
 
 ## Tracker
 
-`git scitt tracker [-a | -o | -c ] [-f | -d | -n ]  [revision]`
+`git scitt tracker [-a | -o | -c ] [-f | -n ]  [revision]`
 
 `[--full | -f]` Shows the full history of changes to the issues.
-`[--detailed | -d]` Shows the detailed view of the  issues, including a summary of commits the issues wer present in.
 `[--normal | -n]` Shows the normal summary of the current state of the issues.
 
 `[revision]` The git revision path to use to control the view of the issues.

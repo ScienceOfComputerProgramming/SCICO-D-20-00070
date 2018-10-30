@@ -4,10 +4,13 @@ Assists with running git sciit status commands, and is similar to the git status
 that are currently being tracked on HEAD or revision.
 """
 
-from sciit.cli.functions import print_status_table
+from sciit.cli.functions import print_status_table, print_status_summary
 
 
 def status(args):
     revision = args.revision if args.revision else None
     issue_repository = args.repo
-    print_status_table(issue_repository, revision)
+    if args.full:
+        print_status_table(issue_repository, revision)
+    else:
+        print_status_summary(issue_repository, revision)
