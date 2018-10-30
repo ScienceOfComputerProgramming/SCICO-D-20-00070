@@ -91,7 +91,7 @@ class IssueRepo(object):
         str_commits = self.git_repository.git.execute(['git', 'rev-list', '--reverse', revision])
 
         new_commits = list(self.git_repository.iter_commits(revision)) if str_commits != '' else list()
-        print(new_commits)
+
         # Reprocess head commits in case branch membership has changed.
         head_commits = [head.commit for head in self.git_repository.heads]
 
@@ -124,33 +124,29 @@ class IssueRepo(object):
             commits_scanned += 1
             self._print_commit_progress(datetime.now(), start, commits_scanned, len(commits_for_processing))
 
-            changed_issue_snapshots, files_changed_in_commit = \
+            changed_issue_snapshots, files_changed_in_commit, in_branches = \
                 find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
 
             unchanged_issue_snapshots = self._find_unchanged_issue_snapshots_in_parents(
-                commit, files_changed_in_commit)
+                commit, in_branches, files_changed_in_commit)
 
             all_commit_issue_snapshots = changed_issue_snapshots + unchanged_issue_snapshots
             self._serialize_issue_snapshots_to_db(commit.hexsha, all_commit_issue_snapshots)
 
-    def _find_unchanged_issue_snapshots_in_parents(self, commit, files_changed_in_commit):
-
+    def _find_unchanged_issue_snapshots_in_parents(self, commit, in_branches, files_changed_in_commit):
         result = list()
 
         for parent_commit in commit.parents:
-
             parent_issue_snapshots = self.find_issue_snapshots_by_commit(parent_commit.hexsha)
-
             unchanged_issue_snapshots_in_parent = \
                 [parent_snapshot for parent_snapshot in parent_issue_snapshots
                  if parent_snapshot.filepath not in files_changed_in_commit]
-
             for unchanged_issue_snapshot_in_parent in unchanged_issue_snapshots_in_parent:
                 result.append(
                     IssueSnapshot(
-                        parent_commit,
+                        commit,
                         unchanged_issue_snapshot_in_parent.data,
-                        unchanged_issue_snapshot_in_parent.in_branches))
+                        in_branches))
 
         return result
 
@@ -200,7 +196,7 @@ class IssueRepo(object):
 
     def find_issue_snapshots_by_commit(self, commit_hexsha):
         if commit_hexsha not in self.issue_snapshot_cache:
-            issue_snapshots = self._deserialize_issue_snapshots_from_db(commit_hexsha)
+            issue_snapshots = self._deserialize_issue_snapshots_from_db([commit_hexsha])
             self.issue_snapshot_cache[commit_hexsha] = issue_snapshots
         return self.issue_snapshot_cache[commit_hexsha]
 

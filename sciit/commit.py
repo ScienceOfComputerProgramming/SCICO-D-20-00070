@@ -105,7 +105,7 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=No
             issue_snapshot = IssueSnapshot(commit, issue_data, in_branches)
             issue_snapshots.append(issue_snapshot)
 
-    return issue_snapshots, files_changed_in_commit
+    return issue_snapshots, files_changed_in_commit, in_branches
 
 
 _commit_branches_cache = dict()
