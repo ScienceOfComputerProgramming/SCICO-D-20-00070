@@ -4,5 +4,5 @@ STYLES.md
 *.rst
 *.pdf
 tests/test_library/test_commit.py
-
+sciit/cli/new_issue.py
 
