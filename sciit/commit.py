@@ -15,12 +15,19 @@ def _get_files_changed_in_commit(commit):
     for key in set(commit.stats.files.keys()):
         if ' => ' in key:
             # Handle for file rename key format.
-            directory = path.dirname(key)
-            filename = path.split(key)[-1]
-            source_file = filename.split(' => ')[0][1:]
-            destination_file = filename.split(' => ')[1][0:-1]
-            result.add(directory + '/' + destination_file)
-            result.add(directory + '/' + source_file)
+            if '{' in key:
+                directory = path.dirname(key)
+                filename = path.split(key)[-1]
+                source_file = filename.split(' => ')[0][1:]
+                destination_file = filename.split(' => ')[1][0:-1]
+                result.add(directory + '/' + destination_file)
+                result.add(directory + '/' + source_file)
+            else:
+                paths = key.split(' => ')
+                source_path = paths[0]
+                destination_path = paths[1]
+                result.add(source_path)
+                result.add(destination_path)
         else:
             result.add(key)
     return result

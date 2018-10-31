@@ -13,12 +13,7 @@ def tracker(args):
     if not args.all and not args.closed and not args.open:
         args.open = True
 
-    if not args.normal and not args.detailed and not args.full:
-        args.normal = True
-
-    if args.detailed:
-        view = 'detailed'
-    elif args.full:
+    if args.full:
         view = 'full'
     else:
         view = 'normal'
