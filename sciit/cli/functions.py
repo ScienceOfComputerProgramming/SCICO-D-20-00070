@@ -122,7 +122,7 @@ def print_status_table(issue_repository, revision=None):
     output = make_status_summary_string(all_issues)
 
     title_width = 72
-    
+
     output += '\n'
     output += '\n'
 
