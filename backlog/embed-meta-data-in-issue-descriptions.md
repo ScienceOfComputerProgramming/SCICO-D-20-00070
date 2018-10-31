@@ -1,4 +1,3 @@
-
 ---
 @issue embed-meta-data-in-issue-descriptions
 @title Embed Meta Data in Issue Descriptions
