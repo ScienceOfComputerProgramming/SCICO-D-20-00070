@@ -17,6 +17,7 @@ from sciit.cli.functions import read_sciit_version
 from sciit.cli.color import ColorPrint, ColorText
 from sciit.cli.init import init
 from sciit.cli.log import log
+from sciit.cli.new_issue import new_issue
 from sciit.cli.status import status
 from sciit.cli.tracker import tracker
 from sciit.cli.issue import issue
@@ -117,6 +118,11 @@ def create_command_parser():
     gitlab_parser = subparsers.add_parser(
         'gitlab', description='Launches the gitlab webservice that integrates gitlab issues with sciit')
     gitlab_parser.set_defaults(func=launchgitlab)
+
+    new_parser = subparsers.add_parser(
+        'new',
+        description='Creates a new issues in the project backlog')
+    new_parser.set_defaults(func=new_issue)
 
     return parser
 
