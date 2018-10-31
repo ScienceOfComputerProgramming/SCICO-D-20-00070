@@ -1,5 +1,5 @@
 ---
-@issue milestone-metadata.md
+@issue milestone-metadata
 @title Milestone Metadata Item
 @description
  Milestones are an important way of clustering
