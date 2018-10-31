@@ -1,5 +1,5 @@
 ---
-@issue attachments-metadata.md
+@issue attachments-metadata
 @title Attachments Metadata Item
 @description
  Most issue trackers support the ability to attach documents 
