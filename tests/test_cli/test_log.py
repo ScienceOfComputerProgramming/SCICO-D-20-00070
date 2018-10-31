@@ -23,7 +23,7 @@ class TestLogCommand(TestCase):
         args.repo.head = second_commit.hexsha
         output = log(args)
         self.assertIn('commit ' + second_commit.hexsha, output)
-        self.assertIn('Open Issues: 6, 5, 4, 3, 2, 1', output)
+        self.assertIn('Open Issue Ids:\n 6\n 5\n 4\n 3\n 2\n 1\n\n', output)
         self.assertIn('commit ' + first_commit.hexsha, output)
 
     @patch('pydoc.pipepager')
@@ -35,5 +35,5 @@ class TestLogCommand(TestCase):
         args.repo.head = second_commit.hexsha
         output = log(args)
         self.assertIn('commit ' + second_commit.hexsha, output)
-        self.assertIn('Open Issues: 6, 5, 4, 3, 2, 1', output)
+        self.assertIn('Open Issue Ids:\n 6\n 5\n 4\n 3\n 2\n 1\n\n', output)
         self.assertIn('commit ' + first_commit.hexsha, output)
