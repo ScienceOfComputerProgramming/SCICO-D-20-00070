@@ -94,11 +94,11 @@ def make_status_summary_string(all_issues):
 
     padding = max(len(closed_str), len(open_str))
 
-    output = '\n'
+    output = ''
     output += ColorText.bold_red(f'Open Issues:   ' + str(open_str.rjust(padding)))
     output += '\n'
     output += ColorText.bold_green(f'Closed Issues: ' + str(closed_str.rjust(padding)))
-    output += '\n'
+    output += '\n\n'
 
     return output
 
@@ -107,7 +107,7 @@ def print_status_summary(issue_repository, revision=None):
 
     try:
         all_issues = issue_repository.get_all_issues(revision)
-        print(make_status_summary_string(all_issues))
+        page(make_status_summary_string(all_issues))
 
     except RepoObjectDoesNotExistError as error:
         ColorPrint.bold_red(error)
@@ -121,10 +121,7 @@ def print_status_table(issue_repository, revision=None):
 
     output = make_status_summary_string(all_issues)
 
-    title_width = 72
-
-    output += '\n'
-    output += '\n'
+    title_width = 50
 
     for issue_id, issue in all_issues.items():
         issue_title = issue.title
@@ -135,9 +132,9 @@ def print_status_table(issue_repository, revision=None):
             issue_title.replace('_', ' ')
 
         if len(issue_title) > title_width - 3:
-            output += '\n' + ColorText.bold_yellow(issue_title[0:title_width-5] + '...: ')
+            output += ColorText.bold_yellow(issue_title[0:title_width-5] + '...: ')
         else:
-            output += '\n' + ColorText.bold_yellow((issue_title + ': ').ljust(title_width))
+            output += ColorText.bold_yellow((issue_title + ': ').ljust(title_width))
 
         if issue.status[0] is 'Closed':
             issue_status = ColorText.bold_green(issue.status[0].ljust(6))
@@ -145,7 +142,7 @@ def print_status_table(issue_repository, revision=None):
             issue_status = ColorText.bold_red(issue.status[0].ljust(6))
 
         output += issue_status
-        output += "\nid: " + issue_id.ljust(title_width + 4)
+        output += "\nid: " + issue_id.ljust(title_width + 4) + '\n'
 
     output += '\n'
 
