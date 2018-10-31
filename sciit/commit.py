@@ -13,7 +13,6 @@ __all__ = 'find_issues_in_commit'
 def _get_files_changed_in_commit(commit):
     result = set()
     for key in set(commit.stats.files.keys()):
-        print(key)
         if ' => ' in key:
             # Handle for file rename key format.
             if '{' in key:
