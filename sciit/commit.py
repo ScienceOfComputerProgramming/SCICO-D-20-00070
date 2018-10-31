@@ -13,15 +13,19 @@ __all__ = 'find_issues_in_commit'
 def _get_files_changed_in_commit(commit):
     result = set()
     for key in set(commit.stats.files.keys()):
+        print(key)
         if ' => ' in key:
             # Handle for file rename key format.
             if '{' in key:
-                directory = path.dirname(key)
-                filename = path.split(key)[-1]
-                source_file = filename.split(' => ')[0][1:]
-                destination_file = filename.split(' => ')[1][0:-1]
-                result.add(directory + '/' + destination_file)
-                result.add(directory + '/' + source_file)
+                prefix = key.split('{')[0]
+                postfix = key.split('}')[1]
+
+                change = key.split('{')[1].split('}')[0].split(' => ')
+                source_file = prefix + change[0] + postfix
+                destination_file = prefix + change[1] + postfix
+
+                result.add(destination_file)
+                result.add(source_file)
             else:
                 paths = key.split(' => ')
                 source_path = paths[0]
