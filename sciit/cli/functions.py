@@ -121,13 +121,10 @@ def print_status_table(issue_repository, revision=None):
 
     output = make_status_summary_string(all_issues)
 
-    table_width = 120
-    title_width = table_width - 12
-
+    title_width = 72
+    
     output += '\n'
-    output += '| Issue '+ ' ' * (title_width-7) + ' | Status |'
     output += '\n'
-    output += '-' * table_width
 
     for issue_id, issue in all_issues.items():
         issue_title = issue.title
@@ -138,17 +135,18 @@ def print_status_table(issue_repository, revision=None):
             issue_title.replace('_', ' ')
 
         if len(issue_title) > title_width - 3:
-            output += '\n| ' + ColorText.bold_yellow(issue_title[0:title_width-3] + '...')
+            output += '\n' + ColorText.bold_yellow(issue_title[0:title_width-5] + '...: ')
         else:
-            output += '\n| ' + ColorText.bold_yellow(issue_title.ljust(title_width))
+            output += '\n' + ColorText.bold_yellow((issue_title + ': ').ljust(title_width))
 
-        status_string = ColorText.bold_green(issue.status[0].ljust(6)) \
-            if issue.status[0] is 'Closed' else ColorText.bold_red(issue.status[0].ljust(6))
-        output += '| ' + status_string + ' |'
-        output += "\n| id: " + issue_id.ljust(title_width + 4) + ' |'
+        if issue.status[0] is 'Closed':
+            issue_status = ColorText.bold_green(issue.status[0].ljust(6))
+        else:
+            issue_status = ColorText.bold_red(issue.status[0].ljust(6))
 
-        output += '\n'
-        output += '-' * table_width
+        output += issue_status
+        output += "\nid: " + issue_id.ljust(title_width + 4)
+
     output += '\n'
 
     page(output)
