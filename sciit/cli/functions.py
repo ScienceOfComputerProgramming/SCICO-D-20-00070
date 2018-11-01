@@ -62,7 +62,7 @@ def do_commit_contains_duplicate_issue_filepaths_check(issue_repository, commit)
 
     ignored_files = get_sciit_ignore_path_spec(issue_repository.git_repository)
 
-    issue_snapshots, changed_paths, in_branchesgitgit  = \
+    issue_snapshots, changed_paths, _ = \
         find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
 
     if len(set(issue_snapshots)) != len(issue_snapshots):
@@ -103,11 +103,11 @@ def make_status_summary_string(all_issues):
     return output
 
 
-def print_status_summary(issue_repository, revision=None):
+def build_status_summary(issue_repository, revision=None):
 
     try:
         all_issues = issue_repository.get_all_issues(revision)
-        page(make_status_summary_string(all_issues))
+        return make_status_summary_string(all_issues)
 
     except RepoObjectDoesNotExistError as error:
         ColorPrint.bold_red(error)
@@ -115,7 +115,7 @@ def print_status_summary(issue_repository, revision=None):
         exit(127)
 
 
-def print_status_table(issue_repository, revision=None):
+def build_status_table(issue_repository, revision=None):
 
     all_issues = issue_repository.get_all_issues(revision)
 
@@ -146,5 +146,98 @@ def print_status_table(issue_repository, revision=None):
 
     output += '\n'
 
-    page(output)
+    return output
+
+
+def subheader(header):
+    return ColorText.bold(f'\n{header}')
+
+
+def build_issue_history(issue_item, view=None, other_issue_items=dict()):
+    """
+    Builds a string representation of a issue history item for showing to the terminal with ANSI color codes
+
+    Args:
+        :(dict) item: item to build string from
+
+    Returns:
+        :(str): string representation of issue history item
+    """
+    status, sub_status = issue_item.status
+    status_str = f'{status} ({sub_status})'
+
+    participants = ', '.join(issue_item.participants)
+
+    output = ''
+    output += f'\nTitle:             ' + ColorText.bold_yellow(f"{issue_item.title}")
+    output += f'\nID:                {issue_item.issue_id}'
+    output += f'\nStatus:            ' + (ColorText.green(status_str) if status == 'Closed' else ColorText.red(status_str))
+    output += f'\n'
+    output += f'\nClosed:            {issue_item.closer} | {issue_item.closed_date}' if issue_item.closer else ''
+    output += f'\nLast Change:       {issue_item.last_author} | {issue_item.last_authored_date}'
+    output += f'\nCreated:           {issue_item.creator} | {issue_item.created_date}'
+    output += f'\n'
+    output += f'\nAssigned To:       {issue_item.assignees}' if issue_item.assignees else ''
+
+    output += f'\nParticipants:      {participants}'
+    output += f'\nDue Date:          {issue_item.due_date}' if issue_item.due_date else ''
+    output += f'\nLabels:            {issue_item.label}' if issue_item.label else ''
+    output += f'\nWeight:            {issue_item.weight}' if issue_item.weight else ''
+    output += f'\nPriority:          {issue_item.priority}' if issue_item.priority else ''
+
+    blocker_issues = issue_item.blockers
+
+    if len(blocker_issues) > 0:
+        blockers_status = list()
+        for blocker_issue_id, blocker_issue in blocker_issues.items():
+            blocker_status = blocker_issue.status[0] if blocker_issue is not None else '?'
+            blockers_status.append('%s(%s)' % (blocker_issue_id,blocker_status))
+
+        blockers_str = ', '.join(blockers_status)
+        output += f'\nBlockers:          {blockers_str}'
+
+    if view == 'full':
+        branches = ', '.join(issue_item.in_branches)
+        output += f'\nExisted in:        {branches}'
+
+    output += f'\nSize:              {str(issue_item.size)}' if issue_item.size else ''
+    output += f'\nLatest file path:  {issue_item.file_path}' if len(issue_item.file_paths) > 0 else ''
+
+    if (view == 'full') and len(issue_item.file_paths) > 0:
+        output += "\nBranch file paths:\n"
+        for branch, path in issue_item.file_paths.items():
+            branch_status = 'open' if branch in issue_item.open_in_branches else 'closed'
+            output += f'\n                   {path} @{branch} ({branch_status})'
+
+    if issue_item.description:
+        output += f'\n\nDescription:'
+        output += '\n' if not issue_item.description.startswith('\n') else ''
+        output += issue_item.description
+
+    if view == 'full':
+        num_revisions = str(len(issue_item.revisions))
+        output += subheader(f'\nRevisions to Issue ({num_revisions}):\n')
+
+        for revision in issue_item.revisions:
+
+            changes = revision['changes']
+            output += f'\nIn {revision["commitsha"]} ({len(changes)} items changed):\n'
+
+            for changed_property, new_value in changes.items():
+                output += f' {changed_property}: {new_value}\n'
+
+            output += f'\n'
+            output += f'{ColorText.bold_yellow("--> made by: " + revision["author"])} - {revision["date"]}\n'
+            output += f'    {revision["summary"]}\n'
+
+    if view == 'full':
+        num_commits = str(len(issue_item.activity))
+        output += subheader(f'\nPresent in Commits ({num_commits}):')
+        for commit in issue_item.activity:
+            output += f'\n{commit["date"]} | {commit["commitsha"]} | {commit["author"]} | {commit["summary"]}'
+
+    output += f'\n{ColorText.yellow("*"*90)}\n'
+
+    return output
+
 

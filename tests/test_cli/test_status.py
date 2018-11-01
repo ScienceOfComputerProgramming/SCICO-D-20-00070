@@ -18,17 +18,17 @@ class TestStatusCommand(TestCase):
         mock_head.name = 'master'
         self.args.repo.heads = [mock_head]
 
-    @patch('sciit.cli.functions.page', new_callable=Mock)
+    @patch('sciit.cli.status.page', new_callable=Mock)
     def test_prints_correct_status_info(self, page):
         self.args.revision = False
         self.args.repo.get_all_issues.return_value = {str(i): issues[str(i)] for i in [1, 2, 3, 4, 5, 6, 9, 12]}
 
         status(self.args)
-
+        print(page.call_args)
         self.assertIn('Open Issues:   5', page.call_args[0][0])
         self.assertIn('Closed Issues: 3', page.call_args[0][0])
 
-    @patch('sciit.cli.functions.page', new_callable=Mock)
+    @patch('sciit.cli.status.page', new_callable=Mock)
     def test_prints_correct_status_info_with_revision(self, page):
         self.args.repo.get_all_issues.return_value = {str(i): issues[str(i)] for i in [1, 2, 3, 4, 5, 6, 9, 12]}
 

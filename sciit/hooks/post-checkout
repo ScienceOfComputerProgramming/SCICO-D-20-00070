@@ -3,7 +3,7 @@
 
 from git import Repo
 from sciit import IssueRepo
-from sciit.cli.functions import do_repository_is_init_check, print_status_summary
+from sciit.cli.functions import do_repository_is_init_check, build_status_summary
 
 import colorama
 colorama.init()
@@ -16,4 +16,4 @@ issue_repository = IssueRepo(git_repository)
 do_repository_is_init_check(issue_repository)
 
 issue_repository.cache_issue_snapshots_from_unprocessed_commits()
-print_status_summary(issue_repository)
+print(build_status_summary(issue_repository))

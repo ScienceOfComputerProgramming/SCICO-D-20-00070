@@ -1,6 +1,6 @@
 import slugify
 import os
-from sciit.cli.functions import do_commit_contains_duplicate_issue_filepaths_check, print_status_summary
+from sciit.cli.functions import do_commit_contains_duplicate_issue_filepaths_check, build_status_summary, page
 
 
 def read_input_with_default(prompt, default):
@@ -51,4 +51,4 @@ def new_issue(args):
     git_repository.git.checkout(file_path)
     git_repository.git.checkout(starting_branch_name)
 
-    print_status_summary(issue_repository)
+    page(build_status_summary(issue_repository))

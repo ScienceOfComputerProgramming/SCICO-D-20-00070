@@ -158,7 +158,7 @@ def main():
         ColorPrint.bold('Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
     except NoCommitsError as error:
         ColorPrint.bold_red(f'git sciit error fatal: {str(error)}')
-    except GitCommandError as error:
+    except GitCommandError:
         ColorPrint.bold_red(f'git sciit error fatal: bad revision \'{args.revision}\'')
     except RepoObjectDoesNotExistError as error:
         ColorPrint.bold_red(error)

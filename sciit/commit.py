@@ -42,7 +42,7 @@ def get_blobs_from_commit_tree(tree):
     return blobs
 
 
-def find_issue_in_comment(comment:str):
+def find_issue_in_comment(comment: str):
 
     issue = dict()
 
@@ -90,7 +90,7 @@ def read_in_blob_contents(blob):
     if type(blob_contents) == bytes:
         try:
             return blob_contents.decode("utf-8")
-        except UnicodeDecodeError as e:
+        except UnicodeDecodeError:
             return None
     else:
         return blob_contents

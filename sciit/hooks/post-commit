@@ -4,7 +4,7 @@
 from git import Repo
 from sciit import IssueRepo
 from sciit.cli.functions import do_repository_is_init_check, do_commit_contains_duplicate_issue_filepaths_check,\
-    print_status_summary
+    build_status_summary
 
 import colorama
 colorama.init()
@@ -20,4 +20,4 @@ commit = issue_repository.git_repository.head.commit
 do_commit_contains_duplicate_issue_filepaths_check(issue_repository, commit)
 
 issue_repository.cache_issue_snapshots_from_unprocessed_commits()
-print_status_summary(issue_repository)
+print(build_status_summary(issue_repository))
