@@ -27,9 +27,10 @@ def new_issue(args):
     issue_repository = args.repo
     git_repository = issue_repository.git_repository
 
-    starting_head = git_repository.head
+    starting_branch_name = git_repository.active_branch.name
 
     git_repository.create_head(issue_slug)
+    git_repository.git.checkout(issue_slug)
 
     backlog_directory = os.path.dirname(file_path)
 
@@ -37,14 +38,7 @@ def new_issue(args):
 
     with open(file_path, mode='w') as issue_file:
         issue_file.write(
-f'''
----
-@issue {issue_slug}
-@title {issue_title}
-@description
- {issue_description}
----
-'''
+            f'---\n@issue {issue_slug}\n@title {issue_title}\n@description\n{issue_description}\n---\n'
         )
 
     git_repository.index.add([file_path])
@@ -53,4 +47,8 @@ f'''
     do_commit_contains_duplicate_issue_filepaths_check(issue_repository, commit)
 
     issue_repository.cache_issue_snapshots_from_unprocessed_commits()
+
+    git_repository.git.checkout(file_path)
+    git_repository.git.checkout(starting_branch_name)
+
     print_status_summary(issue_repository)
