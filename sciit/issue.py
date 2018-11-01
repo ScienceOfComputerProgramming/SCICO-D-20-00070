@@ -80,6 +80,15 @@ class IssueSnapshot(object):
     def __repr__(self):
         return self.__str__()
 
+    def _find_child_shas(self):
+        rev_list = self.commit.repo.git.execute(['git', 'rev-list', '--all', '--children'])
+        pattern = re.compile(r'(?:' + self.commit.hexsha + ')(.*)')
+
+        matched_strings = pattern.findall(rev_list)
+        if len(matched_strings) > 0:
+            return matched_strings[0].strip(' ').split(' ')
+        else:
+            return list()
 
     @property
     def children(self):
@@ -87,12 +96,9 @@ class IssueSnapshot(object):
 
             children = list()
 
-            rev_list = self.commit.repo.git.execute(['git', 'rev-list', '--all', '--children'])
+            child_shas = self._find_child_shas()
 
-            pattern = re.compile(r'(?:' + self.commit.hexsha + ')(.*)')
-            child_shas = pattern.findall(rev_list)[0]
-            child_shas = child_shas.strip(' ').split(' ')
-            if child_shas[0] != '':
+            if len(child_shas) > 0 and child_shas[0] != '':
                 for child in child_shas:
                     children.append(Commit(self.commit.repo, hex_to_bin(child)))
 
