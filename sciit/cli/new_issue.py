@@ -5,14 +5,14 @@ from sciit.cli.functions import do_commit_contains_duplicate_issue_filepaths_che
 
 def read_input_with_default(prompt, default):
 
-    result = input("%s [%s]:" % (prompt, default))
+    result = input("%s [%s]:" % (prompt, default)).rstrip('\r\n')
 
     return result if result != "" else default
 
 
 def new_issue(args):
 
-    issue_title = input("Enter a title for the issue: ")
+    issue_title = input("Enter a title for the issue: ").rstrip()
 
     issue_slug = slugify.slugify(issue_title)
     issue_slug = read_input_with_default("Enter the issue slug", issue_slug)

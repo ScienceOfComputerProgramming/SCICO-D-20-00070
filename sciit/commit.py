@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import re
-from os import path
 
 from sciit import IssueSnapshot
 from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
@@ -50,7 +49,7 @@ def find_issue_in_comment(comment:str):
     def update_issue_data_dict_with_value_from_comment(regex, key):
         value = re.findall(regex, comment)
         if len(value) > 0:
-            issue[key] = value[0]
+            issue[key] = value[0].rstrip()
 
     update_issue_data_dict_with_value_from_comment(ISSUE.ID, 'issue_id')
 
