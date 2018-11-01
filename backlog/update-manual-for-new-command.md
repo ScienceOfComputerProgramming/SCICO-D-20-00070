@@ -1,4 +1,3 @@
-
 ---
 @issue update-manual-for-new-command
 @title Update Manual For New Command
