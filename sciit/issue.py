@@ -329,7 +329,7 @@ class Issue(object):
         for issue_snapshot in self.issue_snapshots:
             result.append(record_revision(issue_snapshot.commit))
 
-        if self.status[0] == 'Closed':
+        if self.status[0] == 'Closed' and self.closing_commit is not None:
             result.append(record_revision(self.closing_commit))
 
         return result
@@ -339,7 +339,7 @@ class Issue(object):
 
         result = list()
 
-        if self.status[0] == 'Closed':
+        if self.status[0] == 'Closed' and self.closing_commit is not None:
             result.append(record_revision(self.closing_commit, {'status': 'Closed'}))
 
         for older, newer in zip(self.issue_snapshots[:-1], self.issue_snapshots[1:]):
