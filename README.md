@@ -23,7 +23,8 @@ An example of a recommended style for Java:
 
 ```java
     /*
-    * @issue Eg: The title of your issue
+    * @issue the-title-of-your-issue
+    * @title The title of your issue
     * @description:
     *   A description of an issue as you
     *   want it to be even with markdown supported
@@ -37,6 +38,8 @@ An example of a recommended style for Java:
 ```
 
 Notice that every issue must be tagged with an `@issue` followed by a *unique* (within a change set) identifier.
+
+The command `git sciit new` can be used to generate a new issue in a markdown file and in a branch with a name that matches that of the issue, following a proposed Sciit workflow extension to git-flow.
 
 Since issues are embedded in block comments, there are different styles of block comments and files that support those types.
 
