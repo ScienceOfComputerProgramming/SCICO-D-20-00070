@@ -1,5 +1,10 @@
 # Source Control Integrated IssueSnapshot Tracker
 
+## Contributors
+
+Nystrom Edwards<br/>
+Tim Storer
+
 ## Description
 
 Current state of the art software project issue tracking tools, such as GitHub, GitLab, JIRA and Trac store issues separately from the version control repository that contains the project's source code. This creates _friction_, because software developers must remember to keep both the issue tracker and the version control repository up to date as progress is made on completing tasks.
