@@ -5,6 +5,7 @@ import hashlib
 import markdown2
 import re
 
+from slugify import slugify
 from git import Commit
 from gitdb.util import hex_to_bin
 
@@ -39,10 +40,13 @@ class IssueSnapshot(object):
         self.data = data
         self.in_branches = in_branches
 
-        if 'issue_id' in self.data:
-            self.issue_id = self.data['issue_id']
         if 'title' in self.data:
             self.title = self.data['title']
+        else:
+            self.data['title'] =  self.data['issue_id'].title()
+        if 'issue_id' in self.data:
+            self.data['issue_id'] = slugify(self.data['issue_id'])
+            self.issue_id = self.data['issue_id']
         if 'description' in self.data:
             self.description = self.data['description']
         if 'assignees' in self.data:
