@@ -137,9 +137,8 @@ _commit_branches_cache = dict()
 
 def _find_branches_for_commit(commit):
     if commit.hexsha not in _commit_branches_cache:
-        _commit_branches_cache[commit.hexsha] = \
-            commit.repo.git.execute(['git', 'branch', '--contains', commit.hexsha])\
-            .replace('*', '') \
-            .replace(' ', '').split('\n')
+        branches = commit.repo.git.execute(['git', 'branch', '--all', '--contains', commit.hexsha])
+        branches = re.sub(r'remotes/\S+/', '', branches.replace('*', '').replace(' ', '')).split('\n')
+        _commit_branches_cache[commit.hexsha] = list(set(branches))
     return _commit_branches_cache[commit.hexsha]
 
