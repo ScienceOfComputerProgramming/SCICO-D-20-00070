@@ -35,7 +35,7 @@ def tracker(args):
 def page_history_issues(history, view=None, issue_filter=None):
 
     filtered_history = list(filter(issue_filter, history.values()))
-
+    filtered_history.sort(key = lambda issue: issue.last_authored_date, reverse=True)
     start = datetime.datetime.now()
     num_issues = len(filtered_history)
     current_issue = 0

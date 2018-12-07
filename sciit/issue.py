@@ -158,10 +158,18 @@ class Issue(object):
 
     @property
     def created_date(self):
+        return self.oldest_issue_snapshot.date
+
+    @property
+    def created_date_string(self):
         return self.oldest_issue_snapshot.date_string
 
     @property
     def last_authored_date(self):
+        return self.newest_issue_snapshot.date 
+
+    @property
+    def last_authored_date_string(self):
         return self.newest_issue_snapshot.date_string
 
     def newest_value_of_issue_property(self, p):

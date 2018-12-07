@@ -174,8 +174,8 @@ def build_issue_history(issue_item, view=None):
     output += f'\nStatus:            ' + (ColorText.green(status_str) if status == 'Closed' else ColorText.red(status_str))
     output += f'\n'
     output += f'\nClosed:            {issue_item.closer} | {issue_item.closed_date}' if issue_item.closer else ''
-    output += f'\nLast Change:       {issue_item.last_author} | {issue_item.last_authored_date}'
-    output += f'\nCreated:           {issue_item.creator} | {issue_item.created_date}'
+    output += f'\nLast Change:       {issue_item.last_author} | {issue_item.last_authored_date_string}'
+    output += f'\nCreated:           {issue_item.creator} | {issue_item.created_date_string}'
     output += f'\n'
     output += f'\nAssigned To:       {issue_item.assignees}' if issue_item.assignees else ''
 
