@@ -118,18 +118,14 @@ def build_status_summary(issue_repository, revision=None):
 def build_status_table(issue_repository, revision=None):
 
     all_issues = issue_repository.get_all_issues(revision)
-
     output = make_status_summary_string(all_issues)
 
     title_width = 50
+    all_issues = list(all_issues.values())
+    all_issues.sort(key= lambda issue: issue.last_authored_date, reverse=True)
 
-    for issue_id, issue in all_issues.items():
+    for issue in all_issues:
         issue_title = issue.title
-        if issue_title is None:
-            issue_title = str(issue_id)
-            issue_title = issue_title.capitalize()
-            issue_title.replace('-', ' ')
-            issue_title.replace('_', ' ')
 
         if len(issue_title) > title_width - 3:
             output += ColorText.bold_yellow(issue_title[0:title_width-5] + '...: ')
@@ -142,7 +138,7 @@ def build_status_table(issue_repository, revision=None):
             issue_status = ColorText.bold_red(issue.status[0].ljust(6))
 
         output += issue_status
-        output += "\nid: " + issue_id.ljust(title_width + 4) + '\n'
+        output += "\nid: " + issue.issue_id.ljust(title_width + 4) + '\n\n'
 
     output += '\n'
 
