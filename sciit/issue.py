@@ -122,6 +122,10 @@ class IssueSnapshot(object):
     @property
     def date_string(self):
         return self.commit.authored_datetime.strftime(time_format)
+    
+    @property
+    def date(self):
+        return self.commit.authored_datetime
 
 
 class Issue(object):
@@ -257,7 +261,7 @@ class Issue(object):
         elif open_in_branches == set():
             return 'Closed', 'Unknown'
         else:
-            return 'Open', 'Unknown'
+            return 'Open', 'Non-Feature'
 
     @property
     def closing_commit(self):
@@ -288,7 +292,6 @@ class Issue(object):
 
     @property
     def closed_date(self):
-        time_format = '%a %b %d %H:%M:%S %Y %z'
         return self.closing_commit.authored_datetime.strftime(time_format) if self.closing_commit else None
 
     @property
@@ -418,5 +421,5 @@ class Issue(object):
         """
         self.issue_snapshots.append(issue_snapshot)
         self.issue_snapshots.sort(
-            key=lambda issue_snapshot: datetime.strptime(issue_snapshot.date_string, time_format))
+            key=lambda issue_snapshot: issue_snapshot.date)
 
