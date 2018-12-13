@@ -66,17 +66,16 @@ def find_issue_in_comment(comment: str):
     return issue
 
 
-def find_issues_in_blob(search, blob_content):
-
-    comments = re.findall(search, blob_content)
+def find_issues_in_blob(comment_pattern, blob_content):
+    comments = re.findall(comment_pattern, blob_content)
     comments_with_issues = [x for x in comments if re.search(ISSUE.ID, x) is not None]
 
     issues = list()
 
     for comment in comments_with_issues:
-        if search == PLAIN:
+        if comment_pattern == PLAIN:
             comment = re.sub(r'^\s*#', '', comment, flags=re.M)
-        if search == CSTYLE:
+        if comment_pattern == CSTYLE:
             comment = re.sub(r'^\s*\*', '', comment, flags=re.M)
         issue = find_issue_in_comment(comment)
         if issue:
@@ -114,16 +113,17 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=No
 
         blob = blobs[file_changed]
 
-        if not comment_pattern:
-            comment_pattern = get_file_object_pattern(blob)
+        _comment_pattern = get_file_object_pattern(blob) if not comment_pattern else comment_pattern
 
-        if not comment_pattern:
+        if not _comment_pattern:
             continue
 
         blob_contents = read_in_blob_contents(blob)
         if blob_contents is None:
             continue
-        blob_issues = find_issues_in_blob(comment_pattern, blob_contents)
+
+        blob_issues = find_issues_in_blob(_comment_pattern, blob_contents)
+
         for issue_data in blob_issues:
             issue_data['filepath'] = file_changed
             issue_snapshot = IssueSnapshot(commit, issue_data, in_branches)

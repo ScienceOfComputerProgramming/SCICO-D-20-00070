@@ -114,7 +114,6 @@ class IssueRepo(object):
             raise NoCommitsError
 
     def _extract_and_synchronise_issue_snapshots_from_commits(self, commits_for_processing):
-
         ignored_files = get_sciit_ignore_path_spec(self.git_repository)
 
         commits_scanned = 0
@@ -202,8 +201,12 @@ class IssueRepo(object):
 
     def _serialize_issue_snapshots_to_db(self, commit_hexsha, issue_snapshots):
         row_values = [
-            (commit_hexsha, issue.issue_id, json.dumps(issue.data), ','.join(issue.in_branches))
-            for issue in issue_snapshots]
+            (commit_hexsha,
+             issue_snapshot.issue_id,
+             json.dumps(issue_snapshot.data),
+             ','.join(issue_snapshot.in_branches))
+            for issue_snapshot in issue_snapshots
+        ]
 
         with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
             cursor = connection.cursor()
