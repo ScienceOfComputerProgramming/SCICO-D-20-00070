@@ -17,7 +17,7 @@
                         <div class="card-body">
                             {% for item in issue.revisions %}
                                 <p class="card-text">
-                                    Changes were made in <strong>{{ item['issuesha'] }}</strong>. <br> By <strong>{{ item['author'] }}</strong>  on <strong>{{ item['date'] }}</strong>.
+                                    Changes were made in <strong>{{ item['commitsha'] }}</strong>. <br> By <strong>{{ item['author'] }}</strong>  on <strong>{{ item['date'] }}</strong>.
                                 </p>
                                 {% for changed_property in item['changes'] %}
                                     <p class="card-text">
