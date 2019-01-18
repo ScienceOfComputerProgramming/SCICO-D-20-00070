@@ -185,16 +185,13 @@ def build_issue_history(issue_item, view=None):
 
     if len(blocker_issues) > 0:
         blockers_status = list()
+
         for blocker_issue_id, blocker_issue in blocker_issues.items():
             blocker_status = blocker_issue.status[0] if blocker_issue is not None else '?'
             blockers_status.append('%s(%s)' % (blocker_issue_id,blocker_status))
 
-        blockers_str = ', '.join(blockers_status)
+        blockers_str = '\n                   '.join(blockers_status)
         output += f'\nBlockers:          {blockers_str}'
-
-    if view == 'full':
-        branches = '\n '.join(issue_item.in_branches)
-        output += f'\nExisted in:        {branches}'
 
     output += f'\nSize:              {str(issue_item.size)}' if issue_item.size else ''
     output += f'\nLatest file path:  {issue_item.file_path}' if len(issue_item.file_paths) > 0 else ''
@@ -204,10 +201,10 @@ def build_issue_history(issue_item, view=None):
         first_line = True
         for branch, path in issue_item.file_paths.items():
             if first_line:
+                first_line = False
                 padding = " "
             else:
-                first_line = False
-                padding = '                   '
+                padding = "                   "
             branch_status = 'open' if branch in issue_item.open_in_branches else 'closed'
             output += f'{padding}{path} @{branch} ({branch_status})\n'
 
