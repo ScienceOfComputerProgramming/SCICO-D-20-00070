@@ -49,6 +49,7 @@ def create_mock_commit(hexsha, author_name, authored_datetime, parents=list()):
     mock_commit.author.name = author_name
     mock_commit.authored_datetime = authored_datetime
     mock_commit.parents = parents
+    mock_commit.repo.git.execute = MagicMock(return_value="master")
     return mock_commit
 
 

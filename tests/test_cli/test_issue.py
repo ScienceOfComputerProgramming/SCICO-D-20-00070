@@ -70,6 +70,6 @@ class TestIssueCommand(TestCase):
         output = ansi_escape.sub('', output)
         self.assertIn('ID:                12', output)
         self.assertIn('Status:            Open', output)
-        self.assertIn('Existed in:', output)
+        self.assertIn('Branch file paths:', output)
         self.assertIn('Present in Commits (1):', output)
         self.assertIn('Revisions to Issue (1):', output)

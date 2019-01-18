@@ -31,6 +31,7 @@ class TestFindIssuesInCommit(TestCase):
             commit_files = [blob.path for blob in commit.tree.blobs]
         commit.stats.files.keys.return_value = commit_files
         commit.parents = list()
+        commit.repo.git.execute=Mock(return_value="master")
         return commit
 
     @staticmethod
@@ -71,7 +72,6 @@ class TestFindIssuesInCommit(TestCase):
         )
 
         issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
-        print(issue_snapshots)
         self.assertEqual(1, len(issue_snapshots))
         self.assertNotIn('*', issue_snapshots[0].description)
 

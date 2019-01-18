@@ -38,7 +38,6 @@ class TestIssue(TestCase):
 
     def test_create_issue(self):
         issue = IssueSnapshot(self.commit, self.data.copy(), ['master'])
-        self.assertTrue(issue.size > 0)
         self.assertIn(self.data['filepath'], issue.data['filepath'])
         self.assertIn(self.data['contents'], issue.data['contents'])
 
@@ -66,7 +65,6 @@ class TestIssue(TestCase):
         self.assertTrue(hasattr(issue, 'weight'))
         self.assertTrue(hasattr(issue, 'priority'))
         self.assertTrue(hasattr(issue, 'filepath'))
-        self.assertTrue(hasattr(issue, 'size'))
 
     def test_get_issue_full_metadata(self):
         issue = IssueSnapshot(self.commit, self.data3.copy(), ['master'])
@@ -79,6 +77,5 @@ class TestIssue(TestCase):
         self.assertTrue(hasattr(issue, 'weight'))
         self.assertTrue(hasattr(issue, 'priority'))
         self.assertTrue(hasattr(issue, 'filepath'))
-        self.assertTrue(hasattr(issue, 'size'))
 
 
