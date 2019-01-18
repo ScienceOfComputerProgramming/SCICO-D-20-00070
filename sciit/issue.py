@@ -112,10 +112,6 @@ class IssueSnapshot(object):
         return IssueSnapshot._children[self.commit.hexsha]
 
     @property
-    def size(self):
-        return len(str(self.data))
-
-    @property
     def author_name(self):
         return self.commit.author.name
 
@@ -273,6 +269,18 @@ class Issue(object):
             return 'Open', 'Non-Feature'
 
     @property
+    def in_progress_commit(self):
+        return self.issue_snapshots[0].children[0] if len(self.issue_snapshots[0].children) > 0 else None
+
+    @property
+    def work_begun_date(self):
+        return self.in_progress_commit.authored_datetime.strftime(time_format) if self.in_progress_commit else None
+
+    @property
+    def initiator(self):
+        return self.in_progress_commit.author.name if self.in_progress_commit else None
+
+    @property
     def closing_commit(self):
 
         def _child_of_last_commit_in_branch(branch_name):
@@ -377,10 +385,6 @@ class Issue(object):
         result.append(record_revision(self.oldest_issue_snapshot.commit, original_values))
 
         return result
-
-    @property
-    def size(self):
-        return sum([issue_snapshot.size for issue_snapshot in self.issue_snapshots])
 
     @property
     def in_branches(self):

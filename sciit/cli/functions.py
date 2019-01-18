@@ -168,9 +168,12 @@ def build_issue_history(issue_item, view=None):
     output += f'\nTitle:             ' + ColorText.bold_yellow(f"{issue_item.title}")
     output += f'\nID:                {issue_item.issue_id}'
     output += f'\nStatus:            ' + (ColorText.green(status_str) if status == 'Closed' else ColorText.red(status_str))
+
     output += f'\n'
+
     output += f'\nClosed:            {issue_item.closer} | {issue_item.closed_date}' if issue_item.closer else ''
     output += f'\nLast Change:       {issue_item.last_author} | {issue_item.last_authored_date_string}'
+    output += f'\nBegun:             {issue_item.initiator} | {issue_item.work_begun_date}' if issue_item.initiator else ''
     output += f'\nCreated:           {issue_item.creator} | {issue_item.created_date_string}'
     output += f'\n'
     output += f'\nAssigned To:       {issue_item.assignees}' if issue_item.assignees else ''
@@ -191,9 +194,8 @@ def build_issue_history(issue_item, view=None):
             blockers_status.append('%s(%s)' % (blocker_issue_id,blocker_status))
 
         blockers_str = '\n                   '.join(blockers_status)
-        output += f'\nBlockers:          {blockers_str}'
+        output += f'\nBlockers:          {blockers_str}\n'
 
-    output += f'\nSize:              {str(issue_item.size)}' if issue_item.size else ''
     output += f'\nLatest file path:  {issue_item.file_path}' if len(issue_item.file_paths) > 0 else ''
 
     if (view == 'full') and len(issue_item.file_paths) > 0:
