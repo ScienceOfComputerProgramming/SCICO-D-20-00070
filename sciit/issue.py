@@ -269,6 +269,13 @@ class Issue(object):
             return 'Open', 'Non-Feature'
 
     @property
+    def duration(self):
+        if self.in_progress_commit is None or self.closing_commit is None:
+            return None
+        else:
+            return self.closing_commit.authored_datetime - self.in_progress_commit.authored_datetime
+
+    @property
     def in_progress_commit(self):
         return self.issue_snapshots[0].children[0] if len(self.issue_snapshots[0].children) > 0 else None
 

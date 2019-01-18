@@ -168,6 +168,7 @@ def build_issue_history(issue_item, view=None):
     output += f'\nTitle:             ' + ColorText.bold_yellow(f"{issue_item.title}")
     output += f'\nID:                {issue_item.issue_id}'
     output += f'\nStatus:            ' + (ColorText.green(status_str) if status == 'Closed' else ColorText.red(status_str))
+    output += f'\nDuration:          {issue_item.duration}' if issue_item.duration else ''
 
     output += f'\n'
 
