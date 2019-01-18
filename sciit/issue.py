@@ -254,7 +254,8 @@ class Issue(object):
             return 'Open', 'Proposed'
 
         elif 'master' in open_in_branches:
-            if None not in {accepted_date, latest_date_in_feature_branch} and \
+            if feature_branch in open_in_branches and \
+                    None not in {accepted_date, latest_date_in_feature_branch} and \
                     accepted_date < latest_date_in_feature_branch:
                 return 'Open', 'In Progress'
             elif feature_branch in closed_in_branches:
