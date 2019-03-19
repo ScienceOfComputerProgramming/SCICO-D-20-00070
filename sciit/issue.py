@@ -41,10 +41,10 @@ class IssueSnapshot(object):
         self.data = data
         self.in_branches = in_branches
 
-        if 'title' in self.data:
-            self.title = self.data['title']
-        else:
-            self.data['title'] =  self.data['issue_id'].title()
+        if 'title' not in self.data:
+            self.data['title'] = self.data['issue_id'].title()
+        self.title = self.data['title']
+
         if 'issue_id' in self.data:
             self.data['issue_id'] = slugify(self.data['issue_id'])
             self.issue_id = self.data['issue_id']
