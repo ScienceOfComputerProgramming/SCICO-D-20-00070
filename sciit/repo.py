@@ -4,6 +4,8 @@ import os
 import stat
 import pkg_resources
 
+import threading
+
 from shutil import copyfile
 from datetime import datetime
 
@@ -29,6 +31,29 @@ def dict_factory(cursor, row):
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
     return d
+
+
+class ProgressTracker(object):
+    def __init__(self, cli, number_of_commits_for_processing):
+        self.cli = cli
+        self.number_of_commits_for_processing = number_of_commits_for_processing
+        self.commits_scanned = 0
+        self.start = datetime.now()
+
+    def processed_commit(self):
+        self.commits_scanned += 1
+        self._print_commit_progress()
+
+    def _print_commit_progress(self):
+        if self.cli:
+            duration = datetime.now() - self.start
+            commits_scanned = self.commits_scanned
+            number_of_commits_for_processing = self.number_of_commits_for_processing
+
+            prefix = 'Processing %d/%d commits: ' % (commits_scanned, number_of_commits_for_processing)
+            suffix = ' Duration: %s' % str(duration)
+
+            print_progress_bar(commits_scanned, number_of_commits_for_processing, prefix=prefix, suffix=suffix)
 
 
 class IssueRepo(object):
@@ -126,23 +151,24 @@ class IssueRepo(object):
             raise NoCommitsError
 
     def _extract_and_synchronise_issue_snapshots_from_commits(self, commits_for_processing):
-        ignored_files = get_sciit_ignore_path_spec(self.git_repository)
 
-        commits_scanned = 0
-        start = datetime.now()
+        ignored_files = get_sciit_ignore_path_spec(self.git_repository)
+        progress_tracker = ProgressTracker(self.cli, len(commits_for_processing))
 
         for commit in commits_for_processing:
-            commits_scanned += 1
-            self._print_commit_progress(datetime.now(), start, commits_scanned, len(commits_for_processing))
+            self._cache_issue_snapshots_from_commit(commit, ignored_files, progress_tracker)
 
-            changed_issue_snapshots, files_changed_in_commit, in_branches = \
-                find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
+    def _cache_issue_snapshots_from_commit(self, commit, ignored_files, progress_tracker):
+        changed_issue_snapshots, files_changed_in_commit, in_branches = \
+            find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
 
-            unchanged_issue_snapshots = self._find_unchanged_issue_snapshots_in_parents(
-                commit, in_branches, files_changed_in_commit)
+        unchanged_issue_snapshots = self._find_unchanged_issue_snapshots_in_parents(
+            commit, in_branches, files_changed_in_commit)
 
-            all_commit_issue_snapshots = changed_issue_snapshots + unchanged_issue_snapshots
-            self._serialize_issue_snapshots_to_db(commit.hexsha, all_commit_issue_snapshots)
+        all_commit_issue_snapshots = changed_issue_snapshots + unchanged_issue_snapshots
+        self._serialize_issue_snapshots_to_db(commit.hexsha, all_commit_issue_snapshots)
+
+        progress_tracker.processed_commit()
 
     def _find_unchanged_issue_snapshots_in_parents(self, commit, in_branches, files_changed_in_commit):
         result = list()
@@ -152,22 +178,12 @@ class IssueRepo(object):
             unchanged_issue_snapshots_in_parent = \
                 [parent_snapshot for parent_snapshot in parent_issue_snapshots
                  if parent_snapshot.filepath not in files_changed_in_commit]
+
             for unchanged_issue_snapshot_in_parent in unchanged_issue_snapshots_in_parent:
-                result.append(
-                    IssueSnapshot(
-                        commit,
-                        unchanged_issue_snapshot_in_parent.data,
-                        in_branches))
+                issue_snapshot = IssueSnapshot(commit, unchanged_issue_snapshot_in_parent.data, in_branches)
+                result.append(issue_snapshot)
 
         return result
-
-    def _print_commit_progress(self, now, start, current, total):
-        if self.cli:
-            duration = now - start
-            prefix = 'Processing %d/%d commits: ' % (current, total)
-            suffix = ' Duration: %s' % str(duration)
-
-            print_progress_bar(current, total, prefix=prefix, suffix=suffix)
 
     def get_all_issues(self, rev=None):
         return self.build_history(rev)
