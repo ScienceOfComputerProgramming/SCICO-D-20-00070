@@ -48,6 +48,7 @@ class IssueSnapshot(object):
         if 'issue_id' in self.data:
             self.data['issue_id'] = slugify(self.data['issue_id'])
             self.issue_id = self.data['issue_id']
+
         if 'description' in self.data:
             self.description = self.data['description']
         if 'assignees' in self.data:
