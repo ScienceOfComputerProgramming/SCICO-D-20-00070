@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import re
+import subprocess
+import shutil
 
 from sciit import IssueSnapshot
 from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
@@ -132,13 +134,89 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=No
     return issue_snapshots, files_changed_in_commit, in_branches
 
 
-_commit_branches_cache = dict()
+_commit_branches_cache = None
+
+
+def _get_commit_branches_from_subprocess(command, script):
+    sub_process = subprocess.Popen([command], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    (process_out, process_err) = sub_process.communicate(script)
+    return process_out
+
+
+def _get_commit_branches_from_bash():
+    bash_script = \
+        b"""
+        declare -A COMMIT_BRANCHES
+
+        BRANCHES=(`git branch -a |tr '*' ' ' ` )
+
+        for BRANCH in ${BRANCHES[@]}
+        do
+            COMMITS=( `git log --format="%H" $BRANCH` )
+            for COMMIT in ${COMMITS[@]}
+            do
+            if [ -v "COMMIT_BRANCHES[$COMMIT]" ]
+            then
+                COMMIT_BRANCHES[$COMMIT]="${COMMIT_BRANCHES[$COMMIT]},$BRANCH"
+            else
+                COMMIT_BRANCHES[$COMMIT]="$BRANCH"
+            fi
+            done;
+        done
+
+        for COMMIT in ${!COMMIT_BRANCHES[@]}
+        do
+            echo $COMMIT:${COMMIT_BRANCHES[$COMMIT]} 
+        done
+        """
+
+    return _get_commit_branches_from_subprocess("bash", bash_script)
+
+
+def _get_commit_branches_from_powershell():
+    power_shell_script = \
+        b"""
+        $branches = git branch -a
+        $branches = $branches.Trim("*", " ")
+
+        $commit_branches = @{}
+
+        foreach ($branch in $branches) {
+          $commits = git log --format="%H" $branch
+          foreach ($commit in $commits){
+            if ($commit_branches.ContainsKey($commit)){
+              $commit_branches[$commit] = "$($commit_branches[$commit]),$branch"
+            } else {
+              $commit_branches[$commit] = $branch
+            }
+          }
+        }
+
+        foreach($commit in $commit_branches.keys){
+          echo $commit_branches[$commit]
+        }
+        """
+    return _get_commit_branches_from_subprocess("powershell.exe", power_shell_script)
+
+
+def _init_commit_branch_cache():
+    global _commit_branches_cache
+    _commit_branches_cache = dict()
+
+    if shutil.which('bash') is not None:
+        sub_process_out = _get_commit_branches_from_bash()
+    else:
+        sub_process_out = _get_commit_branches_from_powershell()
+
+    for line in sub_process_out.decode("utf-8").strip().split('\n'):
+        commit_str, branches_str = line.split(':')
+        branches = branches_str.split(',')
+        _commit_branches_cache[commit_str] = branches
 
 
 def _find_branches_for_commit(commit):
-    if commit.hexsha not in _commit_branches_cache:
-        branches = commit.repo.git.execute(['git', 'branch', '--all', '--contains', commit.hexsha])
-        branches = re.sub(r'remotes/\S+/', '', branches.replace('*', '').replace(' ', '')).split('\n')
-        _commit_branches_cache[commit.hexsha] = list(set(branches))
+    global _commit_branches_cache
+    if not _commit_branches_cache:
+        _init_commit_branch_cache()
     return _commit_branches_cache[commit.hexsha]
 
