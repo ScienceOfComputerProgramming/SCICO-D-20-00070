@@ -135,6 +135,9 @@ git sciit tracker
 git checkout photo-upload-on-claim
 git rm backlog/photo-upload-on-claim.md
 git commit -m "Closes photo-upload-on-claim"
+git checkout photo-upload-on-claim-uat
+git merge photo-upload-on-claim
+git checkout photo-upload-on-claim
 git sciit issue photo-upload-on-claim
 
 git checkout master
