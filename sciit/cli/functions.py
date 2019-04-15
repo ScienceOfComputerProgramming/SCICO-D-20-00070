@@ -111,7 +111,7 @@ def build_status_summary(issue_repository, revision=None):
 
     except RepoObjectDoesNotExistError as error:
         ColorPrint.bold_red(error)
-        print('Solve error by rebuilding issue repository using: git sciit init -r')
+        print('Solve error by rebuilding issue repository using: git sciit init -r.')
         exit(127)
 
 

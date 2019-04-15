@@ -46,16 +46,16 @@ def get_blobs_from_commit_tree(tree):
 
 def find_issue_in_comment(comment: str):
 
-    issue = dict()
+    issue_data = dict()
 
-    def update_issue_data_dict_with_value_from_comment(regex, key):
-        value = re.findall(regex, comment)
+    def update_issue_data_dict_with_value_from_comment(field_pattern, key):
+        value = re.findall(field_pattern, comment)
         if len(value) > 0:
-            issue[key] = value[0].rstrip()
+            issue_data[key] = value[0].rstrip()
 
     update_issue_data_dict_with_value_from_comment(ISSUE.ID, 'issue_id')
 
-    if 'issue_id' in issue:
+    if 'issue_id' in issue_data:
         update_issue_data_dict_with_value_from_comment(ISSUE.TITLE, 'title')
         update_issue_data_dict_with_value_from_comment(ISSUE.DESCRIPTION, 'description')
         update_issue_data_dict_with_value_from_comment(ISSUE.ASSIGNEES, 'assignees')
@@ -65,23 +65,29 @@ def find_issue_in_comment(comment: str):
         update_issue_data_dict_with_value_from_comment(ISSUE.WEIGHT, 'weight')
         update_issue_data_dict_with_value_from_comment(ISSUE.BLOCKERS, 'blockers')
 
-    return issue
+    return issue_data
 
 
 def find_issues_in_blob(comment_pattern, blob_content):
-    comments = re.findall(comment_pattern, blob_content)
-    comments_with_issues = [x for x in comments if re.search(ISSUE.ID, x) is not None]
+    comments_with_issues = [
+        match for match in
+        re.finditer(comment_pattern, blob_content)
+        if re.search(ISSUE.ID, match.string) is not None
+        ]
 
     issues = list()
 
-    for comment in comments_with_issues:
+    for comment_with_issue in comments_with_issues:
+        comment_string = comment_with_issue.string
         if comment_pattern == PLAIN:
-            comment = re.sub(r'^\s*#', '', comment, flags=re.M)
+            comment = re.sub(r'^\s*#', '', comment_string, flags=re.M)
         if comment_pattern == CSTYLE:
-            comment = re.sub(r'^\s*\*', '', comment, flags=re.M)
-        issue = find_issue_in_comment(comment)
-        if issue:
-            issues.append(issue)
+            comment = re.sub(r'^\s*\*', '', comment_string, flags=re.M)
+        issue_data = find_issue_in_comment(comment_string)
+        if issue_data:
+            issue_data['start_position'] = comment_with_issue.start(0)
+            issue_data['end_position'] = comment_with_issue.end(0)
+            issues.append(issue_data)
 
     return issues
 

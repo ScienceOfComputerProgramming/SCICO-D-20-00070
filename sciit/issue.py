@@ -31,7 +31,7 @@ def record_revision(commit, changes=None):
 
 class IssueSnapshot(object):
     __slots__ = ('commit', 'data', 'title', 'description', 'assignees', 'due_date', 'label', 'weight', 'priority',
-                 'title','filepath', 'issue_id', 'blockers', 'in_branches')
+                 'title','filepath', 'start_position', 'end_position', 'issue_id', 'blockers', 'in_branches')
 
     _children = dict()
 
@@ -61,8 +61,15 @@ class IssueSnapshot(object):
             self.weight = self.data['weight']
         if 'priority' in self.data:
             self.priority = self.data['priority']
+
         if 'filepath' in self.data:
             self.filepath = self.data['filepath']
+        if 'start_position' in self.data:
+            self.start_position = self.data['start_position']
+        if 'end_position' in self.data:
+            self.end_position = self.data['end_position']
+
+
         if 'blockers' in self.data:
             self.blockers = self.data['blockers']
 
@@ -206,6 +213,16 @@ class Issue(object):
     @property
     def priority(self):
         return self.newest_value_of_issue_property('priority')
+
+    @property
+    def start_position(self):
+        return self.newest_value_of_issue_property('start_position')
+
+
+    @property
+    def end_position(self):
+        return self.newest_value_of_issue_property('end_position')
+
 
     @property
     def file_paths(self):

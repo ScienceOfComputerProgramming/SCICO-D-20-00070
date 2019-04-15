@@ -14,6 +14,7 @@ from sciit.errors import RepoObjectDoesNotExistError, NoCommitsError
 
 from sciit import IssueRepo
 from sciit.cli.functions import read_sciit_version
+from sciit.cli.close_issue import close_issue
 from sciit.cli.color import ColorPrint, ColorText
 from sciit.cli.init import init
 from sciit.cli.log import log
@@ -123,6 +124,15 @@ def create_command_parser():
         'new',
         description='Creates a new issue in the project backlog on a branch specified by the issue id.')
     new_parser.set_defaults(func=new_issue)
+
+    close_parser = subparsers.add_parser(
+        'close',
+        description='Closes an issue in the current branch.')
+    close_parser.set_defaults(func=close_issue)
+
+    close_parser.add_argument(
+        'issue_id', action='store', type=str,
+        help='The id of the issue to be closed.')
 
     return parser
 
