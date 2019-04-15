@@ -9,7 +9,7 @@ import threading
 from shutil import copyfile
 from datetime import datetime
 
-from git import Commit
+from git import Commit, GitCommandError
 from gitdb.util import hex_to_bin
 
 from sciit.errors import EmptyRepositoryError, NoCommitsError
@@ -103,14 +103,16 @@ class IssueRepo(object):
             raise EmptyRepositoryError
     
     def _locally_track_remote_branches(self):
-        current_branch = self.git_repository.head.ref.name
-        remote_branch_names = [remote.remote_head for remote in self.git_repository.refs if 'remotes/' in remote.path and 'HEAD' not in remote.path]
+
+        remote_branch_names = \
+            [remote.remote_head for remote in self.git_repository.refs
+             if 'remotes/' in remote.path and 'HEAD' not in remote.path]
+
         head_branch_names = [head.name for head in self.git_repository.heads]
         for branch in remote_branch_names:
             if branch not in head_branch_names:
-                self.git_repository.git.execute(['git', 'checkout', branch])
-        self.git_repository.git.execute(['git', 'checkout', current_branch])
-        
+                self.git_repository.git.execute(['git', 'branch', '--set-upstream-to=origin/'+branch, branch])
+
     def cache_issue_snapshots_from_unprocessed_commits(self):
 
         if not self.git_repository.heads:
