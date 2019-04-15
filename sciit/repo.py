@@ -76,7 +76,16 @@ class IssueRepo(object):
             shutil.rmtree(self.issue_dir, onerror=onerror)
         else:
             raise EmptyRepositoryError
-
+    
+    def _locally_track_remote_branches(self):
+        current_branch = self.git_repository.head.ref.name
+        remote_branch_names = [remote.remote_head for remote in self.git_repository.refs if 'remotes/' in remote.path and 'HEAD' not in remote.path]
+        head_branch_names = [head.name for head in self.git_repository.heads]
+        for branch in remote_branch_names:
+            if branch not in head_branch_names:
+                self.git_repository.git.execute(['git', 'checkout', branch])
+        self.git_repository.git.execute(['git', 'checkout', current_branch])
+        
     def cache_issue_snapshots_from_unprocessed_commits(self):
 
         if not self.git_repository.heads:
@@ -101,7 +110,10 @@ class IssueRepo(object):
         write_last_issue_commit_sha(self.issue_dir, latest_commit)
 
     def cache_issue_snapshots_from_all_commits(self):
-        if len(self.git_repository.heads) < 1:
+
+        self._locally_track_remote_branches()
+
+        if not self.git_repository.heads:
             raise NoCommitsError
 
         # get all commits on all branches, enforcing the topology order of parents to children.

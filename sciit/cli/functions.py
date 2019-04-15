@@ -153,7 +153,7 @@ def subheader(header):
     return ColorText.bold(f'\n{header}')
 
 
-def build_issue_history(issue_item, view=None, other_issue_items=dict()):
+def build_issue_history(issue_item, view=None):
     """
     Builds a string representation of a issue history item for showing to the terminal with ANSI color codes
 
@@ -197,7 +197,7 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
         output += f'\nBlockers:          {blockers_str}'
 
     if view == 'full':
-        branches = ', '.join(issue_item.in_branches)
+        branches = '\n '.join(issue_item.in_branches)
         output += f'\nExisted in:        {branches}'
 
     output += f'\nSize:              {str(issue_item.size)}' if issue_item.size else ''
@@ -239,7 +239,7 @@ def build_issue_history(issue_item, view=None, other_issue_items=dict()):
     if view == 'full':
         num_commits = str(len(issue_item.activity))
         output += subheader(f'\nPresent in Commits ({num_commits}):')
-        for commit in issue_item.activity:
+        for commit in reversed(issue_item.activity):
             output += f'\n{commit["date"]} | {commit["commitsha"]} | {commit["author"]} | {commit["summary"]}'
 
     output += f'\n{ColorText.yellow("*"*90)}\n'
