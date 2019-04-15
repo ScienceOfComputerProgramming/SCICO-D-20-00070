@@ -148,7 +148,7 @@ def _get_commit_branches_from_bash():
         b"""
         declare -A COMMIT_BRANCHES
 
-        BRANCHES=(`git branch -a |tr '*' ' ' ` )
+        BRANCHES=(`git branch |tr '*' ' ' ` )
 
         for BRANCH in ${BRANCHES[@]}
         do
@@ -178,7 +178,7 @@ def _get_commit_branches_from_bash():
 def _get_commit_branches_from_powershell():
     power_shell_script = \
         """
-        $branches = git branch -a
+        $branches = git branch
         $branches = $branches.Trim("*", " ")
 
         $commit_branches = @{}
@@ -225,5 +225,8 @@ def _find_branches_for_commit(commit):
     global _commit_branches_cache
     if not _commit_branches_cache:
         _init_commit_branch_cache()
-    return _commit_branches_cache[commit.hexsha]
 
+    if commit.hexsha in _commit_branches_cache:
+        return _commit_branches_cache[commit.hexsha]
+    else:
+        return []
