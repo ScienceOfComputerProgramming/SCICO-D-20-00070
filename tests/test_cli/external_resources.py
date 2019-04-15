@@ -4,12 +4,12 @@ from tests.external_resources import create_mock_git_repository, create_mock_com
     create_mock_commit_with_issue_snapshots, create_mock_parents
 from sciit import IssueRepo, Issue
 
-first_data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path',
+first_data = [{'issue_id': '1', 'title': 'the contents of the file', 'file_path': 'path',
                'description': 'This issue had a description'},
-              {'issue_id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
-              {'issue_id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
-              {'issue_id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
-              {'issue_id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
+              {'issue_id': '2', 'title': 'the contents of the file', 'file_path': 'path'},
+              {'issue_id': '3', 'title': 'the contents of the file', 'file_path': 'path'},
+              {'issue_id': '4', 'title': 'the contents of the file', 'file_path': 'path'},
+              {'issue_id': '5', 'title': 'the contents of the file', 'file_path': 'path'},
               {'issue_id': '6',
                'title': 'The title of your issue',
                'description': 'A description of you issue as you\n'
@@ -19,16 +19,16 @@ first_data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath':
                'label': 'in-development',
                'weight': '4',
                'priority': 'high',
-               'filepath': 'README.md'}]
+               'file_path': 'README.md'}]
 
-second_data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
+second_data = [{'issue_id': '1', 'title': 'the contents of the file', 'file_path': 'path'},
                {'issue_id': '2', 'title': 'the contents of the file',
-                'filepath': 'path'},
+                'file_path': 'path'},
                {'issue_id': '9', 'title': 'the contents of the file',
-                'filepath': 'path'},
-               {'issue_id': '6', 'title': 'the contents of the file', 'filepath': 'path',
+                'file_path': 'path'},
+               {'issue_id': '6', 'title': 'the contents of the file', 'file_path': 'path',
                 'description': 'description has changed'},
-               {'issue_id': '12', 'title': 'the contents of the file', 'filepath': 'path',
+               {'issue_id': '12', 'title': 'the contents of the file', 'file_path': 'path',
                 'description': 'here is a nice description'}]
 
 first_commit, first_issue_snapshots = create_mock_commit_with_issue_snapshots(

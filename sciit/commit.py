@@ -133,7 +133,7 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=No
         blob_issues = find_issues_in_blob(_comment_pattern, blob_contents)
 
         for issue_data in blob_issues:
-            issue_data['filepath'] = file_changed
+            issue_data['file_path'] = file_changed
             issue_snapshot = IssueSnapshot(commit, issue_data, in_branches)
             issue_snapshots.append(issue_snapshot)
 
