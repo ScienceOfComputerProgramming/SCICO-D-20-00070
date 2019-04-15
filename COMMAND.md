@@ -38,6 +38,20 @@ Shows information about the issue with the given id.
 `[--full | -f]` Shows the full history of changes to the issue.
 `[--normal | -n]` Shows the normal summary of the current state of the issue.
 
+## New
+
+`git sciit new`
+
+Creates a new issue in the project backlog on a branch specified by the issue id.
+
+Prompts user for:
+
+ * Issue title
+ * Issue id or default slug of issue title
+ * File path for markdown file or default to backlog folder
+ * A description of the issue
+ * A commit message for creating the issue
+
 ## Web
 
 ``git sciit web`

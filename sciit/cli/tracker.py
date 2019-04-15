@@ -32,24 +32,24 @@ def tracker(args):
         ColorPrint.bold_green('No issues found')
 
 
-def page_history_issues(items, view=None, issue_filter=None):
+def page_history_issues(history, view=None, issue_filter=None):
 
-    filtered_items = list(filter(issue_filter, items.values()))
+    filtered_history = list(filter(issue_filter, history.values()))
 
     start = datetime.datetime.now()
-    num_issues = len(filtered_items)
-    cur_issue = 0
+    num_issues = len(filtered_history)
+    current_issue = 0
     output = ''
 
-    for item in filtered_items:
+    for item in filtered_history:
         if issue_filter is None or issue_filter(item):
-            output += build_issue_history(item, view, items)
-            cur_issue += 1
+            output += build_issue_history(item, view)
+            current_issue += 1
             duration = datetime.datetime.now() - start
-            prefix = 'Recovering %d/%d issues:  ' % (cur_issue, num_issues)
+            prefix = 'Recovering %d/%d issues:  ' % (current_issue, num_issues)
             suffix = ' Duration: %s' % str(duration)
 
-            print_progress_bar(cur_issue, num_issues, prefix, suffix)
+            print_progress_bar(current_issue, num_issues, prefix, suffix)
 
     page(output)
     return output

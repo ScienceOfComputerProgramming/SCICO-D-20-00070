@@ -1,6 +1,8 @@
 import slugify
 import os
 from sciit.cli.functions import do_commit_contains_duplicate_issue_filepaths_check, build_issue_history, page
+from sciit.cli.color import ColorPrint
+from sciit.errors import NoCommitsError
 
 
 def read_input_with_default(prompt, default):
@@ -12,20 +14,26 @@ def read_input_with_default(prompt, default):
 
 def new_issue(args):
 
+    issue_repository = args.repo
+    git_repository = issue_repository.git_repository
+
+    if not git_repository.heads:
+        print(' ')
+        ColorPrint.bold_red('The repository has no commits.')
+        print('Create an initial commit before creating a new issue')
+        return
+
     issue_title = input("Enter a title for the issue: ").rstrip()
 
     issue_id = slugify.slugify(issue_title)
     issue_id = read_input_with_default("Enter the issue id", issue_id)
 
-    file_path = 'backlog/' + issue_id +".md"
+    file_path = 'backlog/' + issue_id + ".md"
     file_path = read_input_with_default("Enter a file path", file_path)
 
     issue_description = read_input_with_default("Enter a description", "")
 
     git_commit_message = read_input_with_default("Enter a commit message", "Creates Issue "+issue_title)
-
-    issue_repository = args.repo
-    git_repository = issue_repository.git_repository
 
     starting_branch_name = git_repository.active_branch.name
 

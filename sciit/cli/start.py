@@ -121,7 +121,7 @@ def create_command_parser():
 
     new_parser = subparsers.add_parser(
         'new',
-        description='Creates a new issues in the project backlog')
+        description='Creates a new issue in the project backlog on a branch specified by the issue id.')
     new_parser.set_defaults(func=new_issue)
 
     return parser
