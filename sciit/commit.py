@@ -80,9 +80,9 @@ def find_issues_in_blob(comment_pattern, blob_content):
     for comment_with_issue in comments_with_issues:
         comment_string = comment_with_issue.string
         if comment_pattern == PLAIN:
-            comment = re.sub(r'^\s*#', '', comment_string, flags=re.M)
+            comment_string = re.sub(r'^\s*#', '', comment_string, flags=re.M)
         if comment_pattern == CSTYLE:
-            comment = re.sub(r'^\s*\*', '', comment_string, flags=re.M)
+            comment_string = re.sub(r'^\s*\*', '', comment_string, flags=re.M)
         issue_data = find_issue_in_comment(comment_string)
         if issue_data:
             issue_data['start_position'] = comment_with_issue.start(0)
@@ -143,12 +143,6 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=No
 _commit_branches_cache = None
 
 
-def _get_commit_branches_from_subprocess(command, script):
-    sub_process = subprocess.Popen([command], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    (process_out, process_err) = sub_process.communicate(script)
-    return process_out
-
-
 def _get_commit_branches_from_bash():
     bash_script = \
         b"""
@@ -176,12 +170,14 @@ def _get_commit_branches_from_bash():
         done
         """
 
-    return _get_commit_branches_from_subprocess("bash", bash_script)
+    sub_process = subprocess.Popen(["bash"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    (process_out, process_err) = sub_process.communicate(bash_script)
+    return process_out
 
 
 def _get_commit_branches_from_powershell():
     power_shell_script = \
-        b"""
+        """
         $branches = git branch -a
         $branches = $branches.Trim("*", " ")
 
@@ -199,10 +195,15 @@ def _get_commit_branches_from_powershell():
         }
 
         foreach($commit in $commit_branches.keys){
-          echo $commit_branches[$commit]
+          echo "${commit}:$($commit_branches[$commit])"
         }
         """
-    return _get_commit_branches_from_subprocess("powershell.exe", power_shell_script)
+    proc = subprocess.Popen(
+        ["powershell.exe", '-ExecutionPolicy','Unrestricted',". { " + power_shell_script + " } ;"],
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+    output, error = proc.communicate()
+    return output
 
 
 def _init_commit_branch_cache():

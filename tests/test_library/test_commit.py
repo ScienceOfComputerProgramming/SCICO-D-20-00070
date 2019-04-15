@@ -1,7 +1,7 @@
 import random
 import string
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, MagicMock, patch
 
 from pathspec import PathSpec
 
@@ -31,6 +31,7 @@ class TestFindIssuesInCommit(TestCase):
             commit_files = [blob.path for blob in commit.tree.blobs]
         commit.stats.files.keys.return_value = commit_files
         commit.parents = list()
+        # TODO remove this mocking of execute?
         commit.repo.git.execute=Mock(return_value="master")
         return commit
 
@@ -44,6 +45,7 @@ class TestFindIssuesInCommit(TestCase):
         blob.data_stream.read = Mock(return_value=content)
         return blob
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_no_issues_one_changed_file(self):
         commit = self.create_commit_mock(
             blobs=[
@@ -56,6 +58,7 @@ class TestFindIssuesInCommit(TestCase):
         issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertFalse(issue_snapshots)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_one_cstyle_issue_cleaned(self):
         commit = self.create_commit_mock(
             blobs=[
@@ -73,8 +76,10 @@ class TestFindIssuesInCommit(TestCase):
 
         issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertEqual(1, len(issue_snapshots))
+        print(issue_snapshots[0].description)
         self.assertNotIn('*', issue_snapshots[0].description)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_one_python_issue_cleaned(self):
         commit = self.create_commit_mock(
             blobs=[
@@ -95,6 +100,7 @@ class TestFindIssuesInCommit(TestCase):
         self.assertEqual(len(issue_snapshots), 1)
         self.assertNotIn('*', issue_snapshots[0].description)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_one_hashstyle_issue_cleaned(self):
 
         commit = self.create_commit_mock(
@@ -116,6 +122,7 @@ class TestFindIssuesInCommit(TestCase):
         self.assertEqual(1, len(issue_snapshots))
         self.assertNotIn('#', issue_snapshots[0].description)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_one_markdown_issue_cleaned(self):
         commit = self.create_commit_mock(
             blobs=[
@@ -137,6 +144,7 @@ value that has some contents
         self.assertEqual(len(issue_snapshots), 1)
         self.assertNotIn('#', issue_snapshots[0].description)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_two_markdown_issue_cleaned(self):
         commit = self.create_commit_mock(
             blobs=[
@@ -163,6 +171,7 @@ value that has some contents
         self.assertEqual(len(issue_snapshots), 2)
         self.assertNotIn('#', issue_snapshots[0].description)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_no_issues_one_changed_supported_file_no_pattern(self):
         commit = self.create_commit_mock(
             blobs=[
@@ -181,6 +190,7 @@ value that has some contents
         issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertEqual(len(issue_snapshots), 1)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_no_issues_one_changed_unsupported_file_no_pattern(self):
         commit = self.create_commit_mock(
             blobs=[
@@ -199,6 +209,7 @@ value that has some contents
         issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertFalse(issue_snapshots)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_no_issues_multiple_changed_files(self):
         commit = self.create_commit_mock(
             blobs=[
@@ -214,6 +225,7 @@ value that has some contents
         issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertFalse(issue_snapshots)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_no_issues_renamed_file_change(self):
         commit = self.create_commit_mock(
             blobs=[
@@ -229,6 +241,7 @@ value that has some contents
         issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertFalse(issue_snapshots)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_no_issues_multiple_changed_files_in_trees(self):
 
         commit = self.create_commit_mock(
@@ -256,6 +269,7 @@ value that has some contents
         issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertFalse(issue_snapshots)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_skips_unicode_error_one_file(self):
 
         commit = self.create_commit_mock(
@@ -271,6 +285,7 @@ value that has some contents
         issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertFalse(issue_snapshots)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_contains_issues_multiple_changed_files(self):
         commit = self.create_commit_mock(
             blobs=[
@@ -288,6 +303,7 @@ value that has some contents
         issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertEqual(len(issue_snapshots), 3)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_contains_issues_multiple_changed_files_multiple_trees(self):
         commit = self.create_commit_mock(
             trees=[
@@ -316,7 +332,9 @@ value that has some contents
         issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
         self.assertEqual(len(issue_snapshots), 5)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_commit_ignores_certain_files(self):
+
         commit = self.create_commit_mock(
             blobs=[
                 self.create_blob_mock(
@@ -334,6 +352,7 @@ value that has some contents
         issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern, ignored_files)
         self.assertEqual(len(issue_snapshots), 0)
 
+    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_commit_skip_ignore_file_does_not_exist(self):
         commit = self.create_commit_mock(
             blobs=[

@@ -1,7 +1,7 @@
 import sys
 from io import StringIO
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from sciit import IssueRepo
 from sciit.cli.init import init
