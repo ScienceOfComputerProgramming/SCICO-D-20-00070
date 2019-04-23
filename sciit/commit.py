@@ -11,27 +11,30 @@ from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
 __all__ = 'find_issues_in_commit'
 
 
+def _handle_for_file_rename_key_format(key):
+    if '{' in key:
+        prefix = key.split('{')[0]
+        postfix = key.split('}')[1]
+
+        change = key.split('{')[1].split('}')[0].split(' => ')
+        source_path = prefix + change[0] + postfix
+        destination_path = prefix + change[1] + postfix
+
+    else:
+        paths = key.split(' => ')
+        source_path = paths[0]
+        destination_path = paths[1]
+
+    return source_path, destination_path
+
+
 def _get_files_changed_in_commit(commit):
     result = set()
     for key in set(commit.stats.files.keys()):
         if ' => ' in key:
-            # Handle for file rename key format.
-            if '{' in key:
-                prefix = key.split('{')[0]
-                postfix = key.split('}')[1]
-
-                change = key.split('{')[1].split('}')[0].split(' => ')
-                source_file = prefix + change[0] + postfix
-                destination_file = prefix + change[1] + postfix
-
-                result.add(destination_file)
-                result.add(source_file)
-            else:
-                paths = key.split(' => ')
-                source_path = paths[0]
-                destination_path = paths[1]
-                result.add(source_path)
-                result.add(destination_path)
+            source_path, destination_path = _handle_for_file_rename_key_format(key)
+            result.add(source_path)
+            result.add(destination_path)
         else:
             result.add(key)
     return result
