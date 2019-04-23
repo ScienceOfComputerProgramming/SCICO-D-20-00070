@@ -122,4 +122,4 @@ class TestCLIStartup(TestCase):
         patch_repo.return_value = repo_mock
 
         start.main()
-        self.assertIn('git sciit error fatal: bad revision', sys.stdout.getvalue())
+        self.assertIn('git sciit error fatal: bad git command', sys.stdout.getvalue())
