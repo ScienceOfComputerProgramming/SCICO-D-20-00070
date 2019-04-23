@@ -125,6 +125,9 @@ def create_command_parser():
         description='Creates a new issue in the project backlog on a branch specified by the issue id.')
     new_parser.set_defaults(func=new_issue)
 
+    new_parser.add_argument(
+        '-p', '--push', help='Pushes the newly created issue branch to the origin.', action='store_true')
+
     close_parser = subparsers.add_parser(
         'close',
         description='Closes an issue in the current branch.')

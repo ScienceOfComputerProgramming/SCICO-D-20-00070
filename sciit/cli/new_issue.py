@@ -56,6 +56,9 @@ def new_issue(args):
 
     issue_repository.cache_issue_snapshots_from_unprocessed_commits()
 
+    if args.push:
+        git_repository.git.push('origin', issue_id)
+
     git_repository.git.checkout(file_path)
     git_repository.git.checkout(starting_branch_name)
 
