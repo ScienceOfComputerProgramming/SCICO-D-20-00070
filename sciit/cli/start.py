@@ -155,7 +155,7 @@ def main():
             else:
                 if not args.repo.is_init():
                     ColorPrint.red('Repository not initialized')
-                    ColorPrint.bold_red('Run: git scitt init')
+                    ColorPrint.bold_red('Run: git sciit init')
                 else:
                     args.func(args)
 
