@@ -62,6 +62,9 @@ def new_issue(args):
     git_repository.git.checkout(file_path)
     git_repository.git.checkout(starting_branch_name)
 
+    if args.accept:
+        git_repository.git.merge(issue_id)
+
     issues = issue_repository.get_all_issues()
     issue = issues[issue_id]
 

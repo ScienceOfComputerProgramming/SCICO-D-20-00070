@@ -49,7 +49,7 @@ Shows information about the issue with the given id.
 ## New
 
 ```bash
-git sciit new [-p] [-a]
+git sciit new [-p | -a]
 ```
 
 Creates a new issue in the project backlog on a branch specified by the issue id.

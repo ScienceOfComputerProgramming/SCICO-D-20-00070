@@ -35,6 +35,14 @@ def add_revision_option(parser):
         'path options.')
 
 
+def add_new_issue_options(parser):
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        '-p', '--push', help='Pushes the newly created issue branch to the origin.', action='store_true')
+    group.add_argument(
+        '-a', '--accept', help='Accepts the newly created issue branch by merging it to master locally.', action='store_true')
+
+
 def add_issue_filter_options(parser):
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
@@ -50,7 +58,7 @@ def add_view_options(parser):
         '-f', '--full', action='store_true',
         help=
         'view the full tracker information for all issues including, description revisions, commit activity, '
-        'issue revisions, multiple filepaths, open in, and found in branches ')
+        'issue revisions, multiple file paths, open in, and found in branches ')
     group.add_argument(
         '-n', '--normal', action='store_true',
         help=ColorText.green('default:') + ' view tracker information normally needed.')
@@ -125,8 +133,7 @@ def create_command_parser():
         description='Creates a new issue in the project backlog on a branch specified by the issue id.')
     new_parser.set_defaults(func=new_issue)
 
-    new_parser.add_argument(
-        '-p', '--push', help='Pushes the newly created issue branch to the origin.', action='store_true')
+    add_new_issue_options(new_parser)
 
     close_parser = subparsers.add_parser(
         'close',
@@ -143,7 +150,7 @@ def create_command_parser():
 def main():
     parser = create_command_parser()
     args = parser.parse_args()
-
+    print(dir(args))
     try:
         git_repository = Repo(search_parent_directories=True)
         repo = IssueRepo(git_repository)
@@ -172,7 +179,7 @@ def main():
     except NoCommitsError as error:
         ColorPrint.bold_red(f'git sciit error fatal: {str(error)}')
     except GitCommandError:
-        ColorPrint.bold_red(f'git sciit error fatal: bad revision \'{args.revision}\'')
+        ColorPrint.bold_red(f'git sciit error fatal: bad git command')
     except RepoObjectDoesNotExistError as error:
         ColorPrint.bold_red(error)
         print('Solve error by rebuilding issue repository using: git sciit init -r')
