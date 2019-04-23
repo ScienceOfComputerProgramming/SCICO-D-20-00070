@@ -264,7 +264,7 @@ class Issue(object):
         accepted_date = self.accepted_date
         latest_date_in_feature_branch = self.latest_date_in_feature_branch
 
-        if open_in_branches == {feature_branch}:
+        if feature_branch in open_in_branches and 'master' not in in_branches:
             return 'Open', 'Proposed'
 
         elif 'master' in open_in_branches:
