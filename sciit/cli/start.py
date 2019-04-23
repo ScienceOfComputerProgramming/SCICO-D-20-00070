@@ -150,7 +150,7 @@ def create_command_parser():
 def main():
     parser = create_command_parser()
     args = parser.parse_args()
-    print(dir(args))
+
     try:
         git_repository = Repo(search_parent_directories=True)
         repo = IssueRepo(git_repository)
@@ -178,8 +178,9 @@ def main():
         ColorPrint.bold('Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
     except NoCommitsError as error:
         ColorPrint.bold_red(f'git sciit error fatal: {str(error)}')
-    except GitCommandError:
-        ColorPrint.bold_red(f'git sciit error fatal: bad git command')
+    except GitCommandError as gce:
+        ColorPrint.bold_red(f'git sciit error fatal: bad git command executed within sciit {str(gce.command)}')
+
     except RepoObjectDoesNotExistError as error:
         ColorPrint.bold_red(error)
         print('Solve error by rebuilding issue repository using: git sciit init -r')
