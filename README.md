@@ -48,3 +48,21 @@ Installation instructions can be found [here](INSTALL.md)
 More styles and supported files can be found [here](STYLES.md)
 
 Command line interaction instructions can be found [here](COMMAND.md)
+
+## Other Distributed Issue Trackers
+
+There are a number of other tools that embed issue tracking into source control
+management. Many thanks to Jan De Muijnck-Hughes and the anonymous ICSME 
+reviewer who added to this list.
+
+ * Bug: https://github.com/driusan/bug
+ * Bugs Everywhere: http://www.bugseverywhere.org/
+ * Git-bug: https://github.com/MichaelMure/git-bug
+ * Git-dit: https://github.com/neithernut/git-dit
+ * Git Issue: https://github.com/dspinellis/git-issue
+ * Issue: https://github.com/marekjm/issue
+ * Mercurial's B Extension: https://www.mercurial-scm.org/wiki/bExtension
+ * Ticgit: https://github.com/jeffWelling/ticgit
+ * Veracity: http://veracity-scm.com/compare/
+   
+
