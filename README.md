@@ -57,6 +57,7 @@ reviewer who added to this list.
 
  * Bug: https://github.com/driusan/bug
  * Bugs Everywhere: http://www.bugseverywhere.org/
+ * Fossil: http://www.fossil-scm.org/
  * Git-bug: https://github.com/MichaelMure/git-bug
  * Git-dit: https://github.com/neithernut/git-dit
  * Git Issue: https://github.com/dspinellis/git-issue
