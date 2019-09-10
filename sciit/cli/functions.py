@@ -56,7 +56,7 @@ def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, lengt
         print()
 
 
-def do_commit_contains_duplicate_issue_filepaths_check(issue_repository, commit):
+def do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit):
 
     git_repository = issue_repository.git_repository
 

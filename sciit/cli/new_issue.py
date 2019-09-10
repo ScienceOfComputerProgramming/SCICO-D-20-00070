@@ -1,6 +1,6 @@
 import slugify
 import os
-from sciit.cli.functions import do_commit_contains_duplicate_issue_filepaths_check, build_issue_history, page
+from sciit.cli.functions import do_commit_contains_duplicate_issue_file_paths_check, build_issue_history, page
 from sciit.cli.color import ColorPrint
 
 
@@ -51,7 +51,7 @@ def new_issue(args):
     git_repository.index.add([file_path])
     git_repository.index.commit(git_commit_message, skip_hooks=True)
     commit = issue_repository.git_repository.head.commit
-    do_commit_contains_duplicate_issue_filepaths_check(issue_repository, commit)
+    do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit)
 
     issue_repository.cache_issue_snapshots_from_unprocessed_commits()
 

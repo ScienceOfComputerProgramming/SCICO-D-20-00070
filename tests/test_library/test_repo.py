@@ -59,13 +59,13 @@ class TestBuildIssueRepo(TestCase):
     def setUp(self):
 
         first_data = [
-            {'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path',
+            {'issue_id': '1', 'title': 'the contents of the file', 'file_path': 'path',
              'description': 'This issue had a description'},
-            {'issue_id': '2', 'title': 'the contents of the file', 'filepath': 'another/path'},
-            {'issue_id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
-            {'issue_id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
-            {'issue_id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
-            {'issue_id': '6', 'title': 'the contents of the file', 'filepath': 'path',
+            {'issue_id': '2', 'title': 'the contents of the file', 'file_path': 'another/path'},
+            {'issue_id': '3', 'title': 'the contents of the file', 'file_path': 'path'},
+            {'issue_id': '4', 'title': 'the contents of the file', 'file_path': 'path'},
+            {'issue_id': '5', 'title': 'the contents of the file', 'file_path': 'path'},
+            {'issue_id': '6', 'title': 'the contents of the file', 'file_path': 'path',
              'description': 'here is a nice description'}
         ]
 
@@ -77,11 +77,11 @@ class TestBuildIssueRepo(TestCase):
                 first_data)
 
         head_data = [
-            {'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path'},
-            {'issue_id': '9', 'title': 'the contents of the file', 'filepath': 'path'},
-            {'issue_id': '6', 'title': 'the contents of the file', 'filepath': 'path',
+            {'issue_id': '1', 'title': 'the contents of the file', 'file_path': 'path'},
+            {'issue_id': '9', 'title': 'the contents of the file', 'file_path': 'path'},
+            {'issue_id': '6', 'title': 'the contents of the file', 'file_path': 'path',
              'description': 'description has changed'},
-            {'issue_id': '12', 'title': 'the contents of the file', 'filepath': 'path',
+            {'issue_id': '12', 'title': 'the contents of the file', 'file_path': 'path',
              'description': 'here is a nice description'}
         ]
 

@@ -12,12 +12,12 @@ class TestWebServerStartup(TestCase):
 
     def setUp(self):
 
-        data = [{'issue_id': '1', 'title': 'the contents of the file', 'filepath': 'path',
+        data = [{'issue_id': '1', 'title': 'the contents of the file', 'file_path': 'path',
                  'description': 'This issue had a description'},
-                {'issue_id': '2', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'issue_id': '3', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'issue_id': '4', 'title': 'the contents of the file', 'filepath': 'path'},
-                {'issue_id': '5', 'title': 'the contents of the file', 'filepath': 'path'},
+                {'issue_id': '2', 'title': 'the contents of the file', 'file_path': 'path'},
+                {'issue_id': '3', 'title': 'the contents of the file', 'file_path': 'path'},
+                {'issue_id': '4', 'title': 'the contents of the file', 'file_path': 'path'},
+                {'issue_id': '5', 'title': 'the contents of the file', 'file_path': 'path'},
                 {'issue_id': '6',
                  'title': 'The title of your issue',
                  'description': 'A description of you issue as you\n'
@@ -27,7 +27,7 @@ class TestWebServerStartup(TestCase):
                  'label': 'in-development',
                  'weight': '4',
                  'priority': 'high',
-                 'filepath': 'README.md'}]
+                 'file_path': 'README.md'}]
 
         self.commit, self.issue_snapshots = \
             create_mock_commit_with_issue_snapshots(

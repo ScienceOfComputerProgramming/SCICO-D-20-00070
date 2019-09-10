@@ -3,7 +3,7 @@
 
 from git import Repo
 from sciit import IssueRepo
-from sciit.cli.functions import do_repository_is_init_check, do_commit_contains_duplicate_issue_filepaths_check,\
+from sciit.cli.functions import do_repository_is_init_check, do_commit_contains_duplicate_issue_file_paths_check,\
     build_status_summary
 
 import colorama
@@ -17,7 +17,7 @@ issue_repository.cli = True
 do_repository_is_init_check(issue_repository)
 
 commit = issue_repository.git_repository.head.commit
-do_commit_contains_duplicate_issue_filepaths_check(issue_repository, commit)
+do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit)
 
 issue_repository.cache_issue_snapshots_from_unprocessed_commits()
 print(build_status_summary(issue_repository))
