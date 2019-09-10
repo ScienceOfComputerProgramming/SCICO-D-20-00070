@@ -72,7 +72,7 @@ def do_commit_contains_duplicate_issue_filepaths_check(issue_repository, commit)
             issue_id = issue_snapshot.issue_id
             if issue_id not in file_paths_by_issue_id:
                 file_paths_by_issue_id[issue_id] = list()
-            file_paths_by_issue_id[issue_id].append(issue_snapshot.filepath)
+            file_paths_by_issue_id[issue_id].append(issue_snapshot.file_path)
 
         duplicates =\
             {issue_id: file_paths for issue_id, file_paths in file_paths_by_issue_id.items() if len(file_paths) > 1}

@@ -59,27 +59,32 @@ class TestFindIssuesInCommit(TestCase):
         self.assertFalse(issue_snapshots)
 
     @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
-    def test_one_cstyle_issue_cleaned(self):
+    def _tests_retrieve_one_issue_from_commit(self,
+                                              commit,
+                                              expected_number_of_issues=1,
+                                              comment_char_that_should_be_filtered=None):
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        self.assertEqual(expected_number_of_issues, len(issue_snapshots))
+        if comment_char_that_should_be_filtered:
+            self.assertNotIn(comment_char_that_should_be_filtered, issue_snapshots[0].description)
+
+    def test_one_c_style_issue_cleaned(self):
         commit = self.create_commit_mock(
             blobs=[
                 self.create_blob_mock(
                     content=b"""
-/*@issue 2
- *@description
- * value that has some contents
- */
+                    /*
+                     * @issue 2
+                     * @description
+                     * value that has some contents
+                     */
                     """,
                     mime_type='text/x-java',
                     path='hello.java')
             ]
         )
+        self._tests_retrieve_one_issue_from_commit(commit, comment_char_that_should_be_filtered='*')
 
-        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
-        self.assertEqual(1, len(issue_snapshots))
-        print(issue_snapshots[0].description)
-        self.assertNotIn('*', issue_snapshots[0].description)
-
-    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_one_python_issue_cleaned(self):
         commit = self.create_commit_mock(
             blobs=[
@@ -95,83 +100,70 @@ class TestFindIssuesInCommit(TestCase):
                     path='hello.py')
             ]
         )
+        self._tests_retrieve_one_issue_from_commit(commit)
 
-        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
-        self.assertEqual(len(issue_snapshots), 1)
-        self.assertNotIn('*', issue_snapshots[0].description)
-
-    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_one_hashstyle_issue_cleaned(self):
 
         commit = self.create_commit_mock(
             blobs=[
                 self.create_blob_mock(
                     content=b"""
-#***
-# @issue 2
-# @description
-#  value that has some contents
-#***"""
+                    #***
+                    # @issue 2
+                    # @description
+                    #  value that has some contents
+                    #***"""
                     ,
                     mime_type='text/plain',
                     path='hello')
             ]
         )
 
-        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
-        self.assertEqual(1, len(issue_snapshots))
-        self.assertNotIn('#', issue_snapshots[0].description)
+        self._tests_retrieve_one_issue_from_commit(commit, comment_char_that_should_be_filtered='#')
 
-    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_one_markdown_issue_cleaned(self):
         commit = self.create_commit_mock(
             blobs=[
                 self.create_blob_mock(
                     content=
                     b"""
----
-@issue 2
-@description 
-value that has some contents
----
-""",
-                    mime_type='text/plain',
-                    path='issue.md')
-            ]
-        )
-
-        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
-        self.assertEqual(len(issue_snapshots), 1)
-        self.assertNotIn('#', issue_snapshots[0].description)
-
-    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
-    def test_two_markdown_issue_cleaned(self):
-        commit = self.create_commit_mock(
-            blobs=[
-                self.create_blob_mock(
-                    content=
-                    b"""
----
-@issue 2
-@description 
-value that has some contents
----
----
-@issue 3
-@description 
-value that has some contents
----
+                    ---
+                    @issue 2
+                    @description 
+                    value that has some contents
+                    ---
                     """,
                     mime_type='text/plain',
                     path='issue.md')
             ]
         )
 
-        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
-        self.assertEqual(len(issue_snapshots), 2)
-        self.assertNotIn('#', issue_snapshots[0].description)
+        self._tests_retrieve_one_issue_from_commit(commit)
 
-    @patch('sciit.commit._find_branches_for_commit', MagicMock(return_value=['master']))
+    def test_two_markdown_issue_cleaned(self):
+        commit = self.create_commit_mock(
+            blobs=[
+                self.create_blob_mock(
+                    content=
+                    b"""
+                    ---
+                    @issue 2
+                    @description 
+                    value that has some contents
+                    ---
+                    ---
+                    @issue 3
+                    @description 
+                    value that has some contents
+                    ---
+                    """,
+                    mime_type='text/plain',
+                    path='issue.md')
+            ]
+        )
+        self._tests_retrieve_one_issue_from_commit(
+            commit, expected_number_of_issues=2, comment_char_that_should_be_filtered='#')
+
     def test_no_issues_one_changed_supported_file_no_pattern(self):
         commit = self.create_commit_mock(
             blobs=[

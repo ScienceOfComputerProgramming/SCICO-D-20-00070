@@ -2,7 +2,6 @@ import slugify
 import os
 from sciit.cli.functions import do_commit_contains_duplicate_issue_filepaths_check, build_issue_history, page
 from sciit.cli.color import ColorPrint
-from sciit.errors import NoCommitsError
 
 
 def read_input_with_default(prompt, default):
@@ -33,7 +32,7 @@ def new_issue(args):
 
     issue_description = read_input_with_default("Enter a description", "")
 
-    git_commit_message = read_input_with_default("Enter a commit message", "Creates Issue "+issue_title)
+    git_commit_message = read_input_with_default("Enter a commit message", "Creates Issue " + issue_id)
 
     starting_branch_name = git_repository.active_branch.name
 
@@ -57,13 +56,18 @@ def new_issue(args):
     issue_repository.cache_issue_snapshots_from_unprocessed_commits()
 
     if args.push:
-        git_repository.git.push('origin', issue_id)
+        try:
+            git_repository.git.push('origin', issue_id)
+        except ValueError:
+            pass
 
     git_repository.git.checkout(file_path)
     git_repository.git.checkout(starting_branch_name)
 
     if args.accept:
+        print("Performing merge to master to accept issue...")
         git_repository.git.merge(issue_id)
+        print("Done. Remember to push changes to origin.")
 
     issues = issue_repository.get_all_issues()
     issue = issues[issue_id]

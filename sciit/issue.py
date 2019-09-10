@@ -14,6 +14,7 @@ __all__ = ('IssueSnapshot', 'Issue')
 
 time_format = '%a %b %d %H:%M:%S %Y %z'
 
+
 def record_revision(commit, changes=None):
 
     date_string = commit.authored_datetime.strftime(time_format)
