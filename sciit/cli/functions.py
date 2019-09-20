@@ -120,9 +120,9 @@ def build_status_table(issue_repository, revision=None):
     all_issues = issue_repository.get_all_issues(revision)
     output = make_status_summary_string(all_issues)
 
-    title_width = 50
+    title_width = 120
     all_issues = list(all_issues.values())
-    all_issues.sort(key= lambda issue: issue.last_authored_date, reverse=True)
+    all_issues.sort(key= lambda issue: issue.title)
 
     for issue in all_issues:
         issue_title = issue.title
