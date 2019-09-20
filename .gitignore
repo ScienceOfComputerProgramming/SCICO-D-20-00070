@@ -30,3 +30,4 @@ gitlab
 tests/here
 here
 demo/
+tests/test_init_runtime
