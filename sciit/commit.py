@@ -81,12 +81,14 @@ def find_issues_in_blob(comment_pattern, blob_content):
     issues = list()
 
     for comment_with_issue in comments_with_issues:
-        comment_string = comment_with_issue.string
+        comment_string = comment_with_issue.group()
+
         if comment_pattern == PLAIN:
             comment_string = re.sub(r'^\s*#', '', comment_string, flags=re.M)
         if comment_pattern == CSTYLE:
             comment_string = re.sub(r'^\s*\*', '', comment_string, flags=re.M)
         issue_data = find_issue_in_comment(comment_string)
+
         if issue_data:
             issue_data['start_position'] = comment_with_issue.start(0)
             issue_data['end_position'] = comment_with_issue.end(0)
@@ -110,6 +112,7 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=No
     issue_snapshots = list()
 
     files_changed_in_commit = _get_files_changed_in_commit(commit)
+
     blobs = get_blobs_from_commit_tree(commit.tree)
 
     if ignore_files:
@@ -130,6 +133,7 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=No
             continue
 
         blob_contents = read_in_blob_contents(blob)
+
         if blob_contents is None:
             continue
 
