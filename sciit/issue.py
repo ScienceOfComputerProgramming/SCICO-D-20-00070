@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 
 import hashlib
 import markdown2
 import re
-from datetime import datetime
 
 from slugify import slugify
 from git import Commit
 from gitdb.util import hex_to_bin
 
 __all__ = ('IssueSnapshot', 'Issue')
+
 
 time_format = '%a %b %d %H:%M:%S %Y %z'
 
@@ -32,7 +31,7 @@ def record_revision(commit, changes=None):
 
 class IssueSnapshot(object):
     __slots__ = ('commit', 'data', 'title', 'description', 'assignees', 'due_date', 'label', 'weight', 'priority',
-                 'title','file_path', 'start_position', 'end_position', 'issue_id', 'blockers', 'in_branches')
+                 'title', 'file_path', 'start_position', 'end_position', 'issue_id', 'blockers', 'in_branches')
 
     _children = dict()
 
@@ -69,7 +68,6 @@ class IssueSnapshot(object):
             self.start_position = self.data['start_position']
         if 'end_position' in self.data:
             self.end_position = self.data['end_position']
-
 
         if 'blockers' in self.data:
             self.blockers = self.data['blockers']
@@ -219,11 +217,9 @@ class Issue(object):
     def start_position(self):
         return self.newest_value_of_issue_property('start_position')
 
-
     @property
     def end_position(self):
         return self.newest_value_of_issue_property('end_position')
-
 
     @property
     def file_paths(self):
@@ -459,6 +455,4 @@ class Issue(object):
         Update the content of the issue history, based on newly discovered, *older* information.
         """
         self.issue_snapshots.append(issue_snapshot)
-        self.issue_snapshots.sort(
-            key=lambda issue_snapshot: issue_snapshot.date)
-
+        self.issue_snapshots.sort(key=lambda issue_snapshot_in_list: issue_snapshot_in_list.date)
