@@ -5,7 +5,7 @@ from unittest.mock import Mock, MagicMock, patch
 
 from pathspec import PathSpec
 
-from sciit.commit import find_issue_snapshots_in_commit_paths_that_changed, find_issue_in_comment
+from sciit.commit import find_issue_snapshots_in_commit_paths_that_changed, extract_issue_data_from_comment_string
 
 pattern = r'((?:#.*(?:\n\s*#)*.*)|(?:#.*)|(?:#.*$))'
 
@@ -367,14 +367,14 @@ class TestFindIssueInComment(TestCase):
         comment = """
         @description here is a description of the item
         """
-        data = find_issue_in_comment(comment)
+        data = extract_issue_data_from_comment_string(comment)
         self.assertEqual(data, {})
 
     def test_find_id_only(self):
         comment = """
         @issue 2
         """
-        data = find_issue_in_comment(comment)
+        data = extract_issue_data_from_comment_string(comment)
         self.assertIn('issue_id', data)
         self.assertEqual(data['issue_id'], '2')
 
@@ -383,7 +383,7 @@ class TestFindIssueInComment(TestCase):
         @issue something-new
         @title this is different
         """
-        data = find_issue_in_comment(comment)
+        data = extract_issue_data_from_comment_string(comment)
         self.assertIn('issue_id', data)
         self.assertEqual(data['issue_id'], 'something-new')
         self.assertIn('title', data)
@@ -394,7 +394,7 @@ class TestFindIssueInComment(TestCase):
         @issue 2
         @description something will be found
         """
-        data = find_issue_in_comment(comment)
+        data = extract_issue_data_from_comment_string(comment)
         self.assertIn('issue_id', data)
         self.assertEqual(data['issue_id'], '2')
         self.assertIn('description', data)
@@ -406,7 +406,7 @@ class TestFindIssueInComment(TestCase):
         @description 
                 something will be found
         """
-        data = find_issue_in_comment(comment)
+        data = extract_issue_data_from_comment_string(comment)
         self.assertIn('issue_id', data)
         self.assertEqual(data['issue_id'], '2')
         self.assertIn('description', data)
@@ -419,7 +419,7 @@ class TestFindIssueInComment(TestCase):
             something will be found
         @due_date today
         """
-        data = find_issue_in_comment(comment)
+        data = extract_issue_data_from_comment_string(comment)
         self.assertIn('issue_id', data)
         self.assertEqual(data['issue_id'], '2')
         self.assertIn('description', data)
@@ -430,7 +430,7 @@ class TestFindIssueInComment(TestCase):
         @issue 2
         @assignees mark, peter, paul
         """
-        data = find_issue_in_comment(comment)
+        data = extract_issue_data_from_comment_string(comment)
         self.assertIn('issue_id', data)
         self.assertEqual(data['issue_id'], '2')
         self.assertIn('assignees', data)
@@ -441,7 +441,7 @@ class TestFindIssueInComment(TestCase):
         @issue 2
         @due_date 10 dec 2018
         """
-        data = find_issue_in_comment(comment)
+        data = extract_issue_data_from_comment_string(comment)
         self.assertIn('issue_id', data)
         self.assertEqual(data['issue_id'], '2')
         self.assertIn('due_date', data)
@@ -452,7 +452,7 @@ class TestFindIssueInComment(TestCase):
         @issue 2
         @label in-development, main-feature
         """
-        data = find_issue_in_comment(comment)
+        data = extract_issue_data_from_comment_string(comment)
         self.assertIn('issue_id', data)
         self.assertEqual(data['issue_id'], '2')
         self.assertIn('label', data)
@@ -463,7 +463,7 @@ class TestFindIssueInComment(TestCase):
         @issue 2
         @weight 7
         """
-        data = find_issue_in_comment(comment)
+        data = extract_issue_data_from_comment_string(comment)
         self.assertIn('issue_id', data)
         self.assertEqual(data['issue_id'], '2')
         self.assertIn('weight', data)
@@ -474,7 +474,7 @@ class TestFindIssueInComment(TestCase):
         @issue 2
         @priority mid-high
         """
-        data = find_issue_in_comment(comment)
+        data = extract_issue_data_from_comment_string(comment)
         self.assertIn('issue_id', data)
         self.assertEqual(data['issue_id'], '2')
         self.assertIn('priority', data)
@@ -493,7 +493,7 @@ class TestFindIssueInComment(TestCase):
         @weight 4
         @priority high
         """
-        data = find_issue_in_comment(comment)
+        data = extract_issue_data_from_comment_string(comment)
         self.assertIn('issue_id', data)
         self.assertEqual(data['issue_id'], 'the-title-of-your-issue')
         self.assertIn('title', data)

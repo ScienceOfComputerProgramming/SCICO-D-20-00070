@@ -3,6 +3,7 @@
 import re
 import subprocess
 import shutil
+from slugify import slugify
 
 from sciit import IssueSnapshot
 from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
@@ -47,7 +48,7 @@ def get_blobs_from_commit_tree(tree):
     return blobs
 
 
-def find_issue_in_comment(comment: str):
+def extract_issue_data_from_comment_string(comment: str):
 
     issue_data = dict()
 
@@ -57,9 +58,12 @@ def find_issue_in_comment(comment: str):
             issue_data[key] = value[0].rstrip()
 
     update_issue_data_dict_with_value_from_comment(ISSUE.ID, 'issue_id')
+    update_issue_data_dict_with_value_from_comment(ISSUE.TITLE, 'title')
+
+    if 'issue_id' not in issue_data and 'title' in issue_data:
+        issue_data['issue_id'] = slugify(issue_data['title'])
 
     if 'issue_id' in issue_data:
-        update_issue_data_dict_with_value_from_comment(ISSUE.TITLE, 'title')
         update_issue_data_dict_with_value_from_comment(ISSUE.DESCRIPTION, 'description')
         update_issue_data_dict_with_value_from_comment(ISSUE.ASSIGNEES, 'assignees')
         update_issue_data_dict_with_value_from_comment(ISSUE.LABEL, 'label')
@@ -86,7 +90,7 @@ def find_issues_in_blob(comment_pattern, blob_content):
             comment_string = re.sub(r'^\s*#', '', comment_string, flags=re.M)
         if comment_pattern == CSTYLE:
             comment_string = re.sub(r'^\s*\*', '', comment_string, flags=re.M)
-        issue_data = find_issue_in_comment(comment_string)
+        issue_data = extract_issue_data_from_comment_string(comment_string)
 
         if issue_data:
             issue_data['start_position'] = comment_with_issue.start(0)
