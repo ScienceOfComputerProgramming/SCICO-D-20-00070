@@ -73,9 +73,8 @@ def find_issue_in_comment(comment: str):
 
 def find_issues_in_blob(comment_pattern, blob_content):
     comments_with_issues = [
-        match for match in
-        re.finditer(comment_pattern, blob_content)
-        if re.search(ISSUE.ID, match.string) is not None
+        match for match in re.finditer(comment_pattern, blob_content)
+        if re.search(ISSUE.ID, match.group()) is not None
         ]
 
     issues = list()
