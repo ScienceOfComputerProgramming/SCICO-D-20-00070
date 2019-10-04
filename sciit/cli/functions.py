@@ -122,10 +122,10 @@ def build_status_table(issue_repository, revision=None):
 
     title_width = 120
     all_issues = list(all_issues.values())
-    all_issues.sort(key= lambda issue: issue.title)
+    all_issues.sort(key= lambda issue: issue.title if issue.title is not None else '')
 
     for issue in all_issues:
-        issue_title = issue.title
+        issue_title = issue.title if issue.title is not None else ''
 
         if len(issue_title) > title_width - 3:
             output += ColorText.bold_yellow(issue_title[0:title_width-5] + '...: ')
