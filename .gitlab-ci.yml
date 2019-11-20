@@ -15,7 +15,6 @@ python_tests:
     paths:
       - cover/*
     expire_in: 1 week
-  except: [dissertation]
 
 
 # building all the python docs as html
@@ -34,18 +33,3 @@ python_docs:
       - docs/_build/html/*
     expire_in: 1 week
   only: [master, tags]
-
-
-# building all the documents for the dissertation
-docs-dissertation:
-  stage: docs
-  image: aergus/latex
-  script:
-    - cd dissertation
-    - latexmk -pdf
-  artifacts:
-    paths:
-      - dissertation/*.pdf
-      - dissertation/*.log
-    expire_in: 1 week
-  only: [dissertation]
