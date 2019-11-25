@@ -4,12 +4,10 @@ import os
 import stat
 import pkg_resources
 
-import threading
-
 from shutil import copyfile
 from datetime import datetime
 
-from git import Commit, GitCommandError
+from git import Commit
 from gitdb.util import hex_to_bin
 
 from sciit.errors import EmptyRepositoryError, NoCommitsError
@@ -92,7 +90,7 @@ class IssueRepo(object):
         os.chmod(destination_path, st.st_mode | stat.S_IEXEC)
 
     def reset(self):
-        def onerror(func, path, excp_info):
+        def onerror(func, path, exception_info):
             os.chmod(path, stat.S_IWUSR)
             func(path)
 
@@ -144,6 +142,7 @@ class IssueRepo(object):
             raise NoCommitsError
 
         # get all commits on all branches, enforcing the topology order of parents to children.
+        # noinspection SpellCheckingInspection
         all_commits = list(self.git_repository.iter_commits(['--all', '--topo-order', '--reverse']))
 
         if all_commits:

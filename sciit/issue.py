@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import hashlib
-import markdown2
 import re
+
+import markdown2
 
 from git import Commit
 from gitdb.util import hex_to_bin
@@ -10,25 +11,27 @@ from gitdb.util import hex_to_bin
 __all__ = ('IssueSnapshot', 'Issue')
 
 
-time_format = '%a %b %d %H:%M:%S %Y %z'
+TIME_FORMAT = '%a %b %d %H:%M:%S %Y %z'
 
 
-def record_revision(commit, changes=None):
+def _make_revision_dictionary(commit, changes=None):
 
-    date_string = commit.authored_datetime.strftime(time_format)
+    date_string = commit.authored_datetime.strftime(TIME_FORMAT)
 
     result = {
-        'commitsha': commit.hexsha,
+        'hexsha': commit.hexsha,
         'date': date_string,
         'author': commit.author.name,
         'summary': commit.summary
         }
+
     if changes is not None:
         result['changes'] = changes
+
     return result
 
 
-class IssueSnapshot(object):
+class IssueSnapshot:
     __slots__ = ('commit', 'data', 'title', 'description', 'assignees', 'due_date', 'label', 'weight', 'priority',
                  'title', 'file_path', 'start_position', 'end_position', 'issue_id', 'blockers', 'in_branches')
 
@@ -83,7 +86,7 @@ class IssueSnapshot(object):
         return int(sha, 16)
 
     def __str__(self):
-        return str(self.issue_id) + '@' + str(self.commit.hexsha) +  ' in ' + str(self.in_branches)
+        return f'{str(self.issue_id)}@{str(self.commit.hexsha)} in {str(self.in_branches)}'
 
     def __repr__(self):
         return self.__str__()
@@ -120,14 +123,14 @@ class IssueSnapshot(object):
 
     @property
     def date_string(self):
-        return self.commit.authored_datetime.strftime(time_format)
-    
+        return self.commit.authored_datetime.strftime(TIME_FORMAT)
+
     @property
     def date(self):
         return self.commit.authored_datetime
 
 
-class Issue(object):
+class Issue:
 
     def __init__(self, issue_id, all_issues, head_commits):
 
@@ -165,16 +168,16 @@ class Issue(object):
 
     @property
     def last_authored_date(self):
-        return self.newest_issue_snapshot.date 
+        return self.newest_issue_snapshot.date
 
     @property
     def last_authored_date_string(self):
         return self.newest_issue_snapshot.date_string
 
-    def newest_value_of_issue_property(self, p):
+    def newest_value_of_issue_property(self, issue_property):
         for issue_snapshot in reversed(self.issue_snapshots):
-            if hasattr(issue_snapshot, p):
-                return getattr(issue_snapshot, p)
+            if hasattr(issue_snapshot, issue_property):
+                return getattr(issue_snapshot, issue_property)
         return None
 
     @property
@@ -292,7 +295,7 @@ class Issue(object):
 
     @property
     def work_begun_date(self):
-        return self.in_progress_commit.authored_datetime.strftime(time_format) if self.in_progress_commit else None
+        return self.in_progress_commit.authored_datetime.strftime(TIME_FORMAT) if self.in_progress_commit else None
 
     @property
     def initiator(self):
@@ -327,7 +330,7 @@ class Issue(object):
 
     @property
     def closed_date(self):
-        return self.closing_commit.authored_datetime.strftime(time_format) if self.closing_commit else None
+        return self.closing_commit.authored_datetime.strftime(TIME_FORMAT) if self.closing_commit else None
 
     @property
     def closing_summary(self):
@@ -369,10 +372,10 @@ class Issue(object):
         result = list()
 
         for issue_snapshot in self.issue_snapshots:
-            result.append(record_revision(issue_snapshot.commit))
+            result.append(_make_revision_dictionary(issue_snapshot.commit))
 
         if self.status[0] == 'Closed' and self.closing_commit is not None:
-            result.append(record_revision(self.closing_commit))
+            result.append(_make_revision_dictionary(self.closing_commit))
 
         return result
 
@@ -382,7 +385,7 @@ class Issue(object):
         result = list()
 
         if self.status[0] == 'Closed' and self.closing_commit is not None:
-            result.append(record_revision(self.closing_commit, {'status': 'Closed'}))
+            result.append(_make_revision_dictionary(self.closing_commit, {'status': 'Closed'}))
 
         for older, newer in zip(self.issue_snapshots[:-1], self.issue_snapshots[1:]):
             changes = dict()
@@ -394,13 +397,13 @@ class Issue(object):
                 del changes['hexsha']
 
             if len(changes) > 0:
-                result.append(record_revision(newer.commit, changes))
+                result.append(_make_revision_dictionary(newer.commit, changes))
 
         original_values = self.oldest_issue_snapshot.data
         if 'hexsha' in original_values:
             del original_values['hexsha']
 
-        result.append(record_revision(self.oldest_issue_snapshot.commit, original_values))
+        result.append(_make_revision_dictionary(self.oldest_issue_snapshot.commit, original_values))
 
         return result
 

@@ -1,7 +1,7 @@
-import slugify
 import os
-from sciit.cli.functions import do_commit_contains_duplicate_issue_file_paths_check, build_issue_history, page
-from sciit.cli.color import ColorPrint
+import slugify
+from sciit.cli.functions import do_repository_has_no_commits_warning, \
+    do_commit_contains_duplicate_issue_file_paths_check, build_issue_history, page
 
 
 def read_input_with_default(prompt, default):
@@ -17,9 +17,7 @@ def new_issue(args):
     git_repository = issue_repository.git_repository
 
     if not git_repository.heads:
-        print(' ')
-        ColorPrint.bold_red('The repository has no commits.')
-        print('Create an initial commit before creating a new issue')
+        do_repository_has_no_commits_warning()
         return
 
     issue_title = input("Enter a title for the issue: ").rstrip()

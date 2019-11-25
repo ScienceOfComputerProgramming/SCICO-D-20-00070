@@ -28,13 +28,10 @@ setup(
     zip_safe=False,
     include_package_data=True,
     version=version,
-    description='An application that allow issues to be managed'
-    'within a version control repository rather than'
-    'as a separate database.'
-    'Contains a command line application that can manage'
-    'issues.',
+    description='An application that allow issues to be managed within a version control repository rather than as a '
+                'separate database. Contains a command line application that can manage issues.',
     long_description=long_descr,
     author='Nystrom Johann Edwards',
     author_email='nystrom.edwards@gmail.com',
-    url='https://gitlab.com/nystrome/sciit',
+    url='https://gitlab.com/sciit/sciit',
 )

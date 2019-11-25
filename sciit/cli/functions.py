@@ -15,16 +15,13 @@ def page(output):
 
 def yes_no_option(msg=''):
     option = input(msg + ' [y/N]: ')
-    if option is 'Y' or option is 'y':
-        return True
-    else:
-        return False
+    return option in {'Y', 'y'}
 
 
 def read_sciit_version():
     filename = pkg_resources.resource_filename('sciit.man', 'VERSION')
-    with open(filename, 'rb') as f:
-        return f.read().decode('utf-8')
+    with open(filename, 'rb') as version_file_handle:
+        return version_file_handle.read().decode('utf-8')
 
 
 def do_repository_is_init_check(issue_repository):
@@ -49,11 +46,17 @@ def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, lengt
     """
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filled_length = int(length * iteration // total)
-    bar = fill * filled_length + '-' * (length - filled_length)
-    print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end='\r')
+    progress_bar = fill * filled_length + '-' * (length - filled_length)
+    print('\r%s |%s| %s%% %s' % (prefix, progress_bar, percent, suffix), end='\r')
 
     if iteration == total:
         print()
+
+
+def do_repository_has_no_commits_warning():
+    print(' ')
+    ColorPrint.bold_red('The repository has no commits.')
+    print('Create an initial commit before creating a new issue')
 
 
 def do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit):
@@ -62,7 +65,7 @@ def do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit
 
     ignored_files = get_sciit_ignore_path_spec(issue_repository.git_repository)
 
-    issue_snapshots, changed_paths, _ = \
+    issue_snapshots, _, _ = \
         find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
 
     if len(set(issue_snapshots)) != len(issue_snapshots):
@@ -88,9 +91,9 @@ def do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit
 
 
 def make_status_summary_string(all_issues):
-    open = sum(issue.status[0] == 'Open' for issue in all_issues.values())
-    closed_str = str(len(all_issues) - open)
-    open_str = str(open)
+    open_issues_count = sum(issue.status[0] == 'Open' for issue in all_issues.values())
+    closed_str = str(len(all_issues) - open_issues_count)
+    open_str = str(open_issues_count)
 
     padding = max(len(closed_str), len(open_str))
 
@@ -115,6 +118,9 @@ def build_status_summary(issue_repository, revision=None):
         exit(127)
 
 
+def _title_as_key(issue): return issue.title if issue.title is not None else ''
+
+
 def build_status_table(issue_repository, revision=None):
 
     all_issues = issue_repository.get_all_issues(revision)
@@ -122,7 +128,7 @@ def build_status_table(issue_repository, revision=None):
 
     title_width = 120
     all_issues = list(all_issues.values())
-    all_issues.sort(key= lambda issue: issue.title if issue.title is not None else '')
+    all_issues.sort(key=_title_as_key)
 
     for issue in all_issues:
         issue_title = issue.title if issue.title is not None else ''
@@ -132,7 +138,7 @@ def build_status_table(issue_repository, revision=None):
         else:
             output += ColorText.bold_yellow((issue_title + ': ').ljust(title_width))
 
-        if issue.status[0] is 'Closed':
+        if issue.status[0] == 'Closed':
             issue_status = ColorText.bold_green(issue.status[0].ljust(6))
         else:
             issue_status = ColorText.bold_red(issue.status[0].ljust(6))
@@ -145,7 +151,7 @@ def build_status_table(issue_repository, revision=None):
     return output
 
 
-def subheader(header):
+def subheading(header):
     return ColorText.bold(f'\n{header}')
 
 
@@ -159,15 +165,19 @@ def build_issue_history(issue_item, view=None):
     Returns:
         :(str): string representation of issue history item
     """
+
+    title_str = ColorText.bold_yellow(f"{issue_item.title}")
+
     status, sub_status = issue_item.status
     status_str = f'{status} ({sub_status})'
+    status_str_colored = ColorText.green(status_str) if status == 'Closed' else ColorText.red(status_str)
 
     participants = ', '.join(issue_item.participants)
 
     output = ''
-    output += f'\nTitle:             ' + ColorText.bold_yellow(f"{issue_item.title}")
+    output += f'\nTitle:             {title_str}'
     output += f'\nID:                {issue_item.issue_id}'
-    output += f'\nStatus:            ' + (ColorText.green(status_str) if status == 'Closed' else ColorText.red(status_str))
+    output += f'\nStatus:            {status_str_colored}'
     output += f'\nDuration:          {issue_item.duration}' if issue_item.duration else ''
 
     output += f'\n'
@@ -192,7 +202,7 @@ def build_issue_history(issue_item, view=None):
 
         for blocker_issue_id, blocker_issue in blocker_issues.items():
             blocker_status = blocker_issue.status[0] if blocker_issue is not None else '?'
-            blockers_status.append('%s(%s)' % (blocker_issue_id,blocker_status))
+            blockers_status.append('%s(%s)' % (blocker_issue_id, blocker_status))
 
         blockers_str = '\n                   '.join(blockers_status)
         output += f'\nBlockers:          {blockers_str}\n'
@@ -218,12 +228,12 @@ def build_issue_history(issue_item, view=None):
 
     if view == 'full':
         num_revisions = str(len(issue_item.revisions))
-        output += subheader(f'\nRevisions to Issue ({num_revisions}):\n')
+        output += subheading(f'\nRevisions to Issue ({num_revisions}):\n')
 
         for revision in issue_item.revisions:
 
             changes = revision['changes']
-            output += f'\nIn {revision["commitsha"]} ({len(changes)} items changed):\n'
+            output += f'\nIn {revision["hexsha"]} ({len(changes)} items changed):\n'
 
             for changed_property, new_value in changes.items():
                 output += f' {changed_property}: {new_value}\n'
@@ -234,12 +244,10 @@ def build_issue_history(issue_item, view=None):
 
     if view == 'full':
         num_commits = str(len(issue_item.activity))
-        output += subheader(f'\nPresent in Commits ({num_commits}):')
+        output += subheading(f'\nPresent in Commits ({num_commits}):')
         for commit in reversed(issue_item.activity):
-            output += f'\n{commit["date"]} | {commit["commitsha"]} | {commit["author"]} | {commit["summary"]}'
+            output += f'\n{commit["date"]} | {commit["hexsha"]} | {commit["author"]} | {commit["summary"]}'
 
     output += f'\n{ColorText.yellow("*"*90)}\n'
 
     return output
-
-

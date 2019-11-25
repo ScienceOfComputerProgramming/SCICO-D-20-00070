@@ -1,5 +1,5 @@
-from sciit.cli.functions import do_commit_contains_duplicate_issue_file_paths_check, build_issue_history, page
-from sciit.cli.color import ColorPrint
+from sciit.cli.functions import do_repository_has_no_commits_warning, \
+    do_commit_contains_duplicate_issue_file_paths_check, build_issue_history, page
 
 
 def _remove_issue_from_codebase(issue):
@@ -22,8 +22,8 @@ def close_issue(args):
     git_repository = issue_repository.git_repository
 
     if not git_repository.heads:
-        print(' ')
-        ColorPrint.bold_red('The repository has no commits.')
+        do_repository_has_no_commits_warning()
+        return
 
     issue_id = args.issue_id
 

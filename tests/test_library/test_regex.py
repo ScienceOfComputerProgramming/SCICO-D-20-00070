@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 from sciit.regex import get_file_object_pattern
-from sciit.regex import (CSTYLE, PYTHON, HTML, MATLAB, HASKELL, PLAIN, MARKDOWN)
+from sciit.regex import (C_STYLE, PYTHON, HTML, MATLAB, HASKELL, PLAIN, MARKDOWN)
 
 
 class TestFileObjectPattern(TestCase):
@@ -10,25 +10,25 @@ class TestFileObjectPattern(TestCase):
         file_object = Mock()
         file_object.path = 'test.java'
         pattern = get_file_object_pattern(file_object)
-        self.assertEqual(pattern, CSTYLE)
+        self.assertEqual(pattern, C_STYLE)
 
     def test_file_is_c(self):
         file_object = Mock()
         file_object.path = 'test.c'
         pattern = get_file_object_pattern(file_object)
-        self.assertEqual(pattern, CSTYLE)
+        self.assertEqual(pattern, C_STYLE)
 
     def test_file_is_csharp(self):
         file_object = Mock()
         file_object.path = 'test.cs'
         pattern = get_file_object_pattern(file_object)
-        self.assertEqual(pattern, CSTYLE)
+        self.assertEqual(pattern, C_STYLE)
 
     def test_file_is_swift(self):
         file_object = Mock()
         file_object.path = 'test.swift'
         pattern = get_file_object_pattern(file_object)
-        self.assertEqual(pattern, CSTYLE)
+        self.assertEqual(pattern, C_STYLE)
 
     def test_file_is_matlab(self):
         file_object = Mock()

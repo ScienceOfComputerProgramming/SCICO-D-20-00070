@@ -23,7 +23,7 @@ from sciit.cli.status import status
 from sciit.cli.tracker import tracker
 from sciit.cli.issue import issue
 from sciit.cli.web import web
-from sciit.gitlab.webservice import launch as launchgitlab
+from sciit.gitlab.webservice import launch as launch_gitlab
 
 
 def add_revision_option(parser):
@@ -40,7 +40,8 @@ def add_new_issue_options(parser):
     group.add_argument(
         '-p', '--push', help='Pushes the newly created issue branch to the origin.', action='store_true')
     group.add_argument(
-        '-a', '--accept', help='Accepts the newly created issue branch by merging it to master locally.', action='store_true')
+        '-a', '--accept', help='Accepts the newly created issue branch by merging it to master locally.',
+        action='store_true')
 
 
 def add_issue_filter_options(parser):
@@ -70,7 +71,7 @@ def create_command_parser():
         prog='git sciit',
         description=
         'To use the application you can create your issues anywhere in your source code as block comments in a '
-        'particular format and it will become a trackable versioned object within your git environment. Operations '
+        'particular format and it will become a versioned object within your git environment. Operations '
         'done with git will run git sciit in the background in order to automate issue tracking for you. '
     )
     parser.add_argument('-v', '--version', action='version', version=read_sciit_version())
@@ -126,7 +127,7 @@ def create_command_parser():
 
     gitlab_parser = subparsers.add_parser(
         'gitlab', description='Launches the gitlab webservice that integrates gitlab issues with sciit')
-    gitlab_parser.set_defaults(func=launchgitlab)
+    gitlab_parser.set_defaults(func=launch_gitlab)
 
     new_parser = subparsers.add_parser(
         'new',

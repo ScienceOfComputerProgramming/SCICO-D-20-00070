@@ -15,7 +15,7 @@ import requests
 from slugify import slugify
 
 from sciit.gitlab.issueapi import format_description
-from sciit.regex import (CSTYLE, HASKELL, HTML, ISSUE, MATLAB, PLAIN, PYTHON,
+from sciit.regex import (C_STYLE, HASKELL, HTML, IssuePropertyRegularExpressions, MATLAB, PLAIN, PYTHON,
                          get_file_object_pattern)
 
 
@@ -37,7 +37,7 @@ def get_leading_char(pattern):
     """
     if pattern in (PYTHON, HTML, MATLAB, HASKELL):
         return ''
-    elif pattern == CSTYLE:
+    elif pattern == C_STYLE:
         return '*'
     elif pattern == PLAIN:
         return '#'
@@ -53,7 +53,7 @@ def update_issue_source(issue, contents):
         issue['id'] = slugify(issue['title'])
         file_object = FileObject('issues.txt')
     pattern = get_file_object_pattern(file_object)
-    match_issue = re.findall(ISSUE.ID, contents)
+    match_issue = re.findall(IssuePropertyRegularExpressions.ID, contents)
 
     # iterate through the matches and change the details of the particular issue
     for i, match in enumerate(match_issue):

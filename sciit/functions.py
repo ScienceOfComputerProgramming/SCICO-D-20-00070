@@ -9,14 +9,14 @@ import pathspec
 
 def write_last_issue_commit_sha(issue_dir, sha):
     last_issue_commit_file_path = issue_dir + '/LAST'
-    with open(last_issue_commit_file_path, 'w') as f:
-        f.write(sha)
+    with open(last_issue_commit_file_path, 'w') as last_issue_commit_file:
+        last_issue_commit_file.write(sha)
 
 
 def get_last_issue_commit_sha(issue_dir):
     last_issue_commit_file_path = issue_dir + '/LAST'
-    with open(last_issue_commit_file_path, 'r') as f:
-        return f.read()
+    with open(last_issue_commit_file_path, 'r') as last_issue_commit_file:
+        return last_issue_commit_file.read()
 
 
 def get_sciit_ignore_path_spec(repo):

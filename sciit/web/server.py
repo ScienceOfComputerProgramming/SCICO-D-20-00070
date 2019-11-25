@@ -21,15 +21,17 @@ def index():
     """
     history = global_issue_repository.build_history()
     data = dict()
-    data['Num Open Issues'] = len([issue for issue in history.values() if issue.status[0] == 'Open'])
-    data['Num Closed Issues'] = len([issue for issue in history.values() if issue.status[0] == 'Closed'])
+
+    data['Num Open Issues'] = sum(map(lambda issue: 1 if issue.status[0] == 'Open' else 0, history.values()))
+    data['Num Closed Issues'] = sum(map(lambda issue: 1 if issue.status[0] == 'Closed' else 0, history.values()))
+
     return render_template('home.html', history=history, data=data)
 
 
 @app.route("/<issue_id>")
 def issue(issue_id):
     """
-    Page for showing the content and history of an issue, derived from it's repository commits.
+    Page for showing the content and history of an issue, derived from its repository commits.
     """
     history = global_issue_repository.build_history()
     return render_template('issue.html', issue=history[issue_id])

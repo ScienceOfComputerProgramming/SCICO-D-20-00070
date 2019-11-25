@@ -26,11 +26,10 @@ def issue(args):
             print("\n".join(history.keys()))
         else:
             ColorPrint.bold_red(f'No issues in the repository')
+        return ""
 
 
 def page_history_issue(item, view=None):
     output = build_issue_history(item, view)
     page(output)
     return output
-
-

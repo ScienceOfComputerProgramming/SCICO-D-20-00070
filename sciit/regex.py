@@ -2,7 +2,7 @@
 
 import os
 
-CSTYLE = r'/\*((?:.|[\r\n])*?)\*/'
+C_STYLE = r'/\*((?:.|[\r\n])*?)\*/'
 PYTHON = r'(?:=\s*(?:[\'\"]){3}(?:.*(?:.|[\r\n])*?)(?:[\'\"]){3})|(?:[\'\"]){3}(.*(?:.|[\r\n])*?)(?:[\'\"]){3}'
 
 HTML = r'(?:<!--)([\w\W]+?)(?:-->)'
@@ -12,14 +12,21 @@ HASKELL = r'{-((?:.|[\r\n])*?)-}'
 PLAIN = r'#(?:[*]){3,}((?:(?:.|[\r\n])*?))#(?:[*]){3,}'
 MARKDOWN = r'(?:---)([\w\W]+?)(?:---)'
 
-CSTYLE_EXTS = ['.java', '.c', '.cpp', '.cxx', '.h', '.hpp', '.hxx', '.cs', '.php',
-               '.css', '.js', '.sql', '.scala', '.swift', '.go', '.kt', '.kts']
-HTML_EXTS = ['.htm', '.html', '.xhtml']
-OTHER_EXTS = ['.yml', '.yaml', '.feature', '.rb']
-MARKDOWN_EXTS = ['.md']
+C_STYLE_FILE_EXTENSIONS = \
+    ['.java', '.c', '.cpp', '.cxx', '.h', '.hpp', '.hxx', '.cs', '.php', '.css', '.js', '.sql', '.scala', '.swift',
+     '.go', '.kt', '.kts']
+
+HTML_FILE_EXTENSIONS =\
+    ['.htm', '.html', '.xhtml']
+
+OTHER_FILE_EXTENSIONS =\
+    ['.yml', '.yaml', '.feature', '.rb']
+
+MARKDOWN_FILE_EXTENSIONS = ['.md']
 
 
-class ISSUE:
+# noinspection SpellCheckingInspection
+class IssuePropertyRegularExpressions:
     ID = r'@[Ii]ssue[ _-]*(?:id|number|slug)* *[=:;>]*(.*)'
     TITLE = r'@(?:[Ii]ssue[ _-]*)*[Tt]itle *[=:;>]*(.*)'
     DESCRIPTION = r'@(?:[Ii]ssue[ _-]*)*[Dd]escription* *[-=:;> ]*(.*(?:.|[\r\n])*?)(?:\n[\s]*@|$)'
@@ -34,11 +41,11 @@ class ISSUE:
 def get_file_object_pattern(file_object):
     ext = os.path.splitext(file_object.path)[1]
     if ext is not '':
-        if ext in CSTYLE_EXTS:
-            pattern = CSTYLE
-        elif ext in HTML_EXTS:
+        if ext in C_STYLE_FILE_EXTENSIONS:
+            pattern = C_STYLE
+        elif ext in HTML_FILE_EXTENSIONS:
             pattern = HTML
-        elif ext in MARKDOWN_EXTS:
+        elif ext in MARKDOWN_FILE_EXTENSIONS:
             pattern = MARKDOWN
         elif ext == '.m':
             pattern = MATLAB
@@ -46,7 +53,7 @@ def get_file_object_pattern(file_object):
             pattern = HASKELL
         elif ext == '.py':
             pattern = PYTHON
-        elif ext in OTHER_EXTS or file_object.mime_type == 'text/plain':
+        elif ext in OTHER_FILE_EXTENSIONS or file_object.mime_type == 'text/plain':
             pattern = PLAIN
         else:
             pattern = False

@@ -45,4 +45,3 @@ def build_log_item(commit, issue_snapshot_list):
     output += f'\n{commit.message}'
     output += f'\n'
     return output
-

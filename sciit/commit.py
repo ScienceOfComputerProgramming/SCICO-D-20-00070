@@ -6,7 +6,7 @@ import shutil
 from slugify import slugify
 
 from sciit import IssueSnapshot
-from sciit.regex import PLAIN, CSTYLE, ISSUE, get_file_object_pattern
+from sciit.regex import PLAIN, C_STYLE, IssuePropertyRegularExpressions, get_file_object_pattern
 
 
 __all__ = 'find_issues_in_commit'
@@ -43,8 +43,8 @@ def _get_files_changed_in_commit(commit):
 
 def get_blobs_from_commit_tree(tree):
     blobs = {blob.path: blob for blob in tree.blobs}
-    for tree in tree.trees:
-        blobs.update(get_blobs_from_commit_tree(tree))
+    for sub_tree in tree.trees:
+        blobs.update(get_blobs_from_commit_tree(sub_tree))
     return blobs
 
 
@@ -57,20 +57,20 @@ def extract_issue_data_from_comment_string(comment: str):
         if len(value) > 0:
             issue_data[key] = value[0].rstrip()
 
-    update_issue_data_dict_with_value_from_comment(ISSUE.ID, 'issue_id')
-    update_issue_data_dict_with_value_from_comment(ISSUE.TITLE, 'title')
+    update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.ID, 'issue_id')
+    update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.TITLE, 'title')
 
     if 'issue_id' not in issue_data and 'title' in issue_data:
         issue_data['issue_id'] = slugify(issue_data['title'])
 
     if 'issue_id' in issue_data:
-        update_issue_data_dict_with_value_from_comment(ISSUE.DESCRIPTION, 'description')
-        update_issue_data_dict_with_value_from_comment(ISSUE.ASSIGNEES, 'assignees')
-        update_issue_data_dict_with_value_from_comment(ISSUE.LABEL, 'label')
-        update_issue_data_dict_with_value_from_comment(ISSUE.DUE_DATE, 'due_date')
-        update_issue_data_dict_with_value_from_comment(ISSUE.PRIORITY, 'priority')
-        update_issue_data_dict_with_value_from_comment(ISSUE.WEIGHT, 'weight')
-        update_issue_data_dict_with_value_from_comment(ISSUE.BLOCKERS, 'blockers')
+        update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.DESCRIPTION, 'description')
+        update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.ASSIGNEES, 'assignees')
+        update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.LABEL, 'label')
+        update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.DUE_DATE, 'due_date')
+        update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.PRIORITY, 'priority')
+        update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.WEIGHT, 'weight')
+        update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.BLOCKERS, 'blockers')
 
     return issue_data
 
@@ -78,7 +78,7 @@ def extract_issue_data_from_comment_string(comment: str):
 def find_issues_in_blob(comment_pattern, blob_content):
     comments_with_issues = [
         match for match in re.finditer(comment_pattern, blob_content)
-        if re.search(ISSUE.ID, match.group()) is not None
+        if re.search(IssuePropertyRegularExpressions.ID, match.group()) is not None
         ]
 
     issues = list()
@@ -88,7 +88,7 @@ def find_issues_in_blob(comment_pattern, blob_content):
 
         if comment_pattern == PLAIN:
             comment_string = re.sub(r'^\s*#', '', comment_string, flags=re.M)
-        if comment_pattern == CSTYLE:
+        if comment_pattern == C_STYLE:
             comment_string = re.sub(r'^\s*\*', '', comment_string, flags=re.M)
         issue_data = extract_issue_data_from_comment_string(comment_string)
 
@@ -102,7 +102,7 @@ def find_issues_in_blob(comment_pattern, blob_content):
 
 def read_in_blob_contents(blob):
     blob_contents = blob.data_stream.read()
-    if type(blob_contents) == bytes:
+    if isinstance(blob_contents, bytes):
         try:
             return blob_contents.decode("utf-8")
         except UnicodeDecodeError:
@@ -150,7 +150,7 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=No
     return issue_snapshots, files_changed_in_commit, in_branches
 
 
-_commit_branches_cache = None
+_COMMIT_BRANCHES_CACHE = None
 
 
 def _get_commit_branches_from_bash():
@@ -176,12 +176,12 @@ def _get_commit_branches_from_bash():
 
         for COMMIT in ${!COMMIT_BRANCHES[@]}
         do
-            echo $COMMIT:${COMMIT_BRANCHES[$COMMIT]} 
+            echo $COMMIT:${COMMIT_BRANCHES[$COMMIT]}
         done
         """
 
     sub_process = subprocess.Popen(["bash"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    (process_out, process_err) = sub_process.communicate(bash_script)
+    process_out, _ = sub_process.communicate(bash_script)
     return process_out
 
 
@@ -208,17 +208,17 @@ def _get_commit_branches_from_powershell():
           echo "${commit}:$($commit_branches[$commit])"
         }
         """
-    proc = subprocess.Popen(
-        ["powershell.exe", '-ExecutionPolicy','Unrestricted',". { " + power_shell_script + " } ;"],
+    process = subprocess.Popen(
+        ["powershell.exe", '-ExecutionPolicy', 'Unrestricted', ". { " + power_shell_script + " } ;"],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
-    output, error = proc.communicate()
+    output, _ = process.communicate()
     return output
 
 
 def _init_commit_branch_cache():
-    global _commit_branches_cache
-    _commit_branches_cache = dict()
+    global _COMMIT_BRANCHES_CACHE
+    _COMMIT_BRANCHES_CACHE = dict()
 
     if shutil.which('bash') is not None:
         sub_process_out = _get_commit_branches_from_bash()
@@ -228,15 +228,15 @@ def _init_commit_branch_cache():
     for line in sub_process_out.decode("utf-8").strip().split('\n'):
         commit_str, branches_str = line.split(':')
         branches = branches_str.split(',')
-        _commit_branches_cache[commit_str] = branches
+        _COMMIT_BRANCHES_CACHE[commit_str] = branches
 
 
 def _find_branches_for_commit(commit):
-    global _commit_branches_cache
-    if not _commit_branches_cache:
+    global _COMMIT_BRANCHES_CACHE
+    if not _COMMIT_BRANCHES_CACHE:
         _init_commit_branch_cache()
 
-    if commit.hexsha in _commit_branches_cache:
-        return _commit_branches_cache[commit.hexsha]
+    if commit.hexsha in _COMMIT_BRANCHES_CACHE:
+        return _COMMIT_BRANCHES_CACHE[commit.hexsha]
     else:
-        return []
+        return list()
