@@ -3,9 +3,8 @@
 
 """setup.py: setuptools control."""
 
-
-import subprocess
 from setuptools import setup, find_packages
+from web_resource_command import WebResourceCommand
 
 with open('sciit/man/VERSION', 'rb') as f:
     version = f.read().decode('utf-8')
@@ -34,4 +33,7 @@ setup(
     author='Nystrom Johann Edwards',
     author_email='nystrom.edwards@gmail.com',
     url='https://gitlab.com/sciit/sciit',
+    cmdclass={
+        'install_wr': WebResourceCommand
+    }
 )

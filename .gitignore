@@ -31,3 +31,8 @@ tests/here
 here
 demo/
 tests/test_init_runtime
+
+sciit/web/static/bootstrap*
+sciit/web/static/fontawesome*
+sciit/web/static/jquery*
+.web_resource_cache
