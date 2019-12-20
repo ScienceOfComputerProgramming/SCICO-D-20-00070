@@ -1,163 +1,111 @@
 # -*- coding: utf-8 -*-
+
 """
 Functions needed to launch the gitlab webservice. Note that this webservice cannot run together with the local git sciit
  web interface.
 """
 
-import json
-import os
-import subprocess
 import logging
 
-from flask import Flask, Response, request
-from git import Repo
-from datetime import datetime, timezone, timedelta
+from queue import LifoQueue
+from threading import Thread
 
-from sciit import IssueRepo
-from sciit.cli.color import ColorPrint
-from sciit.gitlab.pushhook import handle_push_event
-from sciit.gitlab.issuehook import handle_issue_event
+from flask import Flask, Response, request
+
+from .classes import GitLabWebHookReceiver
+
 
 app = Flask(__name__)
 
 
-class WEBSERVICE_CONFIG:
-    repo = None
-    api_token = None
-    api_url = None
-    project_id = None
-    project_url = None
-    path = None
-    gitlab_cache = None
-    last_push_hook = None
-    last_issue_hook = None
+sciit_web_hook_username = 'twsswt'  # 'sciit_web_hook'
 
 
-def configure_logger_for_web_service_events():
-    global WEBSERVICE_CONFIG
+gitlab_web_hook_receiver = None
 
-    logging.basicConfig(
-        format='%(levelname)s:[%(asctime)s]cl %(message)s',
-        datefmt='%m/%d/%Y %I:%M:%S %p',
-        filename=WEBSERVICE_CONFIG.path + '.log',
-        level=logging.INFO
-    )
+job_queue = None
+
+
+def no_new_commits(data):
+    for commit in data['commits']:
+        if '(sciit issue update)' not in commit['message']:
+            return False
+    return True
 
 
 @app.route('/', methods=['POST'])
 def index():
     """
-    The single endpoint of the service handling all incoming webhooks.
+    The single endpoint of the service handling all incoming web hooks.
     """
-    global WEBSERVICE_CONFIG
+
+    event = request.headers.environ['HTTP_X_GITLAB_EVENT']
+    logging.info(f'received a {event} event.')
 
     data = request.get_json()
 
-    # Set configuration items
-    WEBSERVICE_CONFIG.api_token = os.environ['GITLAB_API_TOKEN']
-    WEBSERVICE_CONFIG.api_url = data['repository']['homepage'].rsplit('/', 1)[0].rsplit('/', 1)[0] + '/api/v4/'
-    WEBSERVICE_CONFIG.project_id = data['project']['id']
-    WEBSERVICE_CONFIG.project_url = data['project']['web_url']
-    WEBSERVICE_CONFIG.path = data['project']['url'].rsplit('/', 1)[1]
-    WEBSERVICE_CONFIG.gitlab_cache = WEBSERVICE_CONFIG.path + '.cache'
-    event = request.headers.environ['HTTP_X_GITLAB_EVENT']
-
-    configure_logger_for_web_service_events()
-
-    # Download, build and set issue repository
-    if WEBSERVICE_CONFIG.repo is None or not os.path.exists(WEBSERVICE_CONFIG.path):
-        if os.path.exists(WEBSERVICE_CONFIG.path):
-            git_repository = Repo(WEBSERVICE_CONFIG.path)
-            WEBSERVICE_CONFIG.repo = IssueRepo(git_repository)
-        else:
-            subprocess.run(['git', 'clone', '--mirror', data['project']['url'], WEBSERVICE_CONFIG.path], check=True)
-            git_repository = Repo(WEBSERVICE_CONFIG.path)
-            WEBSERVICE_CONFIG.repo = IssueRepo(git_repository)
-            WEBSERVICE_CONFIG.repo.cache_issue_snapshots_from_all_commits()
-
-    logging.info(f'received a {event} event')
-    logging.info(f'using repository: {WEBSERVICE_CONFIG.path}')
-
-    if event == 'Push Hook':
-
-        WEBSERVICE_CONFIG.last_push_hook = datetime.now(timezone.utc)
-        if WEBSERVICE_CONFIG.last_issue_hook:
-            delta = WEBSERVICE_CONFIG.last_push_hook - WEBSERVICE_CONFIG.last_issue_hook
-            if delta < timedelta(seconds=10):
-                return json.dumps({"status": "Rejected",
-                                   "message": "This request originated from an IssueSnapshot Hook"})
-            else:
-                return handle_push_event(WEBSERVICE_CONFIG, data)
-        else:
-            return handle_push_event(WEBSERVICE_CONFIG, data)
-
-    elif event == 'IssueSnapshot Hook':
-
-        WEBSERVICE_CONFIG.last_issue_hook = datetime.now(timezone.utc)
-        if WEBSERVICE_CONFIG.last_push_hook:
-            delta = WEBSERVICE_CONFIG.last_issue_hook - WEBSERVICE_CONFIG.last_push_hook
-            if delta < timedelta(seconds=10):
-                return json.dumps({"status": "Rejected",
-                                   "message": "This request originated from an Push Hook"})
-            else:
-                return handle_issue_event(WEBSERVICE_CONFIG, data)
-        else:
-            return handle_issue_event(WEBSERVICE_CONFIG, data)
+    if event == 'Push Hook' and no_new_commits(data):
+        return Response(
+            {'status': 'Rejected', 'message': 'Event originated from a previous sciit issue web hook action.'})
+    elif event == 'Issue Hook' and data['user']['username'] == sciit_web_hook_username:
+        return Response(
+            {'status': 'Rejected', 'message': 'Event originated from a previous sciit push web hook action.'})
     else:
-        return Response({"status": "Failue", "message": f"Gitlab hook - {event} not supported"}, status=404)
+        # TODO Create a job queue here.
+
+        def _job():
+            mirrored_gitlab_sciit_project = gitlab_web_hook_receiver.get_mirrored_gitlab_sciit_project(data)
+            logging.info(f'using local repository: {mirrored_gitlab_sciit_project.local_git_repository_path}.')
+            mirrored_gitlab_sciit_project.process_web_hook_event(event, data)
+            return Response({'status': 'Accepted'})
+
+        job_queue.put(_job)
 
 
 @app.route('/status', methods=['GET'])
 def status():
     """
-    An endpoint to check the status of the webservice to determine its running state without making any changes
+    An endpoint to check the status of the webservice to determine its running state without making any changes.
     """
-    return json.dumps({"status": "running", "message": "The SCIIT-GitLab integration service is operational"})
+    return Response({"status": "running", "message": "The SCIIT-GitLab integration service is operational."})
 
 
 @app.route('/init', methods=['POST'])
 def init():
     """
-    An endpoint that can be used to initialise the sciit repository
+    An endpoint that can be used to initialise the local sciit repository.
     """
-    global WEBSERVICE_CONFIG
+
     data = request.get_json()
 
-    if WEBSERVICE_CONFIG.repo is None or os.path.exists(WEBSERVICE_CONFIG.path):
-        import stat
-        import shutil
+    gitlab_web_hook_receiver.get_mirrored_gitlab_sciit_project(data)
 
-        def onerror(func, path, excp_info):
-            os.chmod(path, stat.S_IWUSR)
-            func(path)
-        shutil.rmtree(WEBSERVICE_CONFIG.path, onerror=onerror)
+    project_url = data['project']['web_url']
 
-    subprocess.run(['git', 'clone', '--mirror', data['remote'], WEBSERVICE_CONFIG.path], check=True)
-    git_repository = Repo(path=WEBSERVICE_CONFIG.path)
-    WEBSERVICE_CONFIG.repo = IssueRepo(git_repository)
-    WEBSERVICE_CONFIG.repo.cache_issue_snapshots_from_all_commits()
-
-    return json.dumps({"status": "Success", "message": f"{data['remote']} IssueSnapshot Repository Initialized"})
+    return Response({'status': 'Success', 'message': f'Issue cache initialised for project {project_url}.'})
 
 
 def launch(args):
     """
-    A helper function that launches the webservice from sciit cli
+    A helper function that launches the web service.
     """
-    global WEBSERVICE_CONFIG
-    WEBSERVICE_CONFIG.repo = args.repo
+    global gitlab_web_hook_receiver
+    global job_queue
 
-    if 'GITLAB_API_TOKEN' in os.environ:
-        WEBSERVICE_CONFIG.api_token = os.environ['GITLAB_API_TOKEN']
-        app.run(host='0.0.0.0', port=5000)
-    else:
-        ColorPrint.bold_red(
-            'Must specify gitlab api access token as environment variable')
-        ColorPrint.bold('Set token to environment variable GITLAB_API_TOKEN')
-        exit(127)
+    job_queue = LifoQueue()
+    gitlab_web_hook_receiver = GitLabWebHookReceiver(args.project_dir_path)
+
+    def process_jobs():
+        while True:
+            job = job_queue.get(block=True)
+            job()
+
+    Thread(target=process_jobs).start(())
+
+    app.run(host='0.0.0.0', port=5000)
 
 
 if __name__ == '__main__':
-    args = type('args', (), {})
-    args.repo = None
-    launch(args)
+    default_args = type('args', (), {})
+    default_args.project_dir_path = ''
+    launch(default_args)

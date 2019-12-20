@@ -8,6 +8,7 @@ from git import Repo
 
 from sciit import IssueRepo
 
+
 app = Flask(__name__)
 
 

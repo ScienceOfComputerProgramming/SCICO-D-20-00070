@@ -6,7 +6,7 @@ import shutil
 from slugify import slugify
 
 from sciit import IssueSnapshot
-from sciit.regex import PLAIN, C_STYLE, IssuePropertyRegularExpressions, get_file_object_pattern
+from sciit.regex import PLAIN, C_STYLE, MARKDOWN, PYTHON, IssuePropertyRegularExpressions, get_file_object_pattern
 
 
 __all__ = 'find_issues_in_commit'
@@ -90,6 +90,9 @@ def find_issues_in_blob(comment_pattern, blob_content):
             comment_string = re.sub(r'^\s*#', '', comment_string, flags=re.M)
         if comment_pattern == C_STYLE:
             comment_string = re.sub(r'^\s*\*', '', comment_string, flags=re.M)
+        if comment_pattern in {PYTHON, MARKDOWN}:
+            comment_string = comment_string[3:-3]
+
         issue_data = extract_issue_data_from_comment_string(comment_string)
 
         if issue_data:

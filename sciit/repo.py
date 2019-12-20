@@ -3,6 +3,7 @@
 import os
 import stat
 import pkg_resources
+import shutil
 
 from shutil import copyfile
 from datetime import datetime
@@ -95,7 +96,6 @@ class IssueRepo(object):
             func(path)
 
         if self.is_init():
-            import shutil
             shutil.rmtree(self.issue_dir, onerror=onerror)
         else:
             raise EmptyRepositoryError

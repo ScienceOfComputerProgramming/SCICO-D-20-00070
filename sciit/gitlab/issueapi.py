@@ -44,14 +44,6 @@ def create_issue_note(CONFIG, data, iid, note_type, last=None):
                       json=note)
 
 
-def format_description(CONFIG, issue):
-    output = issue['description']
-    output += '\n\n\n`SCIIT locations`'
-    for path in issue['filepaths']:
-        output += f'\n* [{path["filepath"]} @{path["branch"]}]' + \
-            f'({WEBSERVICE_CONFIG.project_url}/blob/{path["branch"]}/{path["filepath"]})'
-    return output
-
 
 def create_issue(CONFIG, issue_data, multi_list):
     """Creates a new issue in gitlab
