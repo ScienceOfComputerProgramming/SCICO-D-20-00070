@@ -31,28 +31,6 @@ def do_repository_is_init_check(issue_repository):
         exit(127)
 
 
-def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=50, fill='#'):
-    """
-    From https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
-
-    Args:
-       :(int) iteration: current iteration
-       :(int) total: total iterations
-       :(str) prefix: prefix string
-       :(str) suffix: suffix string
-       :(str) decimals: positive number of decimals in percent complete
-       :(int) length: character length of bar
-       :(str) fill: bar fill character
-    """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filled_length = int(length * iteration // total)
-    progress_bar = fill * filled_length + '-' * (length - filled_length)
-    print('\r%s |%s| %s%% %s' % (prefix, progress_bar, percent, suffix), end='\r')
-
-    if iteration == total:
-        print()
-
-
 def do_repository_has_no_commits_warning():
     print(' ')
     ColorPrint.bold_red('The repository has no commits.')

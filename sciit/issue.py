@@ -32,8 +32,10 @@ def _make_revision_dictionary(commit, changes=None):
 
 
 class IssueSnapshot:
-    __slots__ = ('commit', 'data', 'title', 'description', 'assignees', 'due_date', 'label', 'weight', 'priority',
-                 'title', 'file_path', 'start_position', 'end_position', 'issue_id', 'blockers', 'in_branches')
+
+    __slots__ = ('commit', 'data', 'in_branches',
+                 'title', 'description', 'assignees', 'due_date', 'label', 'weight', 'priority', 'title', 'file_path',
+                 'start_position', 'end_position', 'issue_id', 'blockers')
 
     _children = dict()
 
@@ -102,7 +104,7 @@ class IssueSnapshot:
             return list()
 
     @property
-    def children(self):
+    def child_commits(self):
         if self.commit.hexsha not in IssueSnapshot._children:
 
             children = list()
@@ -291,7 +293,7 @@ class Issue:
 
     @property
     def in_progress_commit(self):
-        return self.issue_snapshots[0].children[0] if len(self.issue_snapshots[0].children) > 0 else None
+        return self.issue_snapshots[0].child_commits[0] if len(self.issue_snapshots[0].child_commits) > 0 else None
 
     @property
     def work_begun_date(self):
@@ -307,8 +309,8 @@ class Issue:
         def _child_of_last_commit_in_branch(branch_name):
             for issue_snapshot in reversed(self.issue_snapshots):
                 if branch_name in issue_snapshot.in_branches:
-                    if len(issue_snapshot.children) > 0:
-                        return issue_snapshot.children[0]
+                    if len(issue_snapshot.child_commits) > 0:
+                        return issue_snapshot.child_commits[0]
                     else:
                         break
             return None
@@ -359,6 +361,76 @@ class Issue:
             if self.issue_id in issue_snapshot.in_branches:
                 return issue_snapshot.commit
         return None
+
+    def _get_snapshot_for_commit_hexsha(self, commit_hexsha):
+        for issue_snapshot in self.issue_snapshots:
+            if issue_snapshot.commit.hexsha == commit_hexsha:
+                return issue_snapshot
+        return None
+
+    def changed_by_commit(self, commit_hexsha):
+
+        if self.closing_commit is not None and self.closing_commit.hexsha == commit_hexsha:
+            return True
+
+        commit_issue_snapshot = self._get_snapshot_for_commit_hexsha(commit_hexsha)
+
+        if commit_issue_snapshot is None:
+            return False
+
+        parent_commits = commit_issue_snapshot.commit.parents
+
+        if len(parent_commits) == 0:
+            return True
+
+        parent_issue_snapshots = \
+            {issue_snapshot for issue_snapshot in self.issue_snapshots if issue_snapshot.commit in parent_commits}
+
+        if len(parent_issue_snapshots) != len(parent_commits):
+            return True
+
+        def remove_start_and_end_position(data):
+            irrelevant_keys = {'start_position', 'end_position'}
+            return {key: value for key, value in data.items() if key not in irrelevant_keys}
+
+        latest_data = remove_start_and_end_position(commit_issue_snapshot.data)
+
+        for parent_issue_snapshot in parent_issue_snapshots:
+            parent_data = remove_start_and_end_position(parent_issue_snapshot.data)
+            if parent_data != latest_data:
+                return True
+
+        return False
+
+    """
+    def _deprecated(self):
+        parent_commits = self.newest_issue_snapshot.commit.parents
+
+        if len(parent_commits) == 0:
+            return True
+
+        parent_issue_snapshots =\
+            {issue_snapshot for issue_snapshot in self.issue_snapshots if issue_snapshot.commit in parent_commits}
+
+        if len(parent_issue_snapshots) != len(parent_commits):
+            return True
+
+        def remove_start_and_end_position(data):
+            return {key: value for key, value in data.items() if key not in {'start_position', 'end_position'}}
+
+        latest_data = remove_start_and_end_position(self.newest_issue_snapshot.data)
+
+        for parent_issue_snapshot in parent_issue_snapshots:
+            parent_data = remove_start_and_end_position(parent_issue_snapshot.data)
+            if parent_data != latest_data:
+                print(self.issue_id, set(parent_data.items()) ^ set(latest_data.items()))
+                return True
+
+        return (issue.issue_id in issue_ids_in_commit and issue.changed) or \
+               (issue.closing_commit is not None and issue.closing_commit.hexsha == commit_hexsha_str)
+
+        return False
+    """
 
     @property
     def latest_date_in_feature_branch(self):

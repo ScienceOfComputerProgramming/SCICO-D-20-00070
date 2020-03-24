@@ -6,16 +6,14 @@ import pkg_resources
 import shutil
 
 from shutil import copyfile
-from datetime import datetime
 
 from git import Commit
 from gitdb.util import hex_to_bin
 
-from sciit.errors import EmptyRepositoryError, NoCommitsError
+from sciit.cli import ProgressTracker
 from sciit.commit import find_issue_snapshots_in_commit_paths_that_changed
+from sciit.errors import EmptyRepositoryError, NoCommitsError
 from sciit.functions import write_last_issue_commit_sha, get_last_issue_commit_sha, get_sciit_ignore_path_spec
-from sciit.cli.functions import print_progress_bar
-
 from sciit.issue import Issue, IssueSnapshot
 
 from contextlib import closing
@@ -30,29 +28,6 @@ def dict_factory(cursor, row):
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
     return d
-
-
-class ProgressTracker(object):
-    def __init__(self, cli, number_of_commits_for_processing):
-        self.cli = cli
-        self.number_of_commits_for_processing = number_of_commits_for_processing
-        self.commits_scanned = 0
-        self.start = datetime.now()
-
-    def processed_commit(self):
-        self.commits_scanned += 1
-        self._print_commit_progress()
-
-    def _print_commit_progress(self):
-        if self.cli:
-            duration = datetime.now() - self.start
-            commits_scanned = self.commits_scanned
-            number_of_commits_for_processing = self.number_of_commits_for_processing
-
-            prefix = 'Processing %d/%d commits: ' % (commits_scanned, number_of_commits_for_processing)
-            suffix = ' Duration: %s' % str(duration)
-
-            print_progress_bar(commits_scanned, number_of_commits_for_processing, prefix=prefix, suffix=suffix)
 
 
 class IssueRepo(object):
@@ -164,8 +139,8 @@ class IssueRepo(object):
         changed_issue_snapshots, files_changed_in_commit, in_branches = \
             find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
 
-        unchanged_issue_snapshots = self._find_unchanged_issue_snapshots_in_parents(
-            commit, in_branches, files_changed_in_commit)
+        unchanged_issue_snapshots = \
+            self._find_unchanged_issue_snapshots_in_parents(commit, in_branches, files_changed_in_commit)
 
         all_commit_issue_snapshots = changed_issue_snapshots + unchanged_issue_snapshots
         self._serialize_issue_snapshots_to_db(commit.hexsha, all_commit_issue_snapshots)
@@ -184,7 +159,8 @@ class IssueRepo(object):
 
             for unchanged_issue_snapshot_in_parent in unchanged_issue_snapshots_in_parent:
                 if unchanged_issue_snapshot_in_parent not in result.keys():
-                    issue_snapshot = IssueSnapshot(commit, unchanged_issue_snapshot_in_parent.data, in_branches)
+                    issue_snapshot = \
+                        IssueSnapshot(commit, unchanged_issue_snapshot_in_parent.data, in_branches)
                     result[issue_snapshot.issue_id] = issue_snapshot
 
         return list(result.values())
@@ -215,6 +191,10 @@ class IssueRepo(object):
                 history[issue_id].update(issue_snapshot)
 
         return history
+
+    def get_issue_history_iterator(self, revision='--all', issue_ids=None):
+        commit_hexshas_str = self.git_repository.git.execute(['git', 'rev-list', '--reverse', revision])
+        return IssueHistoryIterator(self, commit_hexshas_str.split('\n'), issue_ids)
 
     def find_issue_snapshots(self, revision=None):
         if revision is not None:
@@ -251,9 +231,11 @@ class IssueRepo(object):
         result = list()
 
         with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
+
             cursor = connection.cursor()
             cursor.row_factory = dict_factory
             self._create_issue_snapshot_table(cursor)
+
             if commit_hexshas is None:
                 row_values = cursor.execute("SELECT * FROM IssueSnapshot").fetchall()
             else:
@@ -286,3 +268,44 @@ class IssueRepo(object):
             )
             """
         )
+
+
+class IssueHistoryIterator:
+
+    def __init__(self, sciit_repository: IssueRepo, commit_hexshas, issue_ids=None):
+
+        self._sciit_repository = sciit_repository
+        self._head_commits = {head.name: head.commit.hexsha for head in self._sciit_repository.git_repository.heads}
+
+        self._commit_hexshas = commit_hexshas
+
+        self._issue_ids = issue_ids
+
+        self._commit_hexsha_index = 0
+        self.last_changed_issue_ids = set()
+        self._history = dict()
+
+    def __iter__(self):
+        return self
+
+    def __len__(self):
+        return len(self._commit_hexshas)
+
+    def __next__(self):
+        if self._commit_hexsha_index >= len(self._commit_hexshas):
+            raise StopIteration()
+
+        commit_hexsha = self._commit_hexshas[self._commit_hexsha_index]
+        self._commit_hexsha_index += 1
+
+        issue_snapshots = self._sciit_repository.find_issue_snapshots_by_commit(commit_hexsha)
+
+        for issue_snapshot in issue_snapshots:
+            issue_id = issue_snapshot.issue_id
+
+            if self._issue_ids is None or issue_id in self._issue_ids:
+                if issue_id not in self._history:
+                    self._history[issue_id] = Issue(issue_id, self._history, self._head_commits)
+                self._history[issue_id].update(issue_snapshot)
+
+        return commit_hexsha, self._history
