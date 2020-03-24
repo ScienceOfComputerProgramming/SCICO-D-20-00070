@@ -100,7 +100,7 @@ def launch(args):
             job = job_queue.get(block=True)
             job()
 
-    Thread(target=process_jobs).start(())
+    Thread(target=process_jobs).start()
 
     app.run(host='0.0.0.0', port=5000)
 

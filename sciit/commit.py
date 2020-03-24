@@ -66,7 +66,7 @@ def extract_issue_data_from_comment_string(comment: str):
     if 'issue_id' in issue_data:
         update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.DESCRIPTION, 'description')
         update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.ASSIGNEES, 'assignees')
-        update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.LABEL, 'label')
+        update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.LABEL, 'labels')
         update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.DUE_DATE, 'due_date')
         update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.PRIORITY, 'priority')
         update_issue_data_dict_with_value_from_comment(IssuePropertyRegularExpressions.WEIGHT, 'weight')

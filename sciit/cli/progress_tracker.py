@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=50, fill='#'):
+class ProgressTracker(object):
     """
     From https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
 
@@ -14,34 +14,41 @@ def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, lengt
        :(int) length: character length of bar
        :(str) fill: bar fill character
     """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filled_length = int(length * iteration // total)
-    progress_bar = fill * filled_length + '-' * (length - filled_length)
 
-    print('\r%s |%s| %s%% %s' % (prefix, progress_bar, percent, suffix), end='\r')
-
-    if iteration == total:
-        print()
-
-
-class ProgressTracker(object):
-    def __init__(self, cli, number_of_commits_for_processing):
+    def __init__(self, cli, number_of_objects_for_processing, object_type_name='objects', decimals=1, length=50, fill='#'):
         self.cli = cli
-        self.number_of_commits_for_processing = number_of_commits_for_processing
-        self.commits_scanned = 0
+        self._number_of_objects_for_processing = number_of_objects_for_processing
+
+        self._object_type_name = object_type_name
+        self._decimals=decimals
+        self._length=length
+        self._fill = fill
+
+        self._objects_processed = 0
         self.start = datetime.now()
 
-    def processed_commit(self):
-        self.commits_scanned += 1
-        self._print_commit_progress()
+    def processed_object(self, progress=None):
+        if progress is None:
+            self._objects_processed += 1
+        else:
+            self._objects_processed = progress
 
-    def _print_commit_progress(self):
         if self.cli:
             duration = datetime.now() - self.start
-            commits_scanned = self.commits_scanned
-            number_of_commits_for_processing = self.number_of_commits_for_processing
 
-            prefix = 'Processing %d/%d commits: ' % (commits_scanned, number_of_commits_for_processing)
+            prefix = 'Processing %d/%d %s: ' %\
+                     (self._objects_processed, self._number_of_objects_for_processing, self._object_type_name)
+
+            filled_length = int(self._length * self._objects_processed // self._number_of_objects_for_processing)
+            progress_bar = self._fill * filled_length + '-' * (self._length - filled_length)
+
             suffix = ' Duration: %s' % str(duration)
 
-            print_progress_bar(commits_scanned, number_of_commits_for_processing, prefix=prefix, suffix=suffix)
+            percent = 100 * (self._objects_processed / float(self._number_of_objects_for_processing))
+            percent_str = ("{0:." + str(self._decimals) + "f}").format(percent)
+
+            print('\r%s |%s| %s%% %s' % (prefix, progress_bar, percent_str, suffix), end='\r')
+
+            if self._objects_processed == self._number_of_objects_for_processing:
+                print()
+

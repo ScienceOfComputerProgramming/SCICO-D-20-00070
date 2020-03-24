@@ -455,8 +455,8 @@ class TestFindIssueInComment(TestCase):
         data = extract_issue_data_from_comment_string(comment)
         self.assertIn('issue_id', data)
         self.assertEqual(data['issue_id'], '2')
-        self.assertIn('label', data)
-        self.assertEqual(data['label'], 'in-development, main-feature')
+        self.assertIn('labels', data)
+        self.assertEqual(data['labels'], 'in-development, main-feature')
 
     def test_find_id_and_weight(self):
         comment = """
@@ -504,8 +504,8 @@ class TestFindIssueInComment(TestCase):
         self.assertEqual(data['assignees'], 'nystrome, kevin, daniels')
         self.assertIn('due_date', data)
         self.assertEqual(data['due_date'], '12 oct 2018')
-        self.assertIn('label', data)
-        self.assertEqual(data['label'], 'in-development')
+        self.assertIn('labels', data)
+        self.assertEqual(data['labels'], 'in-development')
         self.assertIn('weight', data)
         self.assertEqual(data['weight'], '4')
         self.assertIn('priority', data)

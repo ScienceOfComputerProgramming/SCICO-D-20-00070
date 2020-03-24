@@ -34,7 +34,7 @@ def _make_revision_dictionary(commit, changes=None):
 class IssueSnapshot:
 
     __slots__ = ('commit', 'data', 'in_branches',
-                 'title', 'description', 'assignees', 'due_date', 'label', 'weight', 'priority', 'title', 'file_path',
+                 'title', 'description', 'assignees', 'due_date', 'labels', 'weight', 'priority', 'title', 'file_path',
                  'start_position', 'end_position', 'issue_id', 'blockers')
 
     _children = dict()
@@ -56,8 +56,8 @@ class IssueSnapshot:
             self.assignees = self.data['assignees']
         if 'due_date' in self.data:
             self.due_date = self.data['due_date']
-        if 'label' in self.data:
-            self.label = self.data['label']
+        if 'labels' in self.data:
+            self.labels = self.data['labels']
         if 'weight' in self.data:
             self.weight = self.data['weight']
         if 'priority' in self.data:
@@ -203,8 +203,12 @@ class Issue:
         return self.newest_value_of_issue_property('due_date')
 
     @property
-    def label(self):
-        return self.newest_value_of_issue_property('label')
+    def labels(self):
+        labels_str = self.newest_value_of_issue_property('labels')
+        if labels_str is None:
+            return []
+        else:
+            return [label.strip() for label in labels_str.split(',')]
 
     @property
     def weight(self):

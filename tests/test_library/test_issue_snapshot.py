@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from unittest.mock import MagicMock
 
-from sciit import IssueSnapshot, IssueRepo
+from sciit import IssueSnapshot
 from tests.external_resources import safe_create_repo_dir
 
 

@@ -129,7 +129,7 @@ class IssueRepo(object):
     def _extract_and_synchronise_issue_snapshots_from_commits(self, commits_for_processing):
 
         ignored_files = get_sciit_ignore_path_spec(self.git_repository)
-        progress_tracker = ProgressTracker(self.cli, len(commits_for_processing))
+        progress_tracker = ProgressTracker(self.cli, len(commits_for_processing), object_type_name='commits')
 
         for commit in commits_for_processing:
             self._cache_issue_snapshots_from_commit(commit, ignored_files, progress_tracker)
@@ -145,7 +145,7 @@ class IssueRepo(object):
         all_commit_issue_snapshots = changed_issue_snapshots + unchanged_issue_snapshots
         self._serialize_issue_snapshots_to_db(commit.hexsha, all_commit_issue_snapshots)
 
-        progress_tracker.processed_commit()
+        progress_tracker.processed_object()
 
     def _find_unchanged_issue_snapshots_in_parents(self, commit, in_branches, files_changed_in_commit):
         result = dict()

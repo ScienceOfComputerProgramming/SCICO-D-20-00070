@@ -3,7 +3,8 @@ from io import StringIO
 from unittest import TestCase
 from unittest.mock import patch
 
-from sciit.cli.functions import print_progress_bar, read_sciit_version, yes_no_option
+from sciit.cli.functions import read_sciit_version, yes_no_option
+from sciit.cli import ProgressTracker
 
 
 class TestReadManualFiles(TestCase):
@@ -57,31 +58,43 @@ class TestPrintProgressBar(TestCase):
         self.held, sys.stdout = sys.stdout, StringIO()
 
     def test_25_percent(self):
-        print_progress_bar(1, 4)
-        expected_output = '\r |############--------------------------------------| 25.0% \r'
+        progress_tracker = ProgressTracker(True, 4)
+        progress_tracker.processed_object(1)
+        expected_output = \
+            '\rProcessing 1/4 objects:  |############--------------------------------------| 25.0%  Duration: 0:00:00\r'
         self.assertEqual(sys.stdout.getvalue(), expected_output)
 
     def test_33_percent(self):
-        print_progress_bar(1, 3)
-        expected_output = '\r |################----------------------------------| 33.3% \r'
+        progress_tracker = ProgressTracker(True, 3)
+        progress_tracker.processed_object(1)
+        expected_output = \
+            '\rProcessing 1/3 objects:  |################----------------------------------| 33.3%  Duration: 0:00:00\r'
         self.assertEqual(sys.stdout.getvalue(), expected_output)
 
     def test_50_percent(self):
-        print_progress_bar(1, 2)
-        expected_output = '\r |#########################-------------------------| 50.0% \r'
+        progress_tracker = ProgressTracker(True, 2)
+        progress_tracker.processed_object(1)
+        expected_output = \
+            '\rProcessing 1/2 objects:  |#########################-------------------------| 50.0%  Duration: 0:00:00\r'
         self.assertEqual(sys.stdout.getvalue(), expected_output)
 
     def test_66_percent(self):
-        print_progress_bar(2, 3)
-        expected_output = '\r |#################################-----------------| 66.7% \r'
+        progress_tracker = ProgressTracker(True, 3)
+        progress_tracker.processed_object(2)
+        expected_output = \
+            '\rProcessing 2/3 objects:  |#################################-----------------| 66.7%  Duration: 0:00:00\r'
         self.assertEqual(sys.stdout.getvalue(), expected_output)
 
     def test_75_percent(self):
-        print_progress_bar(3, 4)
-        expected_output = '\r |#####################################-------------| 75.0% \r'
+        progress_tracker = ProgressTracker(True, 4)
+        progress_tracker.processed_object(3)
+        expected_output = \
+            '\rProcessing 3/4 objects:  |#####################################-------------| 75.0%  Duration: 0:00:00\r'
         self.assertEqual(sys.stdout.getvalue(), expected_output)
 
     def test_100_percent(self):
-        print_progress_bar(2, 2)
-        expected_output = '\r |##################################################| 100.0% \r\n'
+        progress_tracker = ProgressTracker(True, 1)
+        progress_tracker.processed_object(1)
+        expected_output = \
+            '\rProcessing 1/1 objects:  |##################################################| 100.0%  Duration: 0:00:00\r\n'
         self.assertEqual(sys.stdout.getvalue(), expected_output)

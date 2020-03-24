@@ -169,7 +169,7 @@ def build_issue_history(issue_item, view=None):
 
     output += f'\nParticipants:      {participants}'
     output += f'\nDue Date:          {issue_item.due_date}' if issue_item.due_date else ''
-    output += f'\nLabels:            {issue_item.label}' if issue_item.label else ''
+    output += f'\nLabels:            {issue_item.labels}' if issue_item.labels else ''
     output += f'\nWeight:            {issue_item.weight}' if issue_item.weight else ''
     output += f'\nPriority:          {issue_item.priority}' if issue_item.priority else ''
 

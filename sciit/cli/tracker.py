@@ -6,7 +6,7 @@ all tracked issues with issues open in the current repository or from the specif
 """
 
 import datetime
-from sciit.cli.functions import build_issue_history, page, print_progress_bar
+from sciit.cli import build_issue_history, page, ProgressTracker
 from sciit.cli.color import ColorPrint
 
 
@@ -41,15 +41,14 @@ def page_history_issues(history, view=None, issue_filter=None):
     current_issue = 0
     output = ''
 
+    progress_tracker = ProgressTracker(True, num_issues, object_type_name='issues')
+
     for item in filtered_history:
         if issue_filter is None or issue_filter(item):
             output += build_issue_history(item, view)
             current_issue += 1
-            duration = datetime.datetime.now() - start
-            prefix = 'Recovering %d/%d issues:  ' % (current_issue, num_issues)
-            suffix = ' Duration: %s' % str(duration)
 
-            print_progress_bar(current_issue, num_issues, prefix, suffix)
+            progress_tracker.processed_object()
 
     page(output)
     return output
