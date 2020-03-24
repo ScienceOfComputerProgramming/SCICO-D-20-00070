@@ -16,14 +16,14 @@ from sciit import IssueRepo
 from sciit.cli.functions import read_sciit_version
 from sciit.cli.close_issue import close_issue
 from sciit.cli.color import ColorPrint, ColorText
+from sciit.cli.gitlab import launch as launch_gitlab_service, reset as reset_gitlab_issues
 from sciit.cli.init import init
+from sciit.cli.issue import issue
 from sciit.cli.log import log
 from sciit.cli.new_issue import new_issue
 from sciit.cli.status import status
 from sciit.cli.tracker import tracker
-from sciit.cli.issue import issue
-from sciit.cli.web import web
-from sciit.gitlab.webservice import launch as launch_gitlab
+from sciit.cli.web import launch as launch_web_service
 
 
 def add_revision_option(parser):
@@ -123,11 +123,19 @@ def create_command_parser():
     web_parser = subparsers.add_parser(
         'web',
         description='Launches a local web interface for the sciit issue tracker')
-    web_parser.set_defaults(func=web)
+    web_parser.set_defaults(func=launch_web_service)
 
-    gitlab_parser = subparsers.add_parser(
-        'gitlab', description='Launches the gitlab webservice that integrates gitlab issues with sciit')
-    gitlab_parser.set_defaults(func=launch_gitlab)
+    gitlab_parser = subparsers.add_parser('gitlab')
+    gitlab_subparsers = gitlab_parser.add_subparsers()
+
+    gitlab_start_parser = gitlab_subparsers.add_parser(
+        'start', description='Launches the gitlab webservice that integrates gitlab issues with sciit')
+    gitlab_start_parser.set_defaults(func=launch_gitlab_service)
+
+    gitlab_reset_parser = gitlab_subparsers.add_parser(
+        'reset', description='Resets all issues in the GitLab database.')
+    gitlab_reset_parser.set_defaults(func=reset_gitlab_issues)
+    gitlab_reset_parser
 
     new_parser = subparsers.add_parser(
         'new',

@@ -85,7 +85,7 @@ def init():
     return Response({'status': 'Success', 'message': f'Issue cache initialised for project {project_url}.'})
 
 
-def launch(args):
+def launch(project_dir_path):
     """
     A helper function that launches the web service.
     """
@@ -93,7 +93,7 @@ def launch(args):
     global job_queue
 
     job_queue = LifoQueue()
-    gitlab_web_hook_receiver = GitLabWebHookReceiver(args.project_dir_path)
+    gitlab_web_hook_receiver = GitLabWebHookReceiver(project_dir_path)
 
     def process_jobs():
         while True:

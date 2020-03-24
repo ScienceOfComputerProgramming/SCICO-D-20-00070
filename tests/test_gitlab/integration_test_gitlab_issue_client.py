@@ -11,7 +11,7 @@ class TestGitlabIssueClient(TestCase):
 
         self.gitlab_issue_client = GitlabIssueClient(
             site_homepage='https://git.dcs.gla.ac.uk',
-            api_token='8b9W5ZAkDCsvJYQzhJZ2',
+            api_token='??',
         )
 
     def test_update_issue(self):

@@ -1,5 +1,5 @@
 from sciit.web.server import launch
 
 
-def web(args):
+def launch(args):
     launch(args.repo)
