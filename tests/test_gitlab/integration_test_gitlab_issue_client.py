@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from sciit.gitlab.classes import GitlabIssueClient
+from sciit.gitlab.classes import GitlabIssueClient, GitlabTokenCache
 from sciit import Issue, IssueSnapshot
 
 
@@ -9,9 +9,14 @@ class TestGitlabIssueClient(TestCase):
 
     def setUp(self):
 
+        project_id = 145
+
+        gitlab_token_cache = GitlabTokenCache('../../../')
+        api_token = gitlab_token_cache.get_gitlab_api_token(project_id)
+
         self.gitlab_issue_client = GitlabIssueClient(
             site_homepage='https://git.dcs.gla.ac.uk',
-            api_token='??',
+            api_token=api_token,
         )
 
     def test_update_issue(self):
