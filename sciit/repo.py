@@ -275,7 +275,6 @@ class IssueHistoryIterator:
     def __init__(self, sciit_repository: IssueRepo, commit_hexshas, issue_ids=None):
 
         self._sciit_repository = sciit_repository
-        self._head_commits = {head.name: head.commit.hexsha for head in self._sciit_repository.git_repository.heads}
 
         self._commit_hexshas = commit_hexshas
 
@@ -284,6 +283,22 @@ class IssueHistoryIterator:
         self._commit_hexsha_index = 0
         self.last_changed_issue_ids = set()
         self._history = dict()
+
+        self._initialise_head_commits()
+
+    def _initialise_head_commits(self):
+        self._all_commits_heads = dict()
+        for head in self._sciit_repository.git_repository.heads:
+            commit_hexshas_in_head_str = \
+                self._sciit_repository.git_repository.git.execute(['git', 'rev-list', '--reverse', head.name])
+            self._all_commits_heads[head.name] = commit_hexshas_in_head_str.split('\n')
+
+        self._historic_head_commits = {key: value[0] for key, value in self._all_commits_heads.items()}
+
+    def _update_historic_head_commits(self, commit_hexsha):
+        for head_name in self._historic_head_commits:
+            if commit_hexsha in self._all_commits_heads[head_name]:
+                self._historic_head_commits[head_name] = commit_hexsha
 
     def __iter__(self):
         return self
@@ -298,14 +313,15 @@ class IssueHistoryIterator:
         commit_hexsha = self._commit_hexshas[self._commit_hexsha_index]
         self._commit_hexsha_index += 1
 
+        self._update_historic_head_commits(commit_hexsha)
+
         issue_snapshots = self._sciit_repository.find_issue_snapshots_by_commit(commit_hexsha)
 
         for issue_snapshot in issue_snapshots:
             issue_id = issue_snapshot.issue_id
-
             if self._issue_ids is None or issue_id in self._issue_ids:
                 if issue_id not in self._history:
-                    self._history[issue_id] = Issue(issue_id, self._history, self._head_commits)
+                    self._history[issue_id] = Issue(issue_id, self._history, self._historic_head_commits)
                 self._history[issue_id].update(issue_snapshot)
 
         return commit_hexsha, self._history

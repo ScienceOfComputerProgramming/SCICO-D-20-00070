@@ -142,8 +142,6 @@ class Issue:
 
         self.issue_snapshots = list()
 
-        self._open_in_branches = None
-
     @property
     def newest_issue_snapshot(self):
         return self.issue_snapshots[-1]
@@ -406,36 +404,6 @@ class Issue:
 
         return False
 
-    """
-    def _deprecated(self):
-        parent_commits = self.newest_issue_snapshot.commit.parents
-
-        if len(parent_commits) == 0:
-            return True
-
-        parent_issue_snapshots =\
-            {issue_snapshot for issue_snapshot in self.issue_snapshots if issue_snapshot.commit in parent_commits}
-
-        if len(parent_issue_snapshots) != len(parent_commits):
-            return True
-
-        def remove_start_and_end_position(data):
-            return {key: value for key, value in data.items() if key not in {'start_position', 'end_position'}}
-
-        latest_data = remove_start_and_end_position(self.newest_issue_snapshot.data)
-
-        for parent_issue_snapshot in parent_issue_snapshots:
-            parent_data = remove_start_and_end_position(parent_issue_snapshot.data)
-            if parent_data != latest_data:
-                print(self.issue_id, set(parent_data.items()) ^ set(latest_data.items()))
-                return True
-
-        return (issue.issue_id in issue_ids_in_commit and issue.changed) or \
-               (issue.closing_commit is not None and issue.closing_commit.hexsha == commit_hexsha_str)
-
-        return False
-    """
-
     @property
     def latest_date_in_feature_branch(self):
         if self.latest_commit_in_feature_branch is not None:
@@ -491,14 +459,13 @@ class Issue:
         return result
 
     @property
+    def issue_snapshot_commit_hexshas(self):
+        return [issue_snapshot.commit.hexsha for issue_snapshot in self.issue_snapshots]
+
+    @property
     def open_in_branches(self):
-        if not self._open_in_branches:
-            issue_snapshot_commit_hexshas = [issue_snapshot.commit.hexsha for issue_snapshot in self.issue_snapshots]
-            self._open_in_branches = set()
-            for name, hexsha in self.head_commits.items():
-                if hexsha in issue_snapshot_commit_hexshas:
-                    self._open_in_branches.add(name)
-        return self._open_in_branches
+        return {name for name, commit_hexsha in self.head_commits.items()
+                if commit_hexsha in self.issue_snapshot_commit_hexshas}
 
     @property
     def closed_in_branches(self):

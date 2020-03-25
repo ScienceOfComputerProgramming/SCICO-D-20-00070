@@ -161,17 +161,16 @@ class MirroredGitlabSciitProject:
         self.local_sciit_repository = local_sciit_repository
         self.gitlab_sciit_issue_id_cache = gitlab_sciit_issue_id_cache
 
-    def reset_gitlab_issues(self):
+    def reset_gitlab_issues(self, revision='--all', issue_ids=None):
         self.gitlab_issue_client.clear_issues(self.project_path_with_namespace)
 
-        issue_history_iterator = self.local_sciit_repository.get_issue_history_iterator()
+        issue_history_iterator = self.local_sciit_repository.get_issue_history_iterator(revision, issue_ids)
 
-        progress_tracker = ProgressTracker(True, len(issue_history_iterator))
+        progress_tracker = ProgressTracker(True, len(issue_history_iterator), object_type_name='commits')
 
         for commit_hexsha_str, issues in issue_history_iterator:
 
             issues_to_be_updated = {issue for issue in issues.values() if issue.changed_by_commit(commit_hexsha_str)}
-
             self.gitlab_issue_client.handle_issues(
                 self.project_path_with_namespace, issues_to_be_updated, self.gitlab_sciit_issue_id_cache)
             progress_tracker.processed_object()

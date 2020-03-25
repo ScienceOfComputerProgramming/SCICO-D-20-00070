@@ -6,6 +6,8 @@ from sciit.gitlab.classes import GitlabIssueClient, GitlabSciitIssueIDCache, Git
     MirroredGitlabSciitProject
 from sciit import IssueRepo
 
+import os
+
 
 class TestMirroredGitlabSciitProject(unittest.TestCase):
 
@@ -14,8 +16,8 @@ class TestMirroredGitlabSciitProject(unittest.TestCase):
 
         project_id = 145
 
-        gitlab_token_cache = GitlabTokenCache('../../../')
-        api_token = gitlab_token_cache.get_gitlab_api_token(project_id)
+        gitlab_token_cache = GitlabTokenCache('../../../git.dcs.gla.ac.uk')
+        api_token = gitlab_token_cache.get_gitlab_api_token('twsswt/sciit-gitlab-test')
 
         gitlab_issue_client = GitlabIssueClient(
             site_homepage='https://git.dcs.gla.ac.uk',
@@ -27,11 +29,15 @@ class TestMirroredGitlabSciitProject(unittest.TestCase):
 
         gitlab_sciit_issue_id_cache = GitlabSciitIssueIDCache(repository_path)
 
-
         self.mirrored_gitlab_sciit_project = MirroredGitlabSciitProject(
             project_id, gitlab_issue_client, local_sciit_repository, gitlab_sciit_issue_id_cache)
 
     def test_reset_gitlab_issues(self):
+
+        revision = '37072584d1d4ff5ba9faebbefc84f9d6ab063741~1' + '..' + 'HEAD'
+
+        issue_ids = ['add-accept-functionality-to-new-issue-command']
+
         self.mirrored_gitlab_sciit_project.reset_gitlab_issues()
 
 
