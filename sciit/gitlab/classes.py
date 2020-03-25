@@ -16,9 +16,9 @@ class GitlabIssueClient:
         self.site_homepage = site_homepage
         self.api_token = api_token
 
-    def handle_issues(self, project_id, sciit_issues, gitlab_sciit_issue_id_cache):
+    def handle_issues(self, project_path_with_namespace, sciit_issues, gitlab_sciit_issue_id_cache):
         with Gitlab(self.site_homepage, self.api_token) as gitlab_instance:
-            project = gitlab_instance.projects.get(project_id)
+            project = gitlab_instance.projects.get(project_path_with_namespace)
             for sciit_issue in sciit_issues:
                 sciit_issue_id = sciit_issue.issue_id
                 gitlab_issue_id = gitlab_sciit_issue_id_cache.get_gitlab_issue_id(sciit_issue_id)
@@ -87,9 +87,9 @@ class GitlabIssueClient:
             gitlab_issue.updated_at = sciit_issue.last_authored_date_string
             gitlab_issue.save()
 
-    def clear_issues(self, project_id):
+    def clear_issues(self, project_path_with_namespace):
         with Gitlab(self.site_homepage, self.api_token) as gitlab_instance:
-            project = gitlab_instance.projects.get(project_id)
+            project = gitlab_instance.projects.get(project_path_with_namespace)
             for gitlab_issue in project.issues.list(all=True):
                 gitlab_issue.delete()
                 gitlab_issue.save()
@@ -154,15 +154,15 @@ class MirroredGitlabSciitProjectException(Exception):
 
 class MirroredGitlabSciitProject:
 
-    def __init__(self, project_id, gitlab_issue_client, local_sciit_repository, gitlab_sciit_issue_id_cache):
+    def __init__(self, project_path_with_namespace, gitlab_issue_client, local_sciit_repository, gitlab_sciit_issue_id_cache):
 
-        self.project_id = project_id
+        self.project_path_with_namespace = project_path_with_namespace
         self.gitlab_issue_client = gitlab_issue_client
         self.local_sciit_repository = local_sciit_repository
         self.gitlab_sciit_issue_id_cache = gitlab_sciit_issue_id_cache
 
     def reset_gitlab_issues(self):
-        self.gitlab_issue_client.clear_issues(self.project_id)
+        self.gitlab_issue_client.clear_issues(self.project_path_with_namespace)
 
         issue_history_iterator = self.local_sciit_repository.get_issue_history_iterator()
 
@@ -173,7 +173,7 @@ class MirroredGitlabSciitProject:
             issues_to_be_updated = {issue for issue in issues.values() if issue.changed_by_commit(commit_hexsha_str)}
 
             self.gitlab_issue_client.handle_issues(
-                self.project_id, issues_to_be_updated, self.gitlab_sciit_issue_id_cache)
+                self.project_path_with_namespace, issues_to_be_updated, self.gitlab_sciit_issue_id_cache)
             progress_tracker.processed_object()
 
     def process_web_hook_event(self, event, data):
@@ -191,7 +191,7 @@ class MirroredGitlabSciitProject:
 
         issue_snapshots = self.local_sciit_repository.find_issue_snapshots(revision)
 
-        self.gitlab_issue_client.handle_issue_snapshots(self.project_id, issue_snapshots)
+        self.gitlab_issue_client.handle_issue_snapshots(self.project_path_with_namespace, issue_snapshots)
 
     @staticmethod
     def _get_revision(before_commit_str, after_commit_str):
@@ -216,14 +216,14 @@ class GitlabTokenCache:
         cursor.execute(
             '''
             CREATE TABLE IF NOT EXISTS gitlab_api_token_cache 
-            (project_id INTEGER PRIMARY KEY, api_token TEXT)
+            (project_path_with_namespace TEXT PRIMARY KEY, api_token TEXT)
             WITHOUT ROWID
             '''
         )
 
         return connection
 
-    def get_gitlab_api_token(self, project_id):
+    def get_gitlab_api_token(self, project_path_with_namespace):
 
         with self._gitlab_token_cache_db_connection as connection:
 
@@ -232,11 +232,11 @@ class GitlabTokenCache:
             query_string = (
                 '''
                 SELECT api_token FROM gitlab_api_token_cache
-                WHERE project_id = ?
+                WHERE project_path_with_namespace = ?
                 '''
             )
 
-            query_result = cursor.execute(query_string, (project_id,)).fetchall()
+            query_result = cursor.execute(query_string, (project_path_with_namespace,)).fetchall()
             if len(query_result) > 0:
                 return query_result[0][0]
             else:
@@ -253,35 +253,39 @@ class MirroredGitlabSite:
 
         self.mirrored_gitlab_sciit_projects = dict()
 
-    def get_mirrored_gitlab_sciit_project(self, project_id, project_url, path_with_namespace):
+    def get_mirrored_gitlab_sciit_project(self, path_with_namespace, local_git_repository_path=None):
 
-        if project_id not in self.mirrored_gitlab_sciit_projects:
+        if path_with_namespace not in self.mirrored_gitlab_sciit_projects:
 
-            local_git_repository_path = self.site_local_mirror_path + os.path.sep + path_with_namespace
+            _local_git_repository_path = \
+                local_git_repository_path if local_git_repository_path is not None \
+                else self.site_local_mirror_path + os.path.sep + path_with_namespace
 
-            if not os.path.exists(local_git_repository_path):
+            project_url = self.site_homepage + '/' + path_with_namespace
+
+            if not os.path.exists(_local_git_repository_path):
                 subprocess.run(
-                    ['git', 'clone', '--mirror', project_url, local_git_repository_path], check=True)
+                    ['git', 'clone', '--mirror', project_url, _local_git_repository_path], check=True)
 
-            git_repository = Repo(local_git_repository_path)
+            git_repository = Repo(_local_git_repository_path)
             local_issue_repository = IssueRepo(git_repository)
-            local_issue_repository.cache_issue_snapshots_from_all_commits()
+            # TODO
+            # local_issue_repository.cache_issue_snapshots_from_all_commits()
+            #
+            api_token = self._gitlab_token_cache.get_gitlab_api_token(path_with_namespace)
 
-            api_token = self._gitlab_token_cache.get_gitlab_api_token(project_id)
+            gitlab_issue_client = GitlabIssueClient(self.site_homepage, api_token)
 
-            gitlab_issue_client = GitlabIssueClient(self, api_token)
+            gitlab_sciit_issue_id_cache = GitlabSciitIssueIDCache(_local_git_repository_path)
 
-            gitlab_sciit_issue_id_cache = GitlabSciitIssueIDCache(local_git_repository_path)
-
-            self.mirrored_gitlab_sciit_projects[project_id] = \
+            self.mirrored_gitlab_sciit_projects[path_with_namespace] = \
                 MirroredGitlabSciitProject(
-                    project_id, gitlab_issue_client, local_issue_repository, gitlab_sciit_issue_id_cache)
+                    path_with_namespace, gitlab_issue_client, local_issue_repository, gitlab_sciit_issue_id_cache)
 
-        return self.mirrored_gitlab_sciit_projects[project_id]
+        return self.mirrored_gitlab_sciit_projects[path_with_namespace]
 
 
-
-class GitLabWebHookReceiver:
+class MirroredGitlabSites:
 
     def __init__(self, sites_path):
 
@@ -291,10 +295,7 @@ class GitLabWebHookReceiver:
 
         self.mirrored_gitlab_sites = dict()
 
-    def get_mirrored_gitlab_sciit_project(self, data):
-
-        site_homepage = data['repository']['homepage'].rsplit('/', 1)[0].rsplit('/', 1)[0]
-
+    def get_mirrored_gitlab_sciit_project(self, site_homepage, path_with_namespace, local_git_repository_path=None):
         if site_homepage not in self.mirrored_gitlab_sites:
 
             site_directory_name = site_homepage[8:site_homepage.index('/', 8)]
@@ -307,11 +308,7 @@ class GitLabWebHookReceiver:
 
         mirrored_gitlab_site = self.mirrored_gitlab_sites[site_homepage]
 
-        project_id = data['project']['id']
-        project_url = data['project']['web_url']
-        path_with_namepsace = data['project']['path_with_namespace']
-
-        return mirrored_gitlab_site.get_mirrored_gitlab_sciit_project(project_id, project_url, path_with_namepsace)
+        return mirrored_gitlab_site.get_mirrored_gitlab_sciit_project(path_with_namespace, local_git_repository_path)
 
     def configure_logger_for_web_service_events(self):
 

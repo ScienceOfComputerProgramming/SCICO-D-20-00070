@@ -70,7 +70,10 @@ def add_gitlab_reset_parser(gitlab_subparsers):
         'reset', description='Resets all issues in the Gitlab database.')
     gitlab_reset_parser.set_defaults(func=reset_gitlab_issues)
 
-    gitlab_reset_parser.add_argument('project-url')
+    gitlab_reset_parser.add_argument('project_url')
+    gitlab_reset_parser.add_argument(
+        '-l', '--local-git-repository-path',
+        help='Path to local git repository, if not mapped by remote repository URL', default=None)
 
 
 def add_gitlab_parser(subparsers):

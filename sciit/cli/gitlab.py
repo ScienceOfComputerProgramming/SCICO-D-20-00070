@@ -7,4 +7,4 @@ def launch(args):
 
 
 def reset(args):
-    reset_gitlab_issues(args.project_url)
+    reset_gitlab_issues(args.project_url, args.local_git_repository_path)

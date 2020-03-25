@@ -9,10 +9,11 @@ import logging
 
 from queue import LifoQueue
 from threading import Thread
+from urllib.parse import urlparse
 
 from flask import Flask, Response, request
 
-from .classes import GitLabWebHookReceiver
+from .classes import MirroredGitlabSites
 
 
 app = Flask(__name__)
@@ -21,9 +22,16 @@ app = Flask(__name__)
 sciit_web_hook_username = 'twsswt'  # 'sciit_web_hook'
 
 
-gitlab_web_hook_receiver = None
+mirrored_gitlab_sites = None
 
 job_queue = None
+
+
+def get_project_information(data):
+    parsed_uri = urlparse(data['repository']['homepage'])
+    site_homepage = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+    path_with_namespace = parsed_uri.path
+    return site_homepage, path_with_namespace
 
 
 def no_new_commits(data):
@@ -54,7 +62,7 @@ def index():
         # TODO Create a job queue here.
 
         def _job():
-            mirrored_gitlab_sciit_project = gitlab_web_hook_receiver.get_mirrored_gitlab_sciit_project(data)
+            mirrored_gitlab_sciit_project = mirrored_gitlab_sites.get_mirrored_gitlab_sciit_project(data)
             logging.info(f'using local repository: {mirrored_gitlab_sciit_project.local_git_repository_path}.')
             mirrored_gitlab_sciit_project.process_web_hook_event(event, data)
             return Response({'status': 'Accepted'})
@@ -78,7 +86,9 @@ def init():
 
     data = request.get_json()
 
-    gitlab_web_hook_receiver.get_mirrored_gitlab_sciit_project(data)
+    site_homepage, path_with_namespace = get_project_information(data)
+
+    mirrored_gitlab_sites.get_mirrored_gitlab_sciit_project(site_homepage, path_with_namespace)
 
     project_url = data['project']['web_url']
 
@@ -89,11 +99,11 @@ def launch(project_dir_path):
     """
     A helper function that launches the web service.
     """
-    global gitlab_web_hook_receiver
+    global mirrored_gitlab_sites
     global job_queue
 
     job_queue = LifoQueue()
-    gitlab_web_hook_receiver = GitLabWebHookReceiver(project_dir_path)
+    mirrored_gitlab_sites = MirroredGitlabSites(project_dir_path)
 
     def process_jobs():
         while True:

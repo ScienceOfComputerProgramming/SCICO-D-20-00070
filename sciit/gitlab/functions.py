@@ -1,23 +1,18 @@
-from git import Repo
-
-from sciit.gitlab.classes import GitlabIssueClient, GitlabSciitIssueIDCache, MirroredGitlabSciitProject
-from sciit import IssueRepo
+from sciit.gitlab.classes import MirroredGitlabSites
+from urllib.parse import urlparse
 
 
-def reset_gitlab_issues(project_url):
+def reset_gitlab_issues(project_url, local_git_repository_path=None):
 
-    site_homepage, api_token, project_id = None, None, None
+    mirrored_gitlab_sites = MirroredGitlabSites('../')
 
-    repository_path = './'
+    parsed_uri = urlparse(project_url)
+    site_homepage = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+    path_with_namespace = parsed_uri.path[1:]
 
-    gitlab_issue_client = GitlabIssueClient(site_homepage, api_token)
-
-    git_repository = Repo(repository_path)
-    local_sciit_repository = IssueRepo(git_repository)
-
-    gitlab_sciit_issue_id_cache = GitlabSciitIssueIDCache(repository_path)
-
-    mirrored_gitlab_sciit_project = MirroredGitlabSciitProject(
-        project_id, gitlab_issue_client, local_sciit_repository, gitlab_sciit_issue_id_cache)
+    mirrored_gitlab_sciit_project = \
+        mirrored_gitlab_sites.get_mirrored_gitlab_sciit_project(
+            site_homepage, path_with_namespace, local_git_repository_path)
 
     mirrored_gitlab_sciit_project.reset_gitlab_issues()
+
