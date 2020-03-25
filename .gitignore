@@ -1,6 +1,3 @@
-## Core latex/pdflatex auxiliary files:
-dissertation/*
-
 ## ignore the ide files
 .vscode/
 .idea
@@ -22,7 +19,6 @@ docs/*.rst
 
 ## ignore cache files
 *.pyc
-test.py
 gitlab
 *.git/
 
