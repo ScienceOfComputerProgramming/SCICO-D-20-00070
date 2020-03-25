@@ -214,7 +214,7 @@ class GitlabTokenCache:
         cursor = connection.cursor()
 
         cursor.execute(
-            '' '
+            '''
             CREATE TABLE IF NOT EXISTS gitlab_api_token_cache 
             (project_id INTEGER PRIMARY KEY, api_token TEXT)
             WITHOUT ROWID

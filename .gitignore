@@ -19,7 +19,6 @@ docs/*.rst
 
 ## ignore cache files
 *.pyc
-gitlab
 *.git/
 
 ## ignore test folders
