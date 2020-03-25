@@ -4,7 +4,9 @@ from sciit.gitlab.classes import GitlabIssueClient, GitlabSciitIssueIDCache, Mir
 from sciit import IssueRepo
 
 
-def reset_gitlab_issues(site_homepage, api_token, project_id):
+def reset_gitlab_issues(project_url):
+
+    site_homepage, api_token, project_id = None, None, None
 
     repository_path = './'
 

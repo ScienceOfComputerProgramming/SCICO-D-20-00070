@@ -7,6 +7,4 @@ def launch(args):
 
 
 def reset(args):
-    site_homepage, api_token, project_id
-
-    reset_gitlab_issues()
+    reset_gitlab_issues(args.project_url)

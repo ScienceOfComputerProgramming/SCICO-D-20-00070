@@ -65,6 +65,26 @@ def add_view_options(parser):
         help=ColorText.green('default:') + ' view tracker information normally needed.')
 
 
+def add_gitlab_reset_parser(gitlab_subparsers):
+    gitlab_reset_parser = gitlab_subparsers.add_parser(
+        'reset', description='Resets all issues in the Gitlab database.')
+    gitlab_reset_parser.set_defaults(func=reset_gitlab_issues)
+
+    gitlab_reset_parser.add_argument('project-url')
+
+
+def add_gitlab_parser(subparsers):
+
+    gitlab_parser = subparsers.add_parser('gitlab')
+    gitlab_subparsers = gitlab_parser.add_subparsers()
+
+    gitlab_start_parser = gitlab_subparsers.add_parser(
+        'start', description='Launches the gitlab webservice that integrates gitlab issues with sciit')
+    gitlab_start_parser.set_defaults(func=launch_gitlab_service)
+
+    add_gitlab_reset_parser(gitlab_subparsers)
+
+
 def create_command_parser():
 
     parser = argparse.ArgumentParser(
@@ -125,17 +145,7 @@ def create_command_parser():
         description='Launches a local web interface for the sciit issue tracker')
     web_parser.set_defaults(func=launch_web_service)
 
-    gitlab_parser = subparsers.add_parser('gitlab')
-    gitlab_subparsers = gitlab_parser.add_subparsers()
-
-    gitlab_start_parser = gitlab_subparsers.add_parser(
-        'start', description='Launches the gitlab webservice that integrates gitlab issues with sciit')
-    gitlab_start_parser.set_defaults(func=launch_gitlab_service)
-
-    gitlab_reset_parser = gitlab_subparsers.add_parser(
-        'reset', description='Resets all issues in the GitLab database.')
-    gitlab_reset_parser.set_defaults(func=reset_gitlab_issues)
-    gitlab_reset_parser
+    add_gitlab_parser(subparsers)
 
     new_parser = subparsers.add_parser(
         'new',
