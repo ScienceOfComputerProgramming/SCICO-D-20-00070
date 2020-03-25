@@ -222,7 +222,22 @@ class GitlabTokenCache:
 
         return connection
 
-    def get_gitlab_api_token(self, project_path_with_namespace):
+    def set_api_token(self, project_with_namespace, api_token):
+
+        with self._gitlab_token_cache_db_connection as connection:
+
+            cursor = connection.cursor()
+
+            query_string = (
+                '''
+                REPLACE INTO gitlab_api_token_cache (project_path_with_namespace, api_token)
+                VALUES(?, ?);
+
+                '''
+            )
+            cursor.execute(query_string, (project_with_namespace, api_token))
+
+    def get_api_token(self, project_path_with_namespace):
 
         with self._gitlab_token_cache_db_connection as connection:
 
@@ -252,6 +267,9 @@ class MirroredGitlabSite:
 
         self.mirrored_gitlab_sciit_projects = dict()
 
+    def set_gitlab_api_token(self, path_with_namespace, api_token):
+        self._gitlab_token_cache.set_api_token(path_with_namespace, api_token)
+
     def get_mirrored_gitlab_sciit_project(self, path_with_namespace, local_git_repository_path=None):
 
         if path_with_namespace not in self.mirrored_gitlab_sciit_projects:
@@ -271,7 +289,7 @@ class MirroredGitlabSite:
             # TODO
             # local_issue_repository.cache_issue_snapshots_from_all_commits()
             #
-            api_token = self._gitlab_token_cache.get_gitlab_api_token(path_with_namespace)
+            api_token = self._gitlab_token_cache.get_api_token(path_with_namespace)
 
             gitlab_issue_client = GitlabIssueClient(self.site_homepage, api_token)
 
@@ -294,7 +312,7 @@ class MirroredGitlabSites:
 
         self.mirrored_gitlab_sites = dict()
 
-    def get_mirrored_gitlab_sciit_project(self, site_homepage, path_with_namespace, local_git_repository_path=None):
+    def get_mirrored_gitlab_site(self, site_homepage):
         if site_homepage not in self.mirrored_gitlab_sites:
 
             site_directory_name = site_homepage[8:site_homepage.index('/', 8)]
@@ -305,8 +323,10 @@ class MirroredGitlabSites:
             self.mirrored_gitlab_sites[site_homepage] = \
                 MirroredGitlabSite(site_homepage, site_local_mirror_path, gitlab_token_cache)
 
-        mirrored_gitlab_site = self.mirrored_gitlab_sites[site_homepage]
+        return self.mirrored_gitlab_sites[site_homepage]
 
+    def get_mirrored_gitlab_sciit_project(self, site_homepage, path_with_namespace, local_git_repository_path=None):
+        mirrored_gitlab_site = self.get_mirrored_gitlab_site(site_homepage)
         return mirrored_gitlab_site.get_mirrored_gitlab_sciit_project(path_with_namespace, local_git_repository_path)
 
     def configure_logger_for_web_service_events(self):

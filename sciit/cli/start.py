@@ -16,7 +16,8 @@ from sciit import IssueRepo
 from sciit.cli.functions import read_sciit_version
 from sciit.cli.close_issue import close_issue
 from sciit.cli.color import ColorPrint, ColorText
-from sciit.cli.gitlab import launch as launch_gitlab_service, reset as reset_gitlab_issues
+from sciit.cli.gitlab import launch as launch_gitlab_service, reset as reset_gitlab_issues, \
+    set_token as set_gitlab_api_token
 from sciit.cli.init import init
 from sciit.cli.issue import issue
 from sciit.cli.log import log
@@ -76,6 +77,15 @@ def add_gitlab_reset_parser(gitlab_subparsers):
         help='Path to local git repository, if not mapped by remote repository URL', default=None)
 
 
+def add_gitlab_set_token_parser(gitlab_subparsers):
+    gitlab_set_token_parser = gitlab_subparsers.add_parser(
+        'set_token', description='Sets an API token for a Gitlab project in the Sciit cache.')
+    gitlab_set_token_parser.set_defaults(func=set_gitlab_api_token)
+
+    gitlab_set_token_parser.add_argument('project_url')
+    gitlab_set_token_parser.add_argument('api_token')
+
+
 def add_gitlab_parser(subparsers):
 
     gitlab_parser = subparsers.add_parser('gitlab')
@@ -86,6 +96,7 @@ def add_gitlab_parser(subparsers):
     gitlab_start_parser.set_defaults(func=launch_gitlab_service)
 
     add_gitlab_reset_parser(gitlab_subparsers)
+    add_gitlab_set_token_parser(gitlab_subparsers)
 
 
 def create_command_parser():
