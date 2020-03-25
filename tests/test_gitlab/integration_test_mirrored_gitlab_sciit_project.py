@@ -1,12 +1,6 @@
 import unittest
 
-from git import Repo
-
-from sciit.gitlab.classes import GitlabIssueClient, GitlabSciitIssueIDCache, GitlabTokenCache,\
-    MirroredGitlabSciitProject, MirroredGitlabSites
-from sciit import IssueRepo
-
-import os
+from sciit.gitlab.classes import MirroredGitlabSites
 
 
 class TestMirroredGitlabSciitProject(unittest.TestCase):

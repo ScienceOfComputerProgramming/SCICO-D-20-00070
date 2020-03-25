@@ -3,6 +3,8 @@ import os
 import sqlite3
 import subprocess
 
+from urllib.parse import urlparse
+
 from git import Repo
 from gitlab import Gitlab, GitlabGetError
 
@@ -10,14 +12,43 @@ from sciit import IssueRepo
 from sciit.cli import ProgressTracker
 
 
+class GitRepositoryIssueClient:
+
+    def __init__(self, sciit_repository: IssueRepo):
+        self._sciit_repository = sciit_repository
+
+    def handle_issue(self, gitlab_issue, gitlab_sciit_issue_id_cache):
+        gitlab_issue_id = gitlab_issue['iid']
+        sciit_issue_id = gitlab_sciit_issue_id_cache.get_sciit_issue_id(gitlab_issue_id)
+
+        if sciit_issue_id is not None:
+            sciit_issues = self._sciit_repository.get_all_issues()
+            sciit_issue = sciit_issues[sciit_issue_id]
+
+            self._update_issue(sciit_issue, gitlab_issue)
+
+    def _update_issue(self, sciit_issue, gitlab_issue):
+        sciit_issue_file_path = self._sciit_repository.git_repository.working_dir + os.sep + sciit_issue.file_path
+        # sciit_issue_branch = sciit_issue.b`
+
+        print(os.path.abspath(sciit_issue_file_path))
+
+        with open(sciit_issue_file_path, 'r') as sciit_issue_file:
+            sciit_issue_file_content = sciit_issue_file.read()
+            sciit_issue_content = sciit_issue_file_content[sciit_issue.start_position:sciit_issue.end_position]
+            print(sciit_issue_content)
+
+
+
+
 class GitlabIssueClient:
 
     def __init__(self, site_homepage, api_token):
-        self.site_homepage = site_homepage
-        self.api_token = api_token
+        self._site_homepage = site_homepage
+        self._api_token = api_token
 
     def handle_issues(self, project_path_with_namespace, sciit_issues, gitlab_sciit_issue_id_cache):
-        with Gitlab(self.site_homepage, self.api_token) as gitlab_instance:
+        with Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
             project = gitlab_instance.projects.get(project_path_with_namespace)
             for sciit_issue in sciit_issues:
                 sciit_issue_id = sciit_issue.issue_id
@@ -88,7 +119,7 @@ class GitlabIssueClient:
             gitlab_issue.save()
 
     def clear_issues(self, project_path_with_namespace):
-        with Gitlab(self.site_homepage, self.api_token) as gitlab_instance:
+        with Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
             project = gitlab_instance.projects.get(project_path_with_namespace)
             for gitlab_issue in project.issues.list(all=True):
                 gitlab_issue.delete()
@@ -119,21 +150,23 @@ class GitlabSciitIssueIDCache:
         return connection
 
     def get_gitlab_issue_id(self, sciit_issue_id):
+        query_string = 'SELECT gitlab_issue_id FROM issue_id_cache WHERE sciit_issue_id = ?'
+        return self._get_issue_id(query_string, sciit_issue_id)
+
+    def get_sciit_issue_id(self, gitlab_issue_id):
+        query_string = 'SELECT sciit_issue_id FROM issue_id_cache WHERE gitlab_issue_id = ?'
+        return self._get_issue_id(query_string, gitlab_issue_id)
+
+    def _get_issue_id(self, query_string, other_issue_id):
         with self._issue_id_cache_db_connection as connection:
             cursor = connection.cursor()
 
-            query_string = \
-                '''
-                SELECT gitlab_issue_id
-                FROM issue_id_cache
-                WHERE sciit_issue_id = ?
-                '''
-
-            query_result = cursor.execute(query_string, (sciit_issue_id, )).fetchall()
+            query_result = cursor.execute(query_string, (other_issue_id, )).fetchall()
             if len(query_result) > 0:
                 return query_result[0][0]
             else:
                 return None
+
 
     def set_gitlab_issue_id(self, sciit_issue_id, gitlab_issue_id):
         with self._issue_id_cache_db_connection as connection:
@@ -154,7 +187,8 @@ class MirroredGitlabSciitProjectException(Exception):
 
 class MirroredGitlabSciitProject:
 
-    def __init__(self, project_path_with_namespace, gitlab_issue_client, local_sciit_repository, gitlab_sciit_issue_id_cache):
+    def __init__(self,
+                 project_path_with_namespace, gitlab_issue_client, local_sciit_repository, gitlab_sciit_issue_id_cache):
 
         self.project_path_with_namespace = project_path_with_namespace
         self.gitlab_issue_client = gitlab_issue_client
@@ -183,14 +217,25 @@ class MirroredGitlabSciitProject:
             self.handle_issue_event(data)
 
     def handle_push_event(self, data):
-        revision = self._get_revision(data['before'], data['after'])
 
-        self.local_sciit_repository.git_repository.git.execute(['git', 'fetch', '--all'])
+        self.local_sciit_repository.git_repository.git.execute(['git', 'pull', '--all'])
         self.local_sciit_repository.cache_issue_snapshots_from_unprocessed_commits()
 
-        issue_snapshots = self.local_sciit_repository.find_issue_snapshots(revision)
+        issue_history_iterator = self.local_sciit_repository.get_issue_history_iterator()
 
-        self.gitlab_issue_client.handle_issue_snapshots(self.project_path_with_namespace, issue_snapshots)
+        latest_revisions_pattern = self._get_revision(data['before'], data['after'])
+
+        git = self.local_sciit_repository.git_repository.git
+
+        revision_list = git.execute(['git', 'rev-list', '--reverse', latest_revisions_pattern]).split('\n')
+
+        for commit_hexsha_str, issues in issue_history_iterator:
+            if commit_hexsha_str in revision_list:
+                issues_to_be_updated = \
+                    {issue for issue in issues.values() if issue.changed_by_commit(commit_hexsha_str)}
+
+                self.gitlab_issue_client.handle_issues(
+                    self.project_path_with_namespace, issues_to_be_updated, self.gitlab_sciit_issue_id_cache)
 
     @staticmethod
     def _get_revision(before_commit_str, after_commit_str):
@@ -315,7 +360,7 @@ class MirroredGitlabSites:
     def get_mirrored_gitlab_site(self, site_homepage):
         if site_homepage not in self.mirrored_gitlab_sites:
 
-            site_directory_name = site_homepage[8:site_homepage.index('/', 8)]
+            site_directory_name = urlparse(site_homepage).netloc
             site_local_mirror_path = self.sites_path + os.path.sep + site_directory_name
 
             gitlab_token_cache = GitlabTokenCache(site_local_mirror_path)
