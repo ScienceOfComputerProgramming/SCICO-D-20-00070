@@ -140,30 +140,36 @@ class IssueRepo(object):
             find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
 
         unchanged_issue_snapshots = \
-            self._find_unchanged_issue_snapshots_in_parents(commit, in_branches, files_changed_in_commit)
+            self._find_unchanged_issue_snapshots_in_immediate_parent(commit, in_branches, files_changed_in_commit)
 
         all_commit_issue_snapshots = changed_issue_snapshots + unchanged_issue_snapshots
+
         self._serialize_issue_snapshots_to_db(commit.hexsha, all_commit_issue_snapshots)
 
         progress_tracker.processed_object()
 
-    def _find_unchanged_issue_snapshots_in_parents(self, commit, in_branches, files_changed_in_commit):
-        result = dict()
+    def _find_unchanged_issue_snapshots_in_immediate_parent(self, commit, in_branches, files_changed_in_commit):
 
-        for parent_commit in commit.parents:
+        parent_commit_snapshots = list()
 
-            parent_issue_snapshots = self.find_issue_snapshots_by_commit(parent_commit.hexsha)
-            unchanged_issue_snapshots_in_parent = \
-                [parent_issue_snapshot for parent_issue_snapshot in parent_issue_snapshots
-                 if parent_issue_snapshot.file_path not in files_changed_in_commit]
+        if len(commit.parents) < 1:
+            return parent_commit_snapshots
 
-            for unchanged_issue_snapshot_in_parent in unchanged_issue_snapshots_in_parent:
-                if unchanged_issue_snapshot_in_parent not in result.keys():
-                    issue_snapshot = \
-                        IssueSnapshot(commit, unchanged_issue_snapshot_in_parent.data, in_branches)
-                    result[issue_snapshot.issue_id] = issue_snapshot
+        immediate_parent = commit.parents[0]
 
-        return list(result.values())
+        parent_issue_snapshots = self.find_issue_snapshots_by_commit(immediate_parent.hexsha)
+
+        unchanged_issue_snapshots_in_parent = \
+            [parent_issue_snapshot for parent_issue_snapshot in parent_issue_snapshots
+             if parent_issue_snapshot.file_path not in files_changed_in_commit]
+
+        for unchanged_issue_snapshot_in_parent in unchanged_issue_snapshots_in_parent:
+            issue_snapshot = \
+                IssueSnapshot(commit, unchanged_issue_snapshot_in_parent.data, in_branches)
+
+            parent_commit_snapshots.append(issue_snapshot)
+
+        return parent_commit_snapshots
 
     def get_all_issues(self, rev=None):
         return self.build_history(rev)
