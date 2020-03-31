@@ -133,7 +133,7 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=No
 
         blob = blobs[file_changed]
 
-        _comment_pattern = get_file_object_pattern(blob) if not comment_pattern else comment_pattern
+        _comment_pattern = get_file_object_pattern(blob.path, blob.mime_type) if not comment_pattern else comment_pattern
 
         if not _comment_pattern:
             continue

@@ -1,5 +1,7 @@
 import unittest
 
+from unittest.mock import Mock
+
 from git import Repo
 
 from sciit.repo import IssueRepo
@@ -16,11 +18,17 @@ class TestGitRepositoryIssueClient(unittest.TestCase):
         sciit_repository = IssueRepo(git_repository)
 
         self.git_repository_issue_client = GitRepositoryIssueClient(sciit_repository)
-        self.gitlab_sciit_issue_id_cache = GitlabSciitIssueIDCache(local_git_repository_path)
 
     def test_reset_gitlab_issues(self):
 
-        gitlab_issue = {'iid': 248} # 'update-manual-for-new-command'
+        self.gitlab_sciit_issue_id_cache = Mock()
+        self.gitlab_sciit_issue_id_cache.get_sciit_issue_id = Mock(return_value='add-capability-for-comments')
+
+        gitlab_issue = {
+            'iid': 304,
+            'title': 'Add Capability for Multiple Comments',
+            'description': 'Need to add lots of comments'
+        }
 
         self.git_repository_issue_client.handle_issue(gitlab_issue, self.gitlab_sciit_issue_id_cache)
 

@@ -20,6 +20,7 @@ from contextlib import closing
 import json
 import sqlite3
 
+
 __all__ = ('IssueRepo', )
 
 

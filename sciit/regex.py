@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
+import mimetypes
+
 
 C_STYLE = r'/\*((?:.|[\r\n])*?)\*/'
 PYTHON = r'(?:=\s*(?:[\'\"]){3}(?:.*(?:.|[\r\n])*?)(?:[\'\"]){3})|(?:[\'\"]){3}(.*(?:.|[\r\n])*?)(?:[\'\"]){3}'
@@ -38,8 +40,33 @@ class IssuePropertyRegularExpressions:
     PRIORITY = r'@(?:[Ii]ssue[ _-]*)*[Pp]riority *[=:;> ]*(.*)'
 
 
-def get_file_object_pattern(file_object):
-    ext = os.path.splitext(file_object.path)[1]
+class IssuePropertyReplacementRegularExpressions:
+
+    @staticmethod
+    def title(issue_id):
+        return f'(@[Ii]ssue[ _-]*(?:id|number|slug)* *[=:;>]*(?:{issue_id})(?:.|[\r\n])*?(?:@[Ii]ssue[ _-])* *[Tt]itle *[=:;>]*)(.*)'
+
+    @staticmethod
+    def description(issue_id):
+        return f'(@[Ii]ssue[ _-]*(?:id|number|slug)* *[=:;>]*(?:{issue_id})(?:.|[\r\n])*?@(?:[Ii]ssue[ _-]*)*[Dd]escription *[=:;>]*)(.*(?:.|[\r\n])*?)((?:.*$)|(?:.*@|$))'
+
+
+def get_comment_leading_char(pattern):
+    if pattern in (PYTHON, HTML, MATLAB, HASKELL):
+        return ''
+    elif pattern == C_STYLE:
+        return '*'
+    elif pattern == PLAIN:
+        return '#'
+    else:
+        return ''
+
+
+def get_file_object_pattern(path, mime_type=None):
+    ext = os.path.splitext(path)[1]
+
+    _mime_type = mimetypes.guess_type(path) if mime_type is None else mime_type
+
     if ext is not '':
         if ext in C_STYLE_FILE_EXTENSIONS:
             pattern = C_STYLE
@@ -53,11 +80,11 @@ def get_file_object_pattern(file_object):
             pattern = HASKELL
         elif ext == '.py':
             pattern = PYTHON
-        elif ext in OTHER_FILE_EXTENSIONS or file_object.mime_type == 'text/plain':
+        elif ext in OTHER_FILE_EXTENSIONS or _mime_type == 'text/plain':
             pattern = PLAIN
         else:
             pattern = False
-    elif file_object.mime_type == 'text/plain':
+    elif _mime_type == 'text/plain':
         pattern = PLAIN
     else:
         pattern = False

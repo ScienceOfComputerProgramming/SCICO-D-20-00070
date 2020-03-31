@@ -19,8 +19,9 @@ from sciit.regex import (C_STYLE, HASKELL, HTML, IssuePropertyRegularExpressions
                          get_file_object_pattern)
 
 
-class FileObject():
-    """Object wrapper to use for getting file object pattern
+class FileObject:
+    """
+    Object wrapper to use for getting file object pattern
     """
     path = None
     mime_type = None
@@ -61,6 +62,7 @@ def update_issue_source(issue, contents):
 
             # if match found with this id then replace the tilte and description changed
             title_replace = f'(@[Ii]ssue[ _-]*(?:id|number|slug)* *[=:;>]*(?:{match})(?:.|[\r\n])*?(?:@[Ii]ssue[ _-])* *[Tt]itle *[=:;>]*)(.*)'
+
             description_replace = f'(@[Ii]ssue[ _-]*(?:id|number|slug)* *[=:;>]*(?:{match})(?:.|[\r\n])*?@(?:[Ii]ssue[ _-]*)*[Dd]escription *[=:;>]*)(.*(?:.|[\r\n])*?)((?:.*$)|(?:.*@|$))'
             description_padding = f'([\t| ]+)@(?:[Ii]ssue[ _-]*)*[Dd]escription'
             description_padding = re.findall(description_padding, contents)
