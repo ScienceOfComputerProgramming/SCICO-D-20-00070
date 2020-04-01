@@ -5,12 +5,10 @@ from unittest.mock import patch, PropertyMock, Mock, MagicMock
 
 from git import GitCommandError
 
-from sciit import IssueRepo
 from sciit.cli.init import init
 from sciit.cli.tracker import tracker
 from sciit.cli import start
 from sciit.errors import RepoObjectDoesNotExistError, NoCommitsError
-from tests.external_resources import remove_existing_repo
 from tests.test_cli.external_resources import third_commit
 from sciit.cli.color import ColorPrint, ColorText
 

@@ -28,6 +28,7 @@ class GitRepositoryIssueClient:
             sciit_issue.edit_issue(gitlab_issue)
 
 
+
 class GitlabIssueClient:
 
     def __init__(self, site_homepage, api_token):

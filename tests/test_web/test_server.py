@@ -5,7 +5,8 @@ from unittest.mock import patch, Mock, MagicMock
 from sciit import IssueRepo, Issue
 from sciit.web.server import app, launch
 
-from tests.external_resources import create_mock_git_repository, create_mock_commit_with_issue_snapshots
+from tests.external_resources import create_mock_git_repository, create_mock_commit_with_issue_snapshots, \
+    remove_existing_repo
 
 
 class TestWebServerStartup(TestCase):
@@ -40,7 +41,7 @@ class TestWebServerStartup(TestCase):
         self.issue = Issue('1', dict(), dict())
         self.issue.update(self.issue_snapshots[0])
 
-        self.mock_git_repository = create_mock_git_repository('here', [('master', self.commit)], [self.commit])
+        self.mock_git_repository = create_mock_git_repository('dummy_repo', [('master', self.commit)], [self.commit])
 
         self.mock_issue_repository = MagicMock()
         self.mock_issue_repository.build_history.return_value = {'1': self.issue}
@@ -70,3 +71,6 @@ class TestWebServerStartup(TestCase):
 
         response = self.app.get('/issue-1', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
+
+    def tearDown(self):
+        remove_existing_repo('dummy_repo')

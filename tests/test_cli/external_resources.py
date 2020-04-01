@@ -52,11 +52,6 @@ heads_at_second_commit = {'master': '622918a4c6539f853320e06804f73d1165df69d0'}
 
 third_commit = create_mock_commit('7a13fb71dfc40675176ce28b8ad6df9132039711', 'Nystrome', datetime.datetime(2018, 1, 1))
 
-mock_git_repository = \
-    create_mock_git_repository('here', [('master', second_commit)], [third_commit, second_commit, first_commit])
-
-repo = IssueRepo(mock_git_repository)
-
 issues = dict()
 
 issues['1'] = Issue('1', issues, heads_at_second_commit)

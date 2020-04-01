@@ -40,13 +40,6 @@ class IssuePropertyRegularExpressions:
     PRIORITY = r'@(?:[Ii]ssue[ _-]*)*[Pp]riority *[=:;> ]*(.*)'
 
 
-#class IssuePropertyReplacementRegularExpressions:
-#
-#    @staticmethod
- #   def title(issue_id):
- #       return f'(@[Ii]ssue[ _-]*(?:id|number|slug)* *[=:;>]*(?:{issue_id})(?:.|[\r\n])*?(?:@[Ii]ssue[ _-])* *[Tt]itle *[=:;>]*)(.*)'
-
-
 def add_comment_chars(comment_pattern, issue_string):
     if comment_pattern == MARKDOWN:
         return "---\n" + issue_string + "\n---"

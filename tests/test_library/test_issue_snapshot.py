@@ -3,7 +3,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 
 from sciit import IssueSnapshot
-from tests.external_resources import safe_create_repo_dir
+from tests.external_resources import safe_create_repo_dir, remove_existing_repo
 
 
 class TestIssueSnapshot(TestCase):
@@ -31,7 +31,7 @@ class TestIssueSnapshot(TestCase):
             'priority': 'high',
             'file_path': 'README.md'}
 
-        safe_create_repo_dir('here')
+        safe_create_repo_dir('dummy_repo')
 
         self.commit = MagicMock()
 
@@ -79,5 +79,8 @@ class TestIssueSnapshot(TestCase):
         self.assertTrue(hasattr(issue_snapshot, 'weight'))
         self.assertTrue(hasattr(issue_snapshot, 'priority'))
         self.assertTrue(hasattr(issue_snapshot, 'file_path'))
+
+    def tearDown(self):
+        remove_existing_repo('dummy_repo')
 
 
