@@ -22,7 +22,7 @@ class TestGitRepositoryIssueClient(unittest.TestCase):
     def test_reset_gitlab_issues(self):
 
         self.gitlab_sciit_issue_id_cache = Mock()
-        self.gitlab_sciit_issue_id_cache.get_sciit_issue_id = Mock(return_value='add-capability-for-comments')
+        self.gitlab_sciit_issue_id_cache.get_sciit_issue_id = Mock(return_value='post-commit-hooks-assume-python-3')
 
         gitlab_issue = {
             'iid': 304,

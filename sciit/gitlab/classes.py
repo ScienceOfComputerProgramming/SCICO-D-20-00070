@@ -1,6 +1,5 @@
 import logging
 import os
-import re
 import sqlite3
 import subprocess
 
@@ -11,7 +10,6 @@ from gitlab import Gitlab, GitlabGetError
 
 from sciit import IssueRepo
 from sciit.cli import ProgressTracker
-from sciit.regex import IssuePropertyReplacementRegularExpressions, get_comment_leading_char, get_file_object_pattern
 
 
 class GitRepositoryIssueClient:
@@ -27,51 +25,7 @@ class GitRepositoryIssueClient:
             sciit_issues = self._sciit_repository.get_all_issues()
             sciit_issue = sciit_issues[sciit_issue_id]
 
-            self._update_issue(sciit_issue, gitlab_issue)
-
-    def _update_issue(self, sciit_issue, gitlab_issue):
-        sciit_issue_file_path = self._sciit_repository.git_repository.working_dir + os.sep + sciit_issue.file_path
-
-        with open(sciit_issue_file_path, 'r') as sciit_issue_file:
-            sciit_issue_file_content = sciit_issue_file.read()
-
-        sciit_issue_content = sciit_issue_file_content[sciit_issue.start_position:sciit_issue.end_position]
-
-        sciit_issue_content = self._update_title(sciit_issue.issue_id, sciit_issue_content, gitlab_issue['title'])
-
-        comment_pattern = get_file_object_pattern(sciit_issue_file_path)
-        comment_leading_char = get_comment_leading_char(comment_pattern)
-        sciit_issue_content = self._update_description(
-            sciit_issue.issue_id, sciit_issue_content, comment_leading_char, gitlab_issue['description'])
-
-        new_sciit_issue_file_content = \
-            sciit_issue_file_content[:sciit_issue.start_position] + \
-            sciit_issue_content + \
-            sciit_issue_file_content[sciit_issue.end_position:]
-
-        with open(sciit_issue_file_path, 'w') as sciit_issue_file:
-            sciit_issue_file.write(new_sciit_issue_file_content)
-
-    @staticmethod
-    def _update_title(sciit_issue_id, sciit_issue_content, gitlab_title):
-        replace_title_pattern = IssuePropertyReplacementRegularExpressions.title(sciit_issue_id)
-        return re.sub(replace_title_pattern, r'\1' + gitlab_title, sciit_issue_content)
-
-    @staticmethod
-    def _update_description(sciit_issue_id, sciit_issue_content, comment_leading_char, gitlab_description):
-
-        description_padding_re = f'([\t| ]+)@(?:[Ii]ssue[ _-]*)*[Dd]escription'
-        description_padding = re.findall(description_padding_re, sciit_issue_content)
-
-        description_padding = description_padding[0] if description_padding else ''
-
-        print(comment_leading_char)
-        new_description = re.sub(f'\n', f'\n{comment_leading_char}{description_padding} ', gitlab_description)
-        new_description_re = r'\1\n' + comment_leading_char + description_padding + ' ' + new_description + '\n\3'
-
-        replace_description_pattern = IssuePropertyReplacementRegularExpressions.description(sciit_issue_id)
-
-        return re.sub(replace_description_pattern, new_description_re, sciit_issue_content)
+            sciit_issue.edit_issue(gitlab_issue)
 
 
 class GitlabIssueClient:

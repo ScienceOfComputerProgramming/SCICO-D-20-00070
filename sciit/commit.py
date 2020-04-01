@@ -5,8 +5,8 @@ import subprocess
 import shutil
 from slugify import slugify
 
+from sciit.regex import IssuePropertyRegularExpressions, get_file_object_pattern, strip_comment_chars
 from sciit import IssueSnapshot
-from sciit.regex import PLAIN, C_STYLE, MARKDOWN, PYTHON, IssuePropertyRegularExpressions, get_file_object_pattern
 
 
 __all__ = 'find_issues_in_commit'
@@ -53,6 +53,7 @@ def extract_issue_data_from_comment_string(comment: str):
     issue_data = dict()
 
     def update_issue_data_dict_with_value_from_comment(field_pattern, key):
+        print(field_pattern, comment)
         value = re.findall(field_pattern, comment)
         if len(value) > 0:
             issue_data[key] = value[0].rstrip()
@@ -86,12 +87,7 @@ def find_issues_in_blob(comment_pattern, blob_content):
     for comment_with_issue in comments_with_issues:
         comment_string = comment_with_issue.group()
 
-        if comment_pattern == PLAIN:
-            comment_string = re.sub(r'^\s*#', '', comment_string, flags=re.M)
-        if comment_pattern == C_STYLE:
-            comment_string = re.sub(r'^\s*\*', '', comment_string, flags=re.M)
-        if comment_pattern in {PYTHON, MARKDOWN}:
-            comment_string = comment_string[3:-3]
+        comment_string = strip_comment_chars(comment_pattern, comment_string)
 
         issue_data = extract_issue_data_from_comment_string(comment_string)
 

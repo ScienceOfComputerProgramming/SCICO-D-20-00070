@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import hashlib
+import os
 import re
 
 import markdown2
 
 from git import Commit
 from gitdb.util import hex_to_bin
+
+from .regex import get_file_object_pattern, IssuePropertyRegularExpressions, add_comment_chars, strip_comment_chars
 
 __all__ = ('IssueSnapshot', 'Issue')
 
@@ -485,6 +488,43 @@ class Issue:
                 result[blocker_issue_id] = self.all_issues.get(blocker_issue_id, None)
 
         return result
+
+    def edit_issue(self, changes):
+        sciit_issue_file_path = self.newest_issue_snapshot.commit.repo.working_dir + os.sep + self.file_path
+
+        comment_pattern = get_file_object_pattern(self.file_path)
+
+        with open(sciit_issue_file_path, 'r') as sciit_issue_file:
+            file_content = sciit_issue_file.read()
+            sciit_issue_content_in_file = file_content[self.start_position:self.end_position-1]
+
+        sciit_issue_content = strip_comment_chars(comment_pattern, sciit_issue_content_in_file)
+
+        sciit_issue_content = self._update_property_in_file_content(
+            IssuePropertyRegularExpressions.TITLE, sciit_issue_content, 'title', changes['title'])
+        sciit_issue_content = self._update_property_in_file_content(
+            IssuePropertyRegularExpressions.DESCRIPTION, sciit_issue_content, 'description', changes['description'])
+
+        sciit_issue_content = add_comment_chars(comment_pattern, sciit_issue_content)
+
+        new_sciit_issue_file_content = \
+            sciit_issue_content_in_file[0:self.start_position] + \
+            sciit_issue_content + \
+            sciit_issue_content_in_file[self.end_position:]
+
+        with open(sciit_issue_file_path, 'w') as sciit_issue_file:
+            sciit_issue_file.write(new_sciit_issue_file_content)
+
+    @staticmethod
+    def _update_property_in_file_content(pattern, file_content, label, new_value):
+
+        old_match = list(re.finditer(pattern, file_content))
+        if old_match:
+            old_start, old_end = old_match[0].span()
+            return file_content[0:old_start + 2 + len(label)] + new_value + file_content[old_end:]
+        else:
+            return file_content + f'\n@{label}{new_value}'
+
 
     def __str__(self):
         return self.issue_id + " " + self.status[0]
