@@ -53,7 +53,6 @@ def extract_issue_data_from_comment_string(comment: str):
     issue_data = dict()
 
     def update_issue_data_dict_with_value_from_comment(field_pattern, key):
-        print(field_pattern, comment)
         value = re.findall(field_pattern, comment)
         if len(value) > 0:
             issue_data[key] = value[0].rstrip()
