@@ -40,33 +40,62 @@ class IssuePropertyRegularExpressions:
     PRIORITY = r'@(?:[Ii]ssue[ _-]*)*[Pp]riority *[=:;> ]*(.*)'
 
 
-def add_comment_chars(comment_pattern, issue_string):
+def get_issue_property_regex(key):
+    mapping = {
+        'title': IssuePropertyRegularExpressions.TITLE,
+        'due_date': IssuePropertyRegularExpressions.DUE_DATE,
+        'labels': IssuePropertyRegularExpressions.LABEL,
+        'weight': IssuePropertyRegularExpressions.WEIGHT,
+        'priority': IssuePropertyRegularExpressions.PRIORITY
+    }
+    return mapping[key] if key in mapping else None
+
+def add_comment_chars(comment_pattern, issue_string, indent):
     if comment_pattern == MARKDOWN:
-        return "---\n" + issue_string + "\n---"
 
-    """
-    padding_re = f'([\t| ]+)@(?:[Ii]ssue[ _-]*)*[Dd]escription'
-    padding = re.findall(padding_re, sciit_issue_content)
-    padding = padding[0] if padding else ''
+        comment_string = "\n".join([indent + line for line in issue_string.split('\n')])
 
-    comment_leading_char = get_comment_leading_char(comment_pattern)
+        return "---\n" + comment_string + "\n---"
 
-    padded_issue_string = \
-        '\n' + comment_leading_char + indent + ' ' + \
-        re.sub(f'\n', f'\n{comment_leading_char}{indent} ', issue_string)
-    """
+    elif comment_pattern == C_STYLE:
+        comment_string = "\n".join([indent + '* ' + line for line in issue_string.strip().split('\n')])
+        return indent[0:-2] + "/**\n" + comment_string + "\n" + indent + "**/"
 
 
 def strip_comment_chars(comment_pattern, comment_string):
+
     if comment_pattern == PLAIN:
-        return re.sub(r'^\s*#\s*', '', comment_string, flags=re.M)
+        indent_re = '([\t| ]+)#([\t| ]+)@(?:[Ii]ssue)'
+        indent_match = re.search(indent_re, comment_string)
+        indent = indent_match.group(1)
+
+        return re.sub(r'^\s*#\s*', '', comment_string, flags=re.M), indent
+
     if comment_pattern == C_STYLE:
-        return re.sub(r'^\s*\*\s*', '', comment_string, flags=re.M)
+
+        indent_re = '([\t| ]+)\*([\t| ]+)@(?:[Ii]ssue)'
+        indent_match = re.search(indent_re, comment_string)
+        indent = indent_match.group(1)
+
+        stripped_content = comment_string
+        stripped_content = re.sub(r'^\s*/\**', '', stripped_content) # Start marker
+        stripped_content = re.sub(r'[ \t\r\f\v]*\**/\s*$', '', stripped_content)  # End marker
+        stripped_content = re.sub(r'^\s*\*[ \t\r\f\v]*', '', stripped_content, flags=re.M)
+
+        return stripped_content, indent
+
     if comment_pattern in {PYTHON, MARKDOWN}:
-        return re.search(comment_pattern, comment_string).group(1).strip()
+        indent_re = '([\t| ]+)@(?:[Ii]ssue)'
+        indent_match = re.search(indent_re, comment_string)
+        if indent_match is not None:
+            indent = indent_match.group(1)
+        else:
+            indent = ''
+
+        return re.search(comment_pattern, comment_string).group(1).strip(), indent
         # return comment_string[3:-3]
     else:
-        return comment_string
+        return comment_string, ''
 
 
 def get_comment_leading_char(pattern):

@@ -3,8 +3,9 @@
 
 from git import Repo
 from sciit import IssueRepo
-from sciit.cli.functions import do_repository_is_init_check, do_commit_contains_duplicate_issue_file_paths_check,\
-    build_status_summary
+from sciit.cli.functions import do_repository_is_init_check, build_status_summary
+
+from sciit.write_commit import do_commit_contains_duplicate_issue_file_paths_check
 
 import colorama
 colorama.init()

@@ -11,7 +11,7 @@ from git import Commit
 from gitdb.util import hex_to_bin
 
 from sciit.cli import ProgressTracker
-from sciit.commit import find_issue_snapshots_in_commit_paths_that_changed
+from sciit.read_commit import find_issue_snapshots_in_commit_paths_that_changed
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 from sciit.functions import write_last_issue_commit_sha, get_last_issue_commit_sha, get_sciit_ignore_path_spec
 from sciit.issue import Issue, IssueSnapshot
@@ -195,7 +195,7 @@ class IssueRepo(object):
             if issue_ids is None or issue_id in issue_ids:
                 if issue_id not in history:
                     history[issue_id] = Issue(issue_id, history, head_commits)
-                history[issue_id].update(issue_snapshot)
+                history[issue_id].add_snapshot(issue_snapshot)
 
         return history
 
@@ -329,6 +329,6 @@ class IssueHistoryIterator:
             if self._issue_ids is None or issue_id in self._issue_ids:
                 if issue_id not in self._history:
                     self._history[issue_id] = Issue(issue_id, self._history, self._historic_head_commits)
-                self._history[issue_id].update(issue_snapshot)
+                self._history[issue_id].add_snapshot(issue_snapshot)
 
         return commit_hexsha, self._history

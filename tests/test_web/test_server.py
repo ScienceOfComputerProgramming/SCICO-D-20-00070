@@ -39,7 +39,7 @@ class TestWebServerStartup(TestCase):
             )
 
         self.issue = Issue('1', dict(), dict())
-        self.issue.update(self.issue_snapshots[0])
+        self.issue.add_snapshot(self.issue_snapshots[0])
 
         self.mock_git_repository = create_mock_git_repository('dummy_repo', [('master', self.commit)], [self.commit])
 

@@ -86,7 +86,7 @@ def find_issues_in_blob(comment_pattern, blob_content):
     for comment_with_issue in comments_with_issues:
         comment_string = comment_with_issue.group()
 
-        comment_string = strip_comment_chars(comment_pattern, comment_string)
+        comment_string, indent = strip_comment_chars(comment_pattern, comment_string)
 
         issue_data = extract_issue_data_from_comment_string(comment_string)
 

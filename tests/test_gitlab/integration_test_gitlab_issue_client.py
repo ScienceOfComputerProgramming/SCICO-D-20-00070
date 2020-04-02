@@ -32,7 +32,7 @@ class TestGitlabIssueClient(TestCase):
 
         issue_snapshot = IssueSnapshot(commit, data, in_branches=['master']),
         issue = Issue('a-test-issue', all_issues, [commit])
-        issue.update(issue_snapshot)
+        issue.add_snapshot(issue_snapshot)
 
         mock_gitlab_sciit_issue_id_cache = Mock()
         mock_gitlab_sciit_issue_id_cache.get_gitlab_issue_id=Mock(return_value=3)

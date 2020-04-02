@@ -3,8 +3,6 @@
 import pydoc
 import pkg_resources
 
-from sciit.functions import get_sciit_ignore_path_spec
-from sciit.commit import find_issue_snapshots_in_commit_paths_that_changed
 from sciit.errors import RepoObjectDoesNotExistError
 from .color import ColorPrint, ColorText
 
@@ -35,37 +33,6 @@ def do_repository_has_no_commits_warning():
     print(' ')
     ColorPrint.bold_red('The repository has no commits.')
     print('Create an initial commit before creating a new issue')
-
-
-def do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit):
-
-    git_repository = issue_repository.git_repository
-
-    ignored_files = get_sciit_ignore_path_spec(issue_repository.git_repository)
-
-    issue_snapshots, _, _ = \
-        find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
-
-    if len(set(issue_snapshots)) != len(issue_snapshots):
-        file_paths_by_issue_id = dict()
-
-        for issue_snapshot in issue_snapshots:
-            issue_id = issue_snapshot.issue_id
-            if issue_id not in file_paths_by_issue_id:
-                file_paths_by_issue_id[issue_id] = list()
-            file_paths_by_issue_id[issue_id].append(issue_snapshot.file_path)
-
-        duplicates =\
-            {issue_id: file_paths for issue_id, file_paths in file_paths_by_issue_id.items() if len(file_paths) > 1}
-
-        for (issue_id, file_paths) in duplicates.items():
-            ColorPrint.bold_red(f'Duplicate Issue: {issue_id}')
-            for file_found in file_paths:
-                ColorPrint.red(f'\tfound in {file_found}')
-
-        git_repository.git.execute(['git', 'reset', 'HEAD~1', '--soft'])
-        ColorPrint.bold_red(f'HEAD @: {git_repository.head.commit.summary} ~ {git_repository.head.commit.hexsha[:7]}')
-        exit()
 
 
 def make_status_summary_string(all_issues):

@@ -55,35 +55,35 @@ third_commit = create_mock_commit('7a13fb71dfc40675176ce28b8ad6df9132039711', 'N
 issues = dict()
 
 issues['1'] = Issue('1', issues, heads_at_second_commit)
-issues['1'].update(first_issue_snapshots[0])
+issues['1'].add_snapshot(first_issue_snapshots[0])
 issues['1'].open_in_branches.add('master')
-issues['1'].update(second_issue_snapshots[0])
+issues['1'].add_snapshot(second_issue_snapshots[0])
 
 issues['2'] = Issue('2', issues, heads_at_second_commit)
-issues['2'].update(first_issue_snapshots[1])
+issues['2'].add_snapshot(first_issue_snapshots[1])
 issues['2'].open_in_branches.add('master')
-issues['2'].update(second_issue_snapshots[1])
+issues['2'].add_snapshot(second_issue_snapshots[1])
 
 issues['3'] = Issue('3', issues, heads_at_second_commit)
-issues['3'].update(first_issue_snapshots[2])
+issues['3'].add_snapshot(first_issue_snapshots[2])
 
 issues['4'] = Issue('4', issues, heads_at_second_commit)
-issues['4'].update(first_issue_snapshots[3])
+issues['4'].add_snapshot(first_issue_snapshots[3])
 
 issues['5'] = Issue('5', issues, heads_at_second_commit)
-issues['5'].update(first_issue_snapshots[4])
+issues['5'].add_snapshot(first_issue_snapshots[4])
 
 issues['6'] = Issue('6', issues, heads_at_second_commit)
-issues['6'].update(first_issue_snapshots[5])
+issues['6'].add_snapshot(first_issue_snapshots[5])
 issues['6'].open_in_branches.add('master')
-issues['6'].update(second_issue_snapshots[3])
+issues['6'].add_snapshot(second_issue_snapshots[3])
 
 issues['9'] = Issue('9', issues, heads_at_second_commit)
-issues['9'].update(second_issue_snapshots[3])
+issues['9'].add_snapshot(second_issue_snapshots[3])
 issues['9'].open_in_branches.add('master')
 
 issues['12'] = Issue('12', issues, heads_at_second_commit)
-issues['12'].update(second_issue_snapshots[4])
+issues['12'].add_snapshot(second_issue_snapshots[4])
 issues['12'].open_in_branches.add('master')
 
 

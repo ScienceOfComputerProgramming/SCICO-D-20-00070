@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import sqlite3
 import subprocess
 
@@ -10,6 +11,9 @@ from gitlab import Gitlab, GitlabGetError
 
 from sciit import IssueRepo
 from sciit.cli import ProgressTracker
+
+from sciit.regex import get_file_object_pattern, IssuePropertyRegularExpressions, add_comment_chars, \
+    strip_comment_chars, get_issue_property_regex
 
 
 class GitRepositoryIssueClient:
@@ -25,8 +29,55 @@ class GitRepositoryIssueClient:
             sciit_issues = self._sciit_repository.get_all_issues()
             sciit_issue = sciit_issues[sciit_issue_id]
 
-            sciit_issue.edit_issue(gitlab_issue)
+            self.update_issue(sciit_issue, gitlab_issue)
 
+    def update_issue(self, sciit_issue, changes):
+
+        comment_pattern = get_file_object_pattern(sciit_issue.file_path)
+
+        with open(sciit_issue.working_file_path, 'r') as sciit_issue_file:
+            file_content = sciit_issue_file.read()
+            sciit_issue_content_in_file = file_content[sciit_issue.start_position:sciit_issue.end_position]
+
+        sciit_issue_content, indent = strip_comment_chars(comment_pattern, sciit_issue_content_in_file)
+
+        for key in ['title', 'due_date', 'weight', 'labels']:
+            if key in changes:
+                sciit_issue_content = self._update_single_line_property_in_file_content(
+                    get_issue_property_regex(key), sciit_issue_content, key, changes[key])
+
+        if 'description' in changes:
+            sciit_issue_content = self._update_description_in_file_content(sciit_issue_content, changes['description'])
+
+        sciit_issue_content = add_comment_chars(comment_pattern, sciit_issue_content, indent)
+
+        new_sciit_issue_file_content = \
+            file_content[0:sciit_issue.start_position] + \
+            sciit_issue_content + \
+            file_content[sciit_issue.end_position:]
+
+        with open(sciit_issue.working_file_path, 'w') as sciit_issue_file:
+            sciit_issue_file.write(new_sciit_issue_file_content)
+
+    @staticmethod
+    def _update_single_line_property_in_file_content(pattern, file_content, label, new_value):
+
+        old_match = re.search(pattern, file_content)
+        if old_match:
+            old_start, old_end = old_match.span(1)
+            return file_content[0:old_start] + new_value + file_content[old_end:]
+        else:
+            return file_content + f'\n@{label}{new_value}'
+
+    @staticmethod
+    def _update_description_in_file_content(file_content, new_value):
+
+        old_match = re.search(IssuePropertyRegularExpressions.DESCRIPTION, file_content)
+        if old_match:
+            old_start, old_end = old_match.span(1)
+            return file_content[0:old_start] + '\n' + new_value + file_content[old_end:]
+        else:
+            return file_content + f'\n@description\n{new_value}'
 
 
 class GitlabIssueClient:

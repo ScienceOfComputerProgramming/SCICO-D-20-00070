@@ -1,6 +1,5 @@
 from unittest import TestCase
-from unittest.mock import Mock
-from sciit.regex import get_file_object_pattern
+from sciit.regex import get_file_object_pattern, strip_comment_chars, add_comment_chars
 from sciit.regex import (C_STYLE, PYTHON, HTML, MATLAB, HASKELL, PLAIN, MARKDOWN)
 
 
@@ -89,3 +88,53 @@ class TestFileObjectPattern(TestCase):
         mime_type = 'application/pdf'
         pattern = get_file_object_pattern(path, mime_type)
         self.assertFalse(pattern)
+
+    def test_strip_c_comment_chars(self):
+
+        comment = \
+            """
+            /**
+              * @issue 1
+              * @title Issue 1
+              * @description The first issue in the repository.
+              * 
+              * Another line.
+              **/"""
+
+        expected = \
+            """@issue 1
+@title Issue 1
+@description The first issue in the repository.
+
+Another line.
+"""
+
+        issue_content, indent = strip_comment_chars(C_STYLE, comment)
+
+        self.assertEqual(expected, issue_content)
+        self.assertEqual('              ', indent)
+
+    def test_add_c_comment_chars(self):
+
+        issue = \
+            """@issue 1
+@title Issue 1
+@description The first issue in the repository.
+
+Another line.
+"""
+
+        indent = '              '
+
+        expected = \
+            """            /**
+              * @issue 1
+              * @title Issue 1
+              * @description The first issue in the repository.
+              * 
+              * Another line.
+              **/"""
+
+        comment_string = add_comment_chars(C_STYLE, issue, indent)
+
+        self.assertEqual(expected, comment_string)

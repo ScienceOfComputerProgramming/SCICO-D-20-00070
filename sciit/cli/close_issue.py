@@ -1,5 +1,6 @@
-from sciit.cli.functions import do_repository_has_no_commits_warning, \
-    do_commit_contains_duplicate_issue_file_paths_check, build_issue_history, page
+from sciit.cli.functions import do_repository_has_no_commits_warning, build_issue_history, page
+
+from sciit.write_commit import GitCommitToIssue
 
 
 def _remove_issue_from_codebase(issue):
@@ -27,22 +28,19 @@ def close_issue(args):
 
     issue_id = args.issue_id
 
-    issues = issue_repository.get_all_issues()
-    issue = issues[issue_id]
-
-    print('\nRemoving issue %s from file path %s in branch %s.'
-          % (issue_id, issue.file_path, git_repository.active_branch.name))
-
-    _remove_issue_from_codebase(issue)
-
     git_commit_message = "Closes Issue " + issue_id
 
-    git_repository.index.add([issue.file_path])
-    git_repository.index.commit(git_commit_message, skip_hooks=True)
-    commit = issue_repository.git_repository.head.commit
-    do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit)
+    with GitCommitToIssue(issue_repository, 'master', git_commit_message) as commit_to_issue:
 
-    issue_repository.cache_issue_snapshots_from_unprocessed_commits()
+        issues = issue_repository.get_all_issues()
+        issue = issues[issue_id]
+
+        print('\nRemoving issue %s from file path %s in branch %s.'
+              % (issue_id, issue.file_path, git_repository.active_branch.name))
+
+        _remove_issue_from_codebase(issue)
+
+        commit_to_issue.file_paths.append(issue.file_path)
 
     issues = issue_repository.get_all_issues()
     issue = issues[issue_id]
