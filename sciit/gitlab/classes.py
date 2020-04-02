@@ -11,6 +11,7 @@ from gitlab import Gitlab, GitlabGetError
 
 from sciit import IssueRepo
 from sciit.cli import ProgressTracker
+from sciit.write_commit import GitCommitToIssue
 
 from sciit.regex import get_file_object_pattern, IssuePropertyRegularExpressions, add_comment_chars, \
     strip_comment_chars, get_issue_property_regex
@@ -29,7 +30,12 @@ class GitRepositoryIssueClient:
             sciit_issues = self._sciit_repository.get_all_issues()
             sciit_issue = sciit_issues[sciit_issue_id]
 
-            self.update_issue(sciit_issue, gitlab_issue)
+            latest_branch = sciit_issue.newest_issue_snapshot.in_branches[0]
+            message = "Updates Issue %s (Gitlab Issue %d)." % (sciit_issue.issue_id, gitlab_issue_id)
+
+            with GitCommitToIssue(self._sciit_repository, latest_branch, message) as commit_to_issue:
+                self.update_issue(sciit_issue, gitlab_issue)
+                commit_to_issue.file_paths.append(sciit_issue.file_path)
 
     def update_issue(self, sciit_issue, changes):
 

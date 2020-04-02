@@ -37,11 +37,12 @@ def do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit
 
 class GitCommitToIssue:
 
-    def __init__(self, message, issue_repository, target_branch, push=True):
+    def __init__(self, issue_repository, target_branch, message, push=True):
 
-        self._commit_message = message
         self._issue_repository = issue_repository
         self._target_branch = target_branch
+        self._commit_message = message
+
         self._push = push
 
         self._starting_branch_name = self._git_repository.active_branch.name

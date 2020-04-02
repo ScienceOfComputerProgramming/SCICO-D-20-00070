@@ -4,7 +4,7 @@ STYLES.md
 *.rst
 *.pdf
 tests/test_library/test_commit.py
-tests/test_regex.py
-tests/gitlab/test_git_repository_issue_client.py
+tests/test_library/test_regex.py
+tests/test_gitlab/test_git_repository_issue_client.py
 sciit/cli/new_issue.py
 
