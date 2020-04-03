@@ -9,8 +9,7 @@ python_tests:
   script:
     - apk --no-cache add git
     - pip install pytest
-    - pip install -r requirements.txt 
-    - pytest
+    - python setup.py test
   artifacts:
     paths:
       - cover/*
