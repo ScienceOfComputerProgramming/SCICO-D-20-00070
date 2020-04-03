@@ -164,7 +164,8 @@ class TestFindIssuesInCommit(TestCase):
         self._tests_retrieve_one_issue_from_commit(
             commit, expected_number_of_issues=2, comment_char_that_should_be_filtered='#')
 
-    def test_no_issues_one_changed_supported_file_no_pattern(self):
+    @patch('sciit.read_commit._find_branches_for_commit', new_callable=MagicMock())
+    def test_no_issues_one_changed_supported_file_no_pattern(self, _):
         commit = self.create_commit_mock(
             blobs=[
                 self.create_blob_mock(
