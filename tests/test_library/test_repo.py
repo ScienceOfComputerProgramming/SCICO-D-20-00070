@@ -143,15 +143,22 @@ class TestRepoSync(TestCase):
             [self.first_commit],
         )
 
+        if not os.path.exists('working_dir'):
+            os.mkdir('working_dir')
+        os.chdir('working_dir')
+
         self.mock_git_repository = create_mock_git_repository(
-            'here',
+            '.',
             [('master', self.head_commit.hexsha)],
             [self.head_commit, self.first_commit])
 
         self.repo = IssueRepo(self.mock_git_repository)
         self.repo.setup_file_system_resources()
 
-    def test_sync_repository(self):
+    @patch('sciit.read_commit._find_branches_for_commit', new_callable=MagicMock())
+    def test_sync_repository(self, find_branches_mock):
+
+        find_branches_mock.return_value=['master']
 
         # write_last_issue_commit_sha(self.repo.issue_dir, self.first)
 

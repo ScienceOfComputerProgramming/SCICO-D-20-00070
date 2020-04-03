@@ -5,6 +5,8 @@ import stat
 import pkg_resources
 import shutil
 
+from pathlib import Path
+
 from shutil import copyfile
 
 from git import Commit
@@ -48,8 +50,8 @@ class IssueRepo(object):
     def setup_file_system_resources(self):
         os.makedirs(self.issue_dir)
 
-        open(self.issue_dir + '/HISTORY', 'w').close()
-        open(self.issue_dir + '/LAST', 'w').close()
+        Path(self.issue_dir + '/HISTORY').touch()
+        Path(self.issue_dir + '/LAST').touch()
 
         self._install_hook('post-commit')
         self._install_hook('post-merge')
@@ -96,6 +98,7 @@ class IssueRepo(object):
         last_issue_commit = get_last_issue_commit_sha(self.issue_dir)
         all_commits = list(self.git_repository.iter_commits('--all'))
         latest_commit = all_commits[0].hexsha
+
 
         revision = last_issue_commit + '..' + latest_commit
         str_commits = self.git_repository.git.execute(['git', 'rev-list', '--reverse', revision])

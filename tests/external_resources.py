@@ -26,7 +26,7 @@ def safe_create_repo_dir(path):
 def create_mock_git_repository(path, heads, commits):
     mock_git_repository = MagicMock()
     mock_git_repository.git_dir = path + '/.git'
-    mock_git_repository.working_dir = 'path'
+    mock_git_repository.working_dir = path
     safe_create_repo_dir(path + '/.git')
 
     mock_git_repository.heads = list()
