@@ -21,7 +21,7 @@ setup(
     packages=find_packages(),
     install_requires=requirements,
     tests_require=['pytest', ],
-    setup_requires=['pytest',],
+    setup_requires=['pytest', 'requests'],
     entry_points={
         'console_scripts': ['git-sciit = sciit.cli.start:main']
     },
