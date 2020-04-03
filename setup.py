@@ -20,7 +20,8 @@ setup(
     name='sciit',
     packages=find_packages(),
     install_requires=requirements,
-    tests_require=['nose', ],
+    tests_require=['pytest', ],
+    setup_requires=['pytest',],
     entry_points={
         'console_scripts': ['git-sciit = sciit.cli.start:main']
     },

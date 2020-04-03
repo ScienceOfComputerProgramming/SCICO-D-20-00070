@@ -30,10 +30,11 @@ class TestCLIStartup(TestCase):
 
     @patch('git.repo.base.Repo.git_dir', new_callable=PropertyMock)
     def test_not_in_valid_git_dir(self, path):
-        path.return_value = None
-        start.main()
-        self.assertIn('fatal: not a git repository', sys.stdout.getvalue())
-        self.assertIn('Stopping at filesystem boundary', sys.stdout.getvalue())
+        with patch.object(start.sys, "argv", ['sciit', 'init']):
+            path.return_value = None
+            start.main()
+            self.assertIn('fatal: not a git repository', sys.stdout.getvalue())
+            self.assertIn('Stopping at filesystem boundary', sys.stdout.getvalue())
 
     def test_no_arguments_supplied(self):
         args = ['command']

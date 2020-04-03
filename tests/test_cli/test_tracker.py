@@ -4,6 +4,9 @@ from unittest import TestCase
 from unittest.mock import Mock, patch, MagicMock
 
 from sciit.cli.tracker import tracker
+
+import sciit.cli.tracker
+
 from tests.test_cli.external_resources import ansi_escape, issues, second_commit
 
 
@@ -31,6 +34,7 @@ class TestStatusCommand(TestCase):
         self.assertIn('No issues found', sys.stdout.getvalue())
 
     def test_prints_correct_tracker_info(self):
+
         self.args.open = True
 
         self.args.repo.get_all_issues.return_value = {'1': issues['1']}
@@ -51,7 +55,8 @@ class TestStatusCommand(TestCase):
 
     @patch('tests.test_cli.external_resources.Issue.closer', new_callable=Mock(return_value='Nystrome'))
     @patch('tests.test_cli.external_resources.Issue.closed_date', new_callable=Mock(return_value='A Date'))
-    def test_prints_correct_tracker_info_all(self,  closed_date, closer):
+    @patch('sciit.cli.tracker.page', new_callable=Mock())
+    def test_prints_correct_tracker_info_all(self,  closed_date, closer, page):
 
         self.args.all = True
 
