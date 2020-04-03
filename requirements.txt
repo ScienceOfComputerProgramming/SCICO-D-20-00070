@@ -5,7 +5,6 @@ python-slugify==1.2.5
 colorama==0.4.3
 pathspec==0.5.6
 Flask==1.0.2
-markdown2==2.3.5
 python-dateutil==2.7.3
 python-gitlab
 requests

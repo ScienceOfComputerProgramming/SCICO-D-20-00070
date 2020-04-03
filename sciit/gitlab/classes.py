@@ -1,3 +1,4 @@
+import gitlab
 import logging
 import os
 import re
@@ -7,7 +8,6 @@ import subprocess
 from urllib.parse import urlparse
 
 from git import Repo
-from gitlab import Gitlab, GitlabGetError
 
 from sciit import IssueRepo
 from sciit.cli import ProgressTracker
@@ -93,7 +93,7 @@ class GitlabIssueClient:
         self._api_token = api_token
 
     def handle_issues(self, project_path_with_namespace, sciit_issues, gitlab_sciit_issue_id_cache):
-        with Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
+        with gitlab.Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
             project = gitlab_instance.projects.get(project_path_with_namespace)
             for sciit_issue in sciit_issues:
                 sciit_issue_id = sciit_issue.issue_id
@@ -103,7 +103,7 @@ class GitlabIssueClient:
                     try:
                         gitlab_issue = project.issues.get(gitlab_issue_id)
                         self._update_gitlab_issue(gitlab_issue, sciit_issue)
-                    except GitlabGetError:
+                    except gitlab.GitlabGetError:
                         self._create_gitlab_issue(project, sciit_issue, gitlab_issue_id)
 
                 else:
@@ -164,7 +164,7 @@ class GitlabIssueClient:
             gitlab_issue.save()
 
     def clear_issues(self, project_path_with_namespace):
-        with Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
+        with gitlab.Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
             project = gitlab_instance.projects.get(project_path_with_namespace)
             for gitlab_issue in project.issues.list(all=True):
                 gitlab_issue.delete()
