@@ -10,7 +10,7 @@ import sciit.cli.tracker
 from tests.test_cli.external_resources import ansi_escape, issues, second_commit
 
 
-class TestStatusCommand(TestCase):
+class TestTrackerCommand(TestCase):
 
     def setUp(self):
         self.held, sys.stdout = sys.stdout, StringIO()
@@ -33,7 +33,8 @@ class TestStatusCommand(TestCase):
         tracker(self.args)
         self.assertIn('No issues found', sys.stdout.getvalue())
 
-    def test_prints_correct_tracker_info(self):
+    @patch('sciit.cli.tracker.page', new_callable=Mock())
+    def test_prints_correct_tracker_info(self, _):
 
         self.args.open = True
 
@@ -74,7 +75,8 @@ class TestStatusCommand(TestCase):
 
     @patch('tests.test_cli.external_resources.Issue.closer', new_callable=Mock(return_value='Nystrome'))
     @patch('tests.test_cli.external_resources.Issue.closed_date', new_callable=Mock(return_value='A Date'))
-    def test_prints_correct_tracker_info_closed(self, closed_date, closer):
+    @patch('sciit.cli.tracker.page', new_callable=Mock())
+    def test_prints_correct_tracker_info_closed(self, closed_date, closer, _):
 
         self.args.closed = True
 
@@ -90,7 +92,8 @@ class TestStatusCommand(TestCase):
 
     @patch('tests.test_cli.external_resources.Issue.closer', new_callable=Mock(return_value='Nystrome'))
     @patch('tests.test_cli.external_resources.Issue.closed_date', new_callable=Mock(return_value='A Date'))
-    def test_prints_normal_tracker_view(self, closed_date, closer):
+    @patch('sciit.cli.tracker.page', new_callable=Mock())
+    def test_prints_normal_tracker_view(self, closed_date, closer, _):
 
         self.args.all = self.args.normal = True
 
@@ -105,7 +108,8 @@ class TestStatusCommand(TestCase):
         self.assertNotIn('Found In:', output)
         self.assertNotIn('Open In Branches:', output)
 
-    def test_prints_full_tracker_view(self):
+    @patch('sciit.cli.tracker.page', new_callable=Mock())
+    def test_prints_full_tracker_view(self, _):
 
         self.args.all = self.args.full = True
 

@@ -40,7 +40,8 @@ class TestIssueCommand(TestCase):
         self.assertIn('No issues in the repository', sys.stdout.getvalue())
 
     @patch('tests.external_resources.IssueSnapshot.in_branches', new_callable=MagicMock(return_value=['master']))
-    def test_command_returns_correct_history_normal_view(self, in_branches):
+    @patch('sciit.cli.issue.page', new_callable=Mock())
+    def test_command_returns_correct_history_normal_view(self, in_branches, _):
 
         self.args.revision = second_commit.hexsha
         self.args.normal = True
@@ -58,7 +59,8 @@ class TestIssueCommand(TestCase):
         self.assertNotIn('IssueSnapshot Revisions:', output)
         self.assertNotIn('Commit Activity:', output)
 
-    def test_command_returns_correct_history_full_view(self):
+    @patch('sciit.cli.issue.page', new_callable=Mock())
+    def test_command_returns_correct_history_full_view(self, _):
         self.args.revision = second_commit.hexsha
         self.args.full = True
         self.args.normal = self.args.detailed = False

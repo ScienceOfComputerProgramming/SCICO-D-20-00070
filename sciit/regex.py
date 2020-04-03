@@ -50,6 +50,7 @@ def get_issue_property_regex(key):
     }
     return mapping[key] if key in mapping else None
 
+
 def add_comment_chars(comment_pattern, issue_string, indent):
     if comment_pattern == MARKDOWN:
 
@@ -67,7 +68,7 @@ def strip_comment_chars(comment_pattern, comment_string):
     if comment_pattern == PLAIN:
         indent_re = '([\t| ]+)#([\t| ]+)@(?:[Ii]ssue)'
         indent_match = re.search(indent_re, comment_string)
-        indent = indent_match.group(1)
+        indent = indent_match.group(1) if indent_match else ''
 
         return re.sub(r'^\s*#\s*', '', comment_string, flags=re.M), indent
 
@@ -84,7 +85,7 @@ def strip_comment_chars(comment_pattern, comment_string):
 
         return stripped_content, indent
 
-    if comment_pattern in {PYTHON, MARKDOWN}:
+    if comment_pattern == PYTHON:
         indent_re = '([\t| ]+)@(?:[Ii]ssue)'
         indent_match = re.search(indent_re, comment_string)
         if indent_match is not None:
@@ -92,8 +93,22 @@ def strip_comment_chars(comment_pattern, comment_string):
         else:
             indent = ''
 
-        return re.search(comment_pattern, comment_string).group(1).strip(), indent
-        # return comment_string[3:-3]
+        issue_string = re.search(r'([\'"])\1\1(.*?)\1{3}', comment_string, re.DOTALL).group(2).strip()
+        return issue_string, indent
+        # return comment_string[3:-3], indent
+
+    elif comment_pattern == MARKDOWN:
+        indent_re = '([\t| ]+)@(?:[Ii]ssue)'
+        indent_match = re.search(indent_re, comment_string)
+        if indent_match is not None:
+            indent = indent_match.group(1)
+        else:
+            indent = ''
+
+        issue_string = re.search(MARKDOWN, comment_string).group(1).strip()
+        return issue_string, indent
+
+
     else:
         return comment_string, ''
 
