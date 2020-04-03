@@ -8,6 +8,7 @@ python_tests:
   image: python:3.6.5-alpine
   script:
     - apk --no-cache add git
+    - apk --no-cache add bash
     - pip install -r requirements.txt
     - python setup.py test
   artifacts:
