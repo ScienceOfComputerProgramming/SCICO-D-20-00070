@@ -11,7 +11,7 @@ from queue import LifoQueue
 from threading import Thread
 from urllib.parse import urlparse
 
-from flask import Flask, Response, request
+from flask import Flask, Response, request, json
 
 from .classes import MirroredGitlabSites
 
@@ -84,6 +84,9 @@ def init():
     An endpoint that can be used to initialise the local sciit repository.
     """
 
+    global job_queue
+    global mirrored_gitlab_sites
+
     data = request.get_json()
 
     site_homepage, path_with_namespace = get_project_information(data)
@@ -91,8 +94,13 @@ def init():
     mirrored_gitlab_sites.get_mirrored_gitlab_sciit_project(site_homepage, path_with_namespace)
 
     project_url = data['project']['web_url']
-
-    return Response({'status': 'Success', 'message': f'Issue cache initialised for project {project_url}.'})
+    response_data = {
+        'status': 'Success',
+        'message': f'Issue cache initialised for project {project_url}.',
+        'job_queue': len(job_queue),
+        'projects': len(mirrored_gitlab_sites.mirrored_gitlab_sites)
+    }
+    return Response(json.dumps(response_data))
 
 
 def launch(project_dir_path):
