@@ -37,7 +37,6 @@ def do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit
         exit()
 
 
-
 class GitCommitToIssue:
 
     def __init__(self, issue_repository, target_branch, message, push=True):
@@ -59,6 +58,7 @@ class GitCommitToIssue:
     def __enter__(self):
         self._git_repository.create_head(self._target_branch)
         self._git_repository.git.checkout(self._target_branch)
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._git_repository.index.add(self.file_paths)
