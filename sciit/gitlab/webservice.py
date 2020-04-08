@@ -59,15 +59,14 @@ def index():
         return Response(
             {'status': 'Rejected', 'message': 'Event originated from a previous sciit push web hook action.'})
     else:
-        # TODO Create a job queue here.
+        site_homepage, path_with_namespace = get_project_information(data)
+        # def _job():
+        mirrored_gitlab_sciit_project = mirrored_gitlab_sites.get_mirrored_gitlab_sciit_project(site_homepage, path_with_namespace)
+        logging.info(f'using local repository: {mirrored_gitlab_sciit_project.local_git_repository_path}.')
+        mirrored_gitlab_sciit_project.process_web_hook_event(event, data)
 
-        def _job():
-            mirrored_gitlab_sciit_project = mirrored_gitlab_sites.get_mirrored_gitlab_sciit_project(data)
-            logging.info(f'using local repository: {mirrored_gitlab_sciit_project.local_git_repository_path}.')
-            mirrored_gitlab_sciit_project.process_web_hook_event(event, data)
-            return Response({'status': 'Accepted'})
-
-        job_queue.put(_job)
+        # job_queue.put(_job)
+        return Response({'status': 'Accepted'})
 
 
 @app.route('/status', methods=['GET'])
@@ -134,4 +133,4 @@ if __name__ == '__main__':
     configure_global_resources(default_args)
     app.run(host='0.0.0.0', port=5000)
 else:
-    configure_global_resources('../gitlab-sites')
+    configure_global_resources('./gitlab-sites')
