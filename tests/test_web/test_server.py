@@ -2,7 +2,7 @@ import datetime
 from unittest import TestCase
 from unittest.mock import patch, Mock, MagicMock
 
-from sciit import IssueRepo, Issue
+from sciit import Issue
 from sciit.web.server import app, launch
 
 from tests.external_resources import create_mock_git_repository, create_mock_commit_with_issue_snapshots, \

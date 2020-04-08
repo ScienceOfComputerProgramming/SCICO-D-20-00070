@@ -240,6 +240,8 @@ class MirroredGitlabSciitProject:
         self.local_sciit_repository = local_sciit_repository
         self.gitlab_sciit_issue_id_cache = gitlab_sciit_issue_id_cache
 
+        self.git_repository_issue_client = GitRepositoryIssueClient(self.local_sciit_repository)
+
     def reset_gitlab_issues(self, revision='--all', issue_ids=None):
         self.gitlab_issue_client.clear_issues(self.project_path_with_namespace)
 
@@ -281,6 +283,9 @@ class MirroredGitlabSciitProject:
 
                 self.gitlab_issue_client.handle_issues(
                     self.project_path_with_namespace, issues_to_be_updated, self.gitlab_sciit_issue_id_cache)
+
+    def handle_issue_event(self, data):
+        self.git_repository_issue_client.handle_issue(data, self.gitlab_sciit_issue_id_cache)
 
     @staticmethod
     def _get_revision(before_commit_str, after_commit_str):
@@ -420,6 +425,9 @@ class MirroredGitlabSites:
         return mirrored_gitlab_site.get_mirrored_gitlab_sciit_project(path_with_namespace, local_git_repository_path)
 
     def configure_logger_for_web_service_events(self):
+
+        if not os.path.exists(self.sites_path):
+            os.makedirs(self.sites_path)
 
         logging.basicConfig(
             format='%(levelname)s:[%(asctime)s]cl %(message)s',

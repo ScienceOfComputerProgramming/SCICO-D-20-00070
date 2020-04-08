@@ -1,9 +1,9 @@
-from sciit.gitlab.webservice import launch as launch_web_service
+from sciit.gitlab.webservice import launch_standalone
 from sciit.gitlab.functions import reset_gitlab_issues, set_gitlab_api_token
 
 
 def launch(args):
-    launch_web_service('.')
+    launch_standalone('.')
 
 
 def reset(args):

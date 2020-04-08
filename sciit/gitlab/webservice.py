@@ -127,10 +127,14 @@ def configure_global_resources(project_dir_path):
     Thread(target=process_jobs).start()
 
 
+def launch_standalone(args):
+    configure_global_resources(default_args)
+    app.run(host='0.0.0.0', port=5000)
+
+
 if __name__ == '__main__':
     default_args = type('args', (), {})
     default_args.project_dir_path = ''
-    configure_global_resources(default_args)
-    app.run(host='0.0.0.0', port=5000)
+    launch_standalone(default_args)
 else:
     configure_global_resources('./gitlab-sites')
