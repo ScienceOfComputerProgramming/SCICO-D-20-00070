@@ -7,8 +7,6 @@ from pathspec import PathSpec
 
 from sciit.read_commit import find_issue_snapshots_in_commit_paths_that_changed, extract_issue_data_from_comment_string
 
-pattern = r'((?:#.*(?:\n\s*#)*.*)|(?:#.*)|(?:#.*$))'
-
 
 def random_40_chars():
     return [random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(40)]
@@ -55,7 +53,7 @@ class TestFindIssuesInCommit(TestCase):
                     path='README')
             ])
 
-        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertFalse(issue_snapshots)
 
     @patch('sciit.read_commit._find_branches_for_commit', MagicMock(return_value=['master']))
@@ -215,7 +213,7 @@ value that has some contents
             commit_files=['README1', 'README3']
         )
 
-        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertFalse(issue_snapshots)
 
     @patch('sciit.read_commit._find_branches_for_commit', MagicMock(return_value=['master']))
@@ -231,7 +229,7 @@ value that has some contents
             commit_files=['docs/this.py', 'README3']
         )
 
-        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertFalse(issue_snapshots)
 
     @patch('sciit.read_commit._find_branches_for_commit', MagicMock(return_value=['master']))
@@ -259,7 +257,7 @@ value that has some contents
             commit_files=['README1', 'README3', 'docs/file9.py']
         )
 
-        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertFalse(issue_snapshots)
 
     @patch('sciit.read_commit._find_branches_for_commit', MagicMock(return_value=['master']))
@@ -275,7 +273,7 @@ value that has some contents
             commit_files=['README']
         )
 
-        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertFalse(issue_snapshots)
 
     @patch('sciit.read_commit._find_branches_for_commit', MagicMock(return_value=['master']))
@@ -283,8 +281,8 @@ value that has some contents
         commit = self.create_commit_mock(
             blobs=[
                 self.create_blob_mock(
-                    content=('#@issue ' + str(i)).encode(),
-                    mime_type='text',
+                    content=('#***\n# @issue %d \n#***' % i),
+                    mime_type='text/plain',
                     path='README' + str(i)
                 ) for i in range(6)
             ],
@@ -293,7 +291,7 @@ value that has some contents
 
         commit.tree.blobs[3].contents = b'This one has no issue in it'
 
-        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertEqual(len(issue_snapshots), 3)
 
     @patch('sciit.read_commit._find_branches_for_commit', MagicMock(return_value=['master']))
@@ -303,8 +301,8 @@ value that has some contents
                 self.create_tree_mock(
                     blobs=[
                         self.create_blob_mock(
-                            content=('#@issue w' + str(i)).encode(),
-                            mime_type='text',
+                            content=('"""\n@issue w%d \n"""' % i),
+                            mime_type='text/plain',
                             path='docs/file' + str(i) + '.py'
                         ) for i in range(12)
                     ]
@@ -317,13 +315,13 @@ value that has some contents
                     path='README' + str(i)
                 ) for i in range(6)
             ],
-            commit_files=['README0', 'README1', 'README2', 'docs/file3.py', 'docs/file7.py']
+            commit_files=['docs/file3.py', 'docs/file7.py']
         )
 
         commit.tree.blobs[3].contents = b'This one has no issue in it'
 
-        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern)
-        self.assertEqual(len(issue_snapshots), 5)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
+        self.assertEqual(len(issue_snapshots), 2)
 
     @patch('sciit.read_commit._find_branches_for_commit', MagicMock(return_value=['master']))
     def test_commit_ignores_certain_files(self):
@@ -342,7 +340,7 @@ value that has some contents
         commit.tree.blobs[3].contents = b'This one has no issue in it'
 
         ignored_files = PathSpec.from_lines('gitignore', ['README*'])
-        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern, ignored_files)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, ignored_files)
         self.assertEqual(len(issue_snapshots), 0)
 
     @patch('sciit.read_commit._find_branches_for_commit', MagicMock(return_value=['master']))
@@ -350,15 +348,15 @@ value that has some contents
         commit = self.create_commit_mock(
             blobs=[
                 self.create_blob_mock(
-                    content=('#@issue ' + str(i)).encode(),
-                    mime_type='text',
+                    content=('#***\n# @issue %d \n#***' % i),
+                    mime_type='text/plain',
                     path='README' + str(i)
                 ) for i in range(6)
             ],
             commit_files=['README0', 'README1', 'README2']
         )
 
-        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit, pattern, None)
+        issue_snapshots, _, _ = find_issue_snapshots_in_commit_paths_that_changed(commit)
         self.assertEqual(3, len(issue_snapshots))
 
 

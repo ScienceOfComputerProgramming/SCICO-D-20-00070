@@ -109,7 +109,7 @@ def read_in_blob_contents(blob):
         return blob_contents
 
 
-def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=None, ignore_files=None):
+def find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=None):
     issue_snapshots = list()
 
     files_changed_in_commit = _get_files_changed_in_commit(commit)
@@ -128,8 +128,7 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, comment_pattern=No
 
         blob = blobs[file_changed]
 
-        _comment_pattern = get_file_object_pattern(blob.path, blob.mime_type) if not comment_pattern else comment_pattern
-
+        _comment_pattern = get_file_object_pattern(blob.path, blob.mime_type)
         if not _comment_pattern:
             continue
 
@@ -230,6 +229,8 @@ def _init_commit_branch_cache():
 
 
 def _find_branches_for_commit(commit):
+
+
     global _COMMIT_BRANCHES_CACHE
     if not _COMMIT_BRANCHES_CACHE:
         _init_commit_branch_cache()
