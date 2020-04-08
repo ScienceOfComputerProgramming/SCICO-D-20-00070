@@ -285,7 +285,7 @@ class MirroredGitlabSciitProject:
                     self.project_path_with_namespace, issues_to_be_updated, self.gitlab_sciit_issue_id_cache)
 
     def handle_issue_event(self, data):
-        self.git_repository_issue_client.handle_issue(data, self.gitlab_sciit_issue_id_cache)
+        self.git_repository_issue_client.handle_issue(data['object_attributes'], self.gitlab_sciit_issue_id_cache)
 
     @staticmethod
     def _get_revision(before_commit_str, after_commit_str):
