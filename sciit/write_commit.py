@@ -83,7 +83,10 @@ def create_new_issue(issue_repository, title, description='', commit_message=Non
 
     _issue_id = slugify.slugify(title) if issue_id is None else issue_id
     _commit_message = "Creates Issue %s." % issue_id if commit_message is None else commit_message
-    _file_path = 'backlog/' + _issue_id + ".md" if file_path is None else file_path
+
+    working_dir = issue_repository.git_repository.working_dir
+
+    _file_path = f"{working_dir}{os.sep}backlog{os.sep}{_issue_id}.md" if file_path is None else file_path
 
     with GitCommitToIssue(issue_repository, _issue_id, _commit_message) as commit_to_issue:
 
