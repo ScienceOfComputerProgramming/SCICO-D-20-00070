@@ -308,8 +308,7 @@ class GitlabTokenCache:
 
     @property
     def _gitlab_token_cache_db_connection(self):
-        token_cache_db_path = self._site_local_mirror_path + os.sep + ".git" +os.sep + "issues" + os.sep + \
-                              "gitlab_api_token_cache.db"
+        token_cache_db_path = self._site_local_mirror_path + os.sep + "gitlab_api_token_cache.db"
 
         connection = sqlite3.connect(token_cache_db_path)
         cursor = connection.cursor()
