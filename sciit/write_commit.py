@@ -1,3 +1,6 @@
+import os
+import slugify
+
 from sciit.functions import get_sciit_ignore_path_spec
 from sciit.read_commit import find_issue_snapshots_in_commit_paths_that_changed
 from sciit.cli.color import ColorPrint
@@ -74,3 +77,23 @@ class GitCommitToIssue:
         for file_path in self.file_paths:
             self._git_repository.git.checkout(file_path)
         self._git_repository.git.checkout(self._starting_branch_name)
+
+
+def create_new_issue(issue_repository, title, description='', commit_message=None, issue_id=None, file_path=None):
+
+    _issue_id = slugify.slugify(title) if issue_id is None else issue_id
+    _commit_message = "Creates Issue %s." % issue_id if commit_message is None else commit_message
+    _file_path = 'backlog/' + _issue_id + ".md" if file_path is None else file_path
+
+    with GitCommitToIssue(issue_repository, _issue_id, _commit_message) as commit_to_issue:
+
+        backlog_directory = os.path.dirname(_file_path)
+        os.makedirs(backlog_directory, exist_ok=True)
+
+        with open(_file_path, mode='w') as issue_file:
+            issue_file.write(
+                f'---\n@issue {_issue_id}\n@title {title}\n@description\n{description}\n---\n'
+            )
+
+        commit_to_issue.file_paths.append(_file_path)
+

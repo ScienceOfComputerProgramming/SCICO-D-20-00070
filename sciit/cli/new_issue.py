@@ -2,6 +2,7 @@ import os
 import slugify
 from sciit.cli.functions import do_repository_has_no_commits_warning, build_issue_history, page
 
+from sciit.write_commit import create_new_issue
 
 def read_input_with_default(prompt, default):
 
@@ -31,17 +32,7 @@ def new_issue(args):
 
     git_commit_message = read_input_with_default("Enter a commit message", "Creates Issue " + issue_id)
 
-    with WithGitCommitToIssue(issue_repository, issue_id, git_commit_message) as commit_to_issue:
-
-        backlog_directory = os.path.dirname(file_path)
-        os.makedirs(backlog_directory, exist_ok=True)
-
-        with open(file_path, mode='w') as issue_file:
-            issue_file.write(
-                f'---\n@issue {issue_id}\n@title {issue_title}\n@description\n{issue_description}\n---\n'
-            )
-
-        commit_to_issue.file_paths.append(file_path)
+    create_new_issue(issue_repository, issue_title, issue_description, git_commit_message, issue_id, file_path)
 
     if args.accept:
         print("Performing merge to master to accept issue...")

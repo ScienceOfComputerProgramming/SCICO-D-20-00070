@@ -37,6 +37,9 @@ class GitRepositoryIssueClient:
                 self.update_issue(sciit_issue, gitlab_issue)
                 commit_to_issue.file_paths.append(sciit_issue.file_path)
 
+        else:
+            self.create_new_sciit_issue(gitlab_issue)
+
     def update_issue(self, sciit_issue, changes):
 
         comment_pattern = get_file_object_pattern(sciit_issue.file_path)
