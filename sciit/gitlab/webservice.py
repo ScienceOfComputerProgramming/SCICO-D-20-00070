@@ -110,7 +110,7 @@ def init():
     return Response(json.dumps(response_data))
 
 
-def launch(project_dir_path):
+def configure_global_resources(project_dir_path):
     """
     A helper function that launches the web service.
     """
@@ -127,10 +127,10 @@ def launch(project_dir_path):
 
     Thread(target=process_jobs).start()
 
-    app.run(host='0.0.0.0', port=5000)
-
+configure_global_resources('../gitlab-sites')
 
 if __name__ == '__main__':
     default_args = type('args', (), {})
     default_args.project_dir_path = ''
-    launch(default_args)
+    configure_global_resources(default_args)
+    app.run(host='0.0.0.0', port=5000)
