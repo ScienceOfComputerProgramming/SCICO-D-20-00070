@@ -181,7 +181,7 @@ class GitlabSciitIssueIDCache:
         issue_id_cache_db_path = \
             self.local_git_repository_path + os.sep + '.git' + os.path.sep + 'issues' + os.path.sep + 'issue_id_cache.db'
 
-        connection = sqlite3.connect(issue_id_cache_db_path, )
+        connection = sqlite3.connect(issue_id_cache_db_path)
         cursor = connection.cursor()
 
         cursor.execute(
