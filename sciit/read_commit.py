@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import re
 import subprocess
 import shutil
@@ -109,8 +110,10 @@ def read_in_blob_contents(blob):
         return blob_contents
 
 
-def find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=None):
+def find_issue_snapshots_in_commit_paths_that_changed(commit, git_working_dir=None, ignore_files=None):
     issue_snapshots = list()
+
+    _git_working_dir = os.getcwd() if git_working_dir is None else git_working_dir
 
     files_changed_in_commit = _get_files_changed_in_commit(commit)
 
@@ -119,7 +122,7 @@ def find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=None)
     if ignore_files:
         files_changed_in_commit -= set(ignore_files.match_files(files_changed_in_commit))
 
-    in_branches = _find_branches_for_commit(commit)
+    in_branches = _find_branches_for_commit(commit, _git_working_dir)
 
     for file_changed in files_changed_in_commit:
         # Handles deleted files they won't exist.
@@ -213,14 +216,20 @@ def _get_commit_branches_from_powershell():
     return output
 
 
-def _init_commit_branch_cache():
+def _init_commit_branch_cache(git_working_dir):
     global _COMMIT_BRANCHES_CACHE
     _COMMIT_BRANCHES_CACHE = dict()
+
+    current_wd = os.getcwd()
+
+    os.chdir(git_working_dir)
 
     if shutil.which('bash') is not None:
         sub_process_out = _get_commit_branches_from_bash()
     else:
         sub_process_out = _get_commit_branches_from_powershell()
+
+    os.chdir(current_wd)
 
     for line in sub_process_out.decode("utf-8").strip().split('\n'):
         commit_str, branches_str = line.split(':')
@@ -228,12 +237,12 @@ def _init_commit_branch_cache():
         _COMMIT_BRANCHES_CACHE[commit_str] = branches
 
 
-def _find_branches_for_commit(commit):
+def _find_branches_for_commit(commit, git_working_dir):
 
 
     global _COMMIT_BRANCHES_CACHE
     if not _COMMIT_BRANCHES_CACHE:
-        _init_commit_branch_cache()
+        _init_commit_branch_cache(git_working_dir)
 
     if commit.hexsha in _COMMIT_BRANCHES_CACHE:
         return _COMMIT_BRANCHES_CACHE[commit.hexsha]

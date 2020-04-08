@@ -142,7 +142,10 @@ class IssueRepo(object):
     def _cache_issue_snapshots_from_commit(self, commit, ignored_files, progress_tracker):
 
         changed_issue_snapshots, files_changed_in_commit, in_branches = \
-            find_issue_snapshots_in_commit_paths_that_changed(commit, ignore_files=ignored_files)
+            find_issue_snapshots_in_commit_paths_that_changed(
+                commit,
+                git_working_dir=self.git_repository.working_dir,
+                ignore_files=ignored_files)
 
         unchanged_issue_snapshots = \
             self._find_unchanged_issue_snapshots_in_immediate_parent(commit, in_branches, files_changed_in_commit)
