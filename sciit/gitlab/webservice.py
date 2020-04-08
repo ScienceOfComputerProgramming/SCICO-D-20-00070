@@ -80,7 +80,7 @@ def status():
 
     response_data = {
         'job_queue': len(job_queue),
-        'projects': len(mirrored_gitlab_sites.mirrored_gitlab_sites)
+        'projects': len(mirrored_gitlab_sites.mirrored_gitlab_sites),
         "status": "running",
          "message": "The SCIIT-GitLab integration service is operational."
     }
@@ -127,10 +127,11 @@ def configure_global_resources(project_dir_path):
 
     Thread(target=process_jobs).start()
 
-configure_global_resources('../gitlab-sites')
 
 if __name__ == '__main__':
     default_args = type('args', (), {})
     default_args.project_dir_path = ''
     configure_global_resources(default_args)
     app.run(host='0.0.0.0', port=5000)
+else:
+    configure_global_resources('../gitlab-sites')
