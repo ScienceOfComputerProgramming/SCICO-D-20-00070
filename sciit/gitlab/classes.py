@@ -91,7 +91,7 @@ class GitRepositoryIssueClient:
     def create_new_sciit_issue(self, gitlab_issue):
         create_new_issue(self._sciit_repository, gitlab_issue['title'], gitlab_issue['description'])
 
-        
+
 class GitlabIssueClient:
 
     def __init__(self, site_homepage, api_token):
@@ -185,7 +185,7 @@ class GitlabSciitIssueIDCache:
     @property
     def _issue_id_cache_db_connection(self):
         issue_id_cache_db_path = \
-            self.local_git_repository_path + os.sep + '.git' + os.path.sep + 'issues' + os.path.sep + 'issue_id_cache.db'
+            self.local_git_repository_path + os.path.sep + 'issues' + os.path.sep + 'issue_id_cache.db'
 
         connection = sqlite3.connect(issue_id_cache_db_path)
         cursor = connection.cursor()
@@ -377,7 +377,7 @@ class MirroredGitlabSite:
 
             _local_git_repository_path = \
                 local_git_repository_path if local_git_repository_path is not None \
-                else self.site_local_mirror_path + os.path.sep + path_with_namespace
+                else self.site_local_mirror_path + path_with_namespace
 
             project_url = self.site_homepage + path_with_namespace
 
