@@ -184,8 +184,8 @@ class GitlabSciitIssueIDCache:
 
     @property
     def _issue_id_cache_db_connection(self):
-        issue_id_cache_db_path = \
-            self.local_git_repository_path + os.path.sep + 'issues' + os.path.sep + 'issue_id_cache.db'
+        issue_id_cache_db_path = self.local_git_repository_path + os.path.sep + '.git' + os.path.sep + \
+                                 'issues' + os.path.sep + 'issue_id_cache.db'
 
         connection = sqlite3.connect(issue_id_cache_db_path)
         cursor = connection.cursor()
@@ -383,7 +383,7 @@ class MirroredGitlabSite:
 
             if not os.path.exists(_local_git_repository_path):
                 subprocess.run(
-                    ['git', 'clone', '--mirror', project_url, _local_git_repository_path], check=True)
+                    ['git', 'clone', project_url, _local_git_repository_path], check=True)
 
             git_repository = Repo(_local_git_repository_path)
             local_issue_repository = IssueRepo(git_repository)
