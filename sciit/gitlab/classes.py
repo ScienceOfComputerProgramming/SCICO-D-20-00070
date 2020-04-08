@@ -11,7 +11,7 @@ from git import Repo
 
 from sciit import IssueRepo
 from sciit.cli import ProgressTracker
-from sciit.write_commit import GitCommitToIssue
+from sciit.write_commit import GitCommitToIssue, create_new_issue
 
 from sciit.regex import get_file_object_pattern, IssuePropertyRegularExpressions, add_comment_chars, \
     strip_comment_chars, get_issue_property_regex
@@ -88,7 +88,10 @@ class GitRepositoryIssueClient:
         else:
             return file_content + f'\n@description\n{new_value}'
 
+    def create_new_sciit_issue(self, gitlab_issue):
+        create_new_issue(self._sciit_repository, gitlab_issue['title'], gitlab_issue['description'])
 
+        
 class GitlabIssueClient:
 
     def __init__(self, site_homepage, api_token):
