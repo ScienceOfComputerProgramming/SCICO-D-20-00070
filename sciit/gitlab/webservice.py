@@ -29,7 +29,7 @@ job_queue = None
 
 def get_project_information(data):
     parsed_uri = urlparse(data['repository']['homepage'])
-    site_homepage = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+    site_homepage = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)
     path_with_namespace = parsed_uri.path
     return site_homepage, path_with_namespace
 
