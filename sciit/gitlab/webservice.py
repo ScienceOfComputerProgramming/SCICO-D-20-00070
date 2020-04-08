@@ -75,7 +75,16 @@ def status():
     """
     An endpoint to check the status of the webservice to determine its running state without making any changes.
     """
-    return Response({"status": "running", "message": "The SCIIT-GitLab integration service is operational."})
+    global job_queue
+    global mirrored_gitlab_sites
+
+    response_data = {
+        'job_queue': len(job_queue),
+        'projects': len(mirrored_gitlab_sites.mirrored_gitlab_sites)
+        "status": "running",
+         "message": "The SCIIT-GitLab integration service is operational."
+    }
+    return Response(json.dumps(response_data))
 
 
 @app.route('/init', methods=['POST'])
@@ -97,8 +106,6 @@ def init():
     response_data = {
         'status': 'Success',
         'message': f'Issue cache initialised for project {project_url}.',
-        'job_queue': len(job_queue),
-        'projects': len(mirrored_gitlab_sites.mirrored_gitlab_sites)
     }
     return Response(json.dumps(response_data))
 
