@@ -7,8 +7,6 @@ Functions needed to launch the gitlab webservice. Note that this webservice cann
 
 import logging
 
-from queue import LifoQueue
-from threading import Thread
 from urllib.parse import urlparse
 
 from flask import Flask, Response, request, json
@@ -23,8 +21,6 @@ sciit_web_hook_username = 'twsswt'  # 'sciit_web_hook'
 
 
 mirrored_gitlab_sites = None
-
-job_queue = None
 
 
 def get_project_information(data):
@@ -74,11 +70,9 @@ def status():
     """
     An endpoint to check the status of the webservice to determine its running state without making any changes.
     """
-    global job_queue
     global mirrored_gitlab_sites
 
     response_data = {
-        'job_queue': len(job_queue),
         'projects': len(mirrored_gitlab_sites.mirrored_gitlab_sites),
         "status": "running",
          "message": "The SCIIT-GitLab integration service is operational."
@@ -92,7 +86,6 @@ def init():
     An endpoint that can be used to initialise the local sciit repository.
     """
 
-    global job_queue
     global mirrored_gitlab_sites
 
     data = request.get_json()
@@ -114,17 +107,7 @@ def configure_global_resources(project_dir_path):
     A helper function that launches the web service.
     """
     global mirrored_gitlab_sites
-    global job_queue
-
-    job_queue = LifoQueue()
     mirrored_gitlab_sites = MirroredGitlabSites(project_dir_path)
-
-    def process_jobs():
-        while True:
-            job = job_queue.get(block=True)
-            job()
-
-    Thread(target=process_jobs).start()
 
 
 def launch_standalone(args):
