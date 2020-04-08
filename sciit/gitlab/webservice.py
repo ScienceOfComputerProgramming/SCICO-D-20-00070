@@ -61,8 +61,9 @@ def index():
     else:
         site_homepage, path_with_namespace = get_project_information(data)
         # def _job():
-        mirrored_gitlab_sciit_project = mirrored_gitlab_sites.get_mirrored_gitlab_sciit_project(site_homepage, path_with_namespace)
-        logging.info(f'using local repository: {mirrored_gitlab_sciit_project.local_git_repository_path}.')
+        mirrored_gitlab_sciit_project = \
+            mirrored_gitlab_sites.get_mirrored_gitlab_sciit_project(site_homepage, path_with_namespace)
+        logging.info(f'using local repository: {mirrored_gitlab_sciit_project.project_path_with_namespace}.')
         mirrored_gitlab_sciit_project.process_web_hook_event(event, data)
 
         # job_queue.put(_job)
