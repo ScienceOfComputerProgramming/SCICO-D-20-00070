@@ -47,15 +47,16 @@ class IssueRepo(object):
     def is_init(self):
         return os.path.exists(self.issue_dir)
 
-    def setup_file_system_resources(self):
+    def setup_file_system_resources(self, install_hooks=True):
         os.makedirs(self.issue_dir)
 
         Path(self.issue_dir + '/HISTORY').touch()
         Path(self.issue_dir + '/LAST').touch()
 
-        self._install_hook('post-commit')
-        self._install_hook('post-merge')
-        self._install_hook('post-checkout')
+        if install_hooks:
+            self._install_hook('post-commit')
+            self._install_hook('post-merge')
+            self._install_hook('post-checkout')
 
     def _install_hook(self, hook_name):
         git_hooks_dir = self.git_repository.git_dir + '/hooks/'
