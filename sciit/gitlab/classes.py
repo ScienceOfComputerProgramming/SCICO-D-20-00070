@@ -113,7 +113,7 @@ class GitlabIssueClient:
 
     def handle_issues(self, project_path_with_namespace, sciit_issues, gitlab_sciit_issue_id_cache):
         with gitlab.Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
-            project = gitlab_instance.projects.get(project_path_with_namespace)
+            project = gitlab_instance.projects.get(project_path_with_namespace[1:])
             for sciit_issue in sciit_issues:
                 sciit_issue_id = sciit_issue.issue_id
                 gitlab_issue_id = gitlab_sciit_issue_id_cache.get_gitlab_issue_id(sciit_issue_id)
