@@ -399,11 +399,15 @@ class MirroredGitlabSite:
 
         if not os.path.exists(local_git_repository_path):
             subprocess.run(['git', 'clone', git_url, local_git_repository_path], check=True)
+            git_repository = Repo(local_git_repository_path)
+            local_issue_repository = IssueRepo(git_repository)
+            local_issue_repository.setup_file_system_resources(install_hooks=False)
+            local_issue_repository.cache_issue_snapshots_from_all_commits()
+        else:
+            git_repository = Repo(local_git_repository_path)
+            local_issue_repository = IssueRepo(git_repository)
+            local_issue_repository.cache_issue_snapshots_from_unprocessed_commits()
 
-        git_repository = Repo(local_git_repository_path)
-
-        local_issue_repository = IssueRepo(git_repository)
-        local_issue_repository.cache_issue_snapshots_from_unprocessed_commits()
         return local_issue_repository
 
     def make_git_url(self, path_with_namespace):
