@@ -72,9 +72,7 @@ def add_gitlab_reset_parser(gitlab_subparsers):
     gitlab_reset_parser.set_defaults(func=reset_gitlab_issues)
 
     gitlab_reset_parser.add_argument('project_url')
-    gitlab_reset_parser.add_argument(
-        '-l', '--local-git-repository-path',
-        help='Path to local git repository, if not mapped by remote repository URL', default=None)
+    gitlab_reset_parser.add_argument('sites_local_path')
 
 
 def add_gitlab_set_token_parser(gitlab_subparsers):
