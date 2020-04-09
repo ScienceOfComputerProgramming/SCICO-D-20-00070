@@ -20,10 +20,13 @@ app = Flask(__name__)
 sciit_web_hook_username = 'twsswt'  # 'sciit_web_hook'
 
 
+sciit_web_hook_secret_token = 'SciitityMcGitty'
+
+
 mirrored_gitlab_sites = None
 
 
-def get_project_information(data):
+def get_project_site_homepage_and_path_with_namespace(data):
     parsed_uri = urlparse(data['repository']['homepage'])
     site_homepage = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)
     path_with_namespace = parsed_uri.path
@@ -43,6 +46,10 @@ def index():
     The single endpoint of the service handling all incoming web hooks.
     """
 
+    if 'HTTP_X_GITLAB_TOKEN' not in request.headers.environ or \
+            request.headers.environ['HTTP_X_GITLAB_TOKEN'] != sciit_web_hook_secret_token:
+        return Response(json.dumps({'status': 'Rejected', 'message': 'Invalid Gitlab token'}))
+
     event = request.headers.environ['HTTP_X_GITLAB_EVENT']
     logging.info(f'received a {event} event.')
 
@@ -55,7 +62,7 @@ def index():
         return Response(
             {'status': 'Rejected', 'message': 'Event originated from a previous sciit push web hook action.'})
     else:
-        site_homepage, path_with_namespace = get_project_information(data)
+        site_homepage, path_with_namespace = get_project_site_homepage_and_path_with_namespace(data)
 
         mirrored_gitlab_sciit_project = \
             mirrored_gitlab_sites.get_mirrored_gitlab_sciit_project(site_homepage, path_with_namespace)
@@ -86,11 +93,15 @@ def init():
     An endpoint that can be used to initialise the local sciit repository.
     """
 
+    if 'HTTP_X_GITLAB_TOKEN' not in request.headers.environ or \
+            request.headers.environ['HTTP_X_GITLAB_TOKEN'] != sciit_web_hook_secret_token:
+        return Response(json.dumps({'status': 'Rejected', 'message': 'Invalid Gitlab token'}))
+
     global mirrored_gitlab_sites
 
     data = request.get_json()
 
-    site_homepage, path_with_namespace = get_project_information(data)
+    site_homepage, path_with_namespace = get_project_site_homepage_and_path_with_namespace(data)
 
     mirrored_gitlab_sites.get_mirrored_gitlab_sciit_project(site_homepage, path_with_namespace)
 

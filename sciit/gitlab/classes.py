@@ -2,6 +2,7 @@ import gitlab
 import logging
 import os
 import re
+import slugify
 import sqlite3
 import subprocess
 
@@ -27,20 +28,29 @@ class GitRepositoryIssueClient:
         sciit_issue_id = gitlab_sciit_issue_id_cache.get_sciit_issue_id(gitlab_issue_id)
 
         if sciit_issue_id is not None:
-            sciit_issues = self._sciit_repository.get_all_issues()
-            sciit_issue = sciit_issues[sciit_issue_id]
-
-            latest_branch = sciit_issue.newest_issue_snapshot.in_branches[0]
-            message = "Updates Issue %s (Gitlab Issue %d)." % (sciit_issue.issue_id, gitlab_issue_id)
-
-            with GitCommitToIssue(self._sciit_repository, latest_branch, message) as commit_to_issue:
-                self.update_issue(sciit_issue, gitlab_issue)
-                commit_to_issue.file_paths.append(sciit_issue.file_path)
-
+            self.update_issue(sciit_issue_id, gitlab_issue)
         else:
             self.create_new_sciit_issue(gitlab_issue)
 
-    def update_issue(self, sciit_issue, changes):
+    def update_issue(self, sciit_issue_id, changes):
+        gitlab_issue_id = changes['iid']
+
+        sciit_issues = self._sciit_repository.get_all_issues()
+        sciit_issue = sciit_issues[sciit_issue_id]
+
+        latest_branch = sciit_issue.newest_issue_snapshot.in_branches[0]
+        message = "Updates Issue %s (Gitlab Issue %d).\n\n(sciit issue update)" % \
+                  (sciit_issue.issue_id, gitlab_issue_id)
+
+        with GitCommitToIssue(self._sciit_repository, latest_branch, message) as commit_to_issue:
+            new_sciit_issue_file_content = self.get_changed_file_content(sciit_issue, changes)
+
+            with open(sciit_issue.working_file_path, 'w') as sciit_issue_file:
+                sciit_issue_file.write(new_sciit_issue_file_content)
+
+            commit_to_issue.file_paths.append(sciit_issue.file_path)
+
+    def get_changed_file_content(self, sciit_issue, changes):
 
         comment_pattern = get_file_object_pattern(sciit_issue.file_path)
 
@@ -60,13 +70,10 @@ class GitRepositoryIssueClient:
 
         sciit_issue_content = add_comment_chars(comment_pattern, sciit_issue_content, indent)
 
-        new_sciit_issue_file_content = \
+        return \
             file_content[0:sciit_issue.start_position] + \
             sciit_issue_content + \
             file_content[sciit_issue.end_position:]
-
-        with open(sciit_issue.working_file_path, 'w') as sciit_issue_file:
-            sciit_issue_file.write(new_sciit_issue_file_content)
 
     @staticmethod
     def _update_single_line_property_in_file_content(pattern, file_content, label, new_value):
@@ -89,7 +96,13 @@ class GitRepositoryIssueClient:
             return file_content + f'\n@description\n{new_value}'
 
     def create_new_sciit_issue(self, gitlab_issue):
-        create_new_issue(self._sciit_repository, gitlab_issue['title'], gitlab_issue['description'])
+        create_new_issue(
+            self._sciit_repository,
+            gitlab_issue['title'],
+            gitlab_issue['description'],
+            commit_message="Creates New Issue %s (Gitlab Issue %d).\n\n(sciit issue update)" %
+                           (gitlab_issue['title'], gitlab_issue['iid'])
+        )
 
 
 class GitlabIssueClient:

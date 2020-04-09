@@ -82,7 +82,6 @@ class GitCommitToIssue:
                         origin = self._git_repository.create_remote('origin', self._origin_url)
 
                 self._git_repository.git.push("--set-upstream", origin, self._git_repository.head.ref)
-                # self._git_repository.git.push('origin', self._target_branch)
             except ValueError:
                 logging.warning("Couldn't push to branch [%s]." % self._target_branch)
 
