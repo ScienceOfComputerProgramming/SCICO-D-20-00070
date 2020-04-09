@@ -17,7 +17,7 @@ from .classes import MirroredGitlabSites
 app = Flask(__name__)
 
 
-sciit_web_hook_username = 'twsswt'  # 'sciit_web_hook'
+sciit_web_hook_username = 'sciit-sciit'  # 'sciit_web_hook'
 
 
 sciit_web_hook_secret_token = 'SciitityMcGitty'
@@ -56,9 +56,11 @@ def index():
     data = request.get_json()
 
     if event == 'Push Hook' and no_new_commits(data):
+        logging.info("Rejecting already seen commits.")
         return Response(
             {'status': 'Rejected', 'message': 'Event originated from a previous sciit issue web hook action.'})
     elif event == 'Issue Hook' and data['user']['username'] == sciit_web_hook_username:
+        logging.info("Rejecting already seen issue event.")
         return Response(
             {'status': 'Rejected', 'message': 'Event originated from a previous sciit push web hook action.'})
     else:

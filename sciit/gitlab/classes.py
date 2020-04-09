@@ -231,7 +231,6 @@ class GitlabSciitIssueIDCache:
             else:
                 return None
 
-
     def set_gitlab_issue_id(self, sciit_issue_id, gitlab_issue_id):
         with self._issue_id_cache_db_connection as connection:
             cursor = connection.cursor()
@@ -435,8 +434,6 @@ class MirroredGitlabSites:
 
         self.sites_path = sites_path
 
-        self.configure_logger_for_web_service_events()
-
         self.mirrored_gitlab_sites = dict()
 
     def get_mirrored_gitlab_site(self, site_homepage):
@@ -456,14 +453,3 @@ class MirroredGitlabSites:
         mirrored_gitlab_site = self.get_mirrored_gitlab_site(site_homepage)
         return mirrored_gitlab_site.get_mirrored_gitlab_sciit_project(path_with_namespace, local_git_repository_path)
 
-    def configure_logger_for_web_service_events(self):
-
-        if not os.path.exists(self.sites_path):
-            os.makedirs(self.sites_path)
-
-        logging.basicConfig(
-            format='%(levelname)s:[%(asctime)s]cl %(message)s',
-            datefmt='%m/%d/%Y %I:%M:%S %p',
-            filename=self.sites_path + os.path.sep + 'sciit-gitlab.log',
-            level=logging.INFO
-        )
