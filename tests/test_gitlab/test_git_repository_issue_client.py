@@ -33,13 +33,16 @@ class TestGitRepositoryIssueClient(unittest.TestCase):
 
     def setUp(self):
 
-        sciit_repository = Mock()
+        self.sciit_repository = Mock()
 
-        self.git_repository_issue_client = GitRepositoryIssueClient(sciit_repository)
+        self.git_repository_issue_client = GitRepositoryIssueClient(self.sciit_repository)
 
     def test_edit_issue(self):
 
-        with patch('builtins.open', mock_open(read_data=issue_file_content)) as m:
+        with patch('builtins.open', mock_open(read_data=issue_file_content)) as m, \
+                patch('sciit.gitlab.classes.GitCommitToIssue.__exit__', new_callable=Mock()) as commit_to_issue:
+
+            commit_to_issue.return_value = Mock()
 
             handle = m()
 
@@ -55,15 +58,19 @@ class TestGitRepositoryIssueClient(unittest.TestCase):
             issue_snapshot = IssueSnapshot(commit, data, in_branches=['master'])
             issue = Issue('a-test-issue', all_issues, {'master': commit})
             issue.add_snapshot(issue_snapshot)
+
             all_issues[issue.issue_id] = issue
 
             change_data = {
                 'title': 'A More Detailed Title for the Issue',
                 'description': 'Test Issue Description with more details.',
-                'labels': 'test_issue'
+                'labels': 'test_issue',
+                'iid': 4
             }
 
-            self.git_repository_issue_client.update_issue(issue, change_data)
+            self.sciit_repository.get_all_issues=Mock(return_value=all_issues)
+
+            self.git_repository_issue_client.update_issue(issue.issue_id, change_data)
 
             handle.write.assert_called_once_with(modified_issue_file_content)
 
