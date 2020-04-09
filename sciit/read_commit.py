@@ -239,7 +239,6 @@ def _init_commit_branch_cache(git_working_dir):
 
 def _find_branches_for_commit(commit, git_working_dir):
 
-
     global _COMMIT_BRANCHES_CACHE
     if not _COMMIT_BRANCHES_CACHE:
         _init_commit_branch_cache(git_working_dir)

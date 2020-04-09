@@ -1,4 +1,5 @@
 import os
+import logging
 import slugify
 
 from sciit.functions import get_sciit_ignore_path_spec
@@ -11,8 +12,6 @@ def do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit
     git_repository = issue_repository.git_repository
 
     ignored_files = get_sciit_ignore_path_spec(issue_repository.git_repository)
-
-
 
     issue_snapshots, _, _ = \
         find_issue_snapshots_in_commit_paths_that_changed(
@@ -42,11 +41,13 @@ def do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit
 
 class GitCommitToIssue:
 
-    def __init__(self, issue_repository, target_branch, message, push=True):
+    def __init__(self, issue_repository, target_branch, message, push=True, origin_url=None):
 
         self._issue_repository = issue_repository
         self._target_branch = target_branch
         self._commit_message = message
+
+        self._origin_url = origin_url
 
         self._push = push
 
@@ -73,12 +74,21 @@ class GitCommitToIssue:
 
         if self._push:
             try:
-                self._git_repository.git.push('origin', self._target_branch)
+                origin = self._git_repository.remote('origin')
+                if origin is None:
+                    if self._origin_url is None:
+                        raise ValueError()
+                    else:
+                        origin = self._git_repository.create_remote('origin', self._origin_url)
+
+                self._git_repository.git.push("--set-upstream", origin, self._git_repository.head.ref)
+                # self._git_repository.git.push('origin', self._target_branch)
             except ValueError:
-                pass
+                logging.warning("Couldn't push to branch [%s]." % self._target_branch)
 
         for file_path in self.file_paths:
             self._git_repository.git.checkout(file_path)
+
         self._git_repository.git.checkout(self._starting_branch_name)
 
 

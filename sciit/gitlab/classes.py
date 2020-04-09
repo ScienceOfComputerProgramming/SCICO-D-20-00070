@@ -239,11 +239,11 @@ class MirroredGitlabSciitProjectException(Exception):
 class MirroredGitlabSciitProject:
 
     def __init__(self,
-                 project_path_with_namespace, gitlab_issue_client, local_sciit_repository, gitlab_sciit_issue_id_cache):
+                 project_path_with_namespace, local_sciit_repository, gitlab_issue_client, gitlab_sciit_issue_id_cache):
 
         self.project_path_with_namespace = project_path_with_namespace
-        self.gitlab_issue_client = gitlab_issue_client
         self.local_sciit_repository = local_sciit_repository
+        self.gitlab_issue_client = gitlab_issue_client
         self.gitlab_sciit_issue_id_cache = gitlab_sciit_issue_id_cache
 
         self.git_repository_issue_client = GitRepositoryIssueClient(self.local_sciit_repository)
@@ -375,21 +375,12 @@ class MirroredGitlabSite:
 
         if path_with_namespace not in self.mirrored_gitlab_sciit_projects:
 
-            _local_git_repository_path = \
-                local_git_repository_path if local_git_repository_path is not None \
+            _local_git_repository_path = local_git_repository_path if local_git_repository_path is not None \
                 else self.site_local_mirror_path + path_with_namespace
 
-            project_url = self.site_homepage + path_with_namespace
+            local_issue_repository = \
+                self._configure_local_issue_repository(path_with_namespace, _local_git_repository_path)
 
-            if not os.path.exists(_local_git_repository_path):
-                subprocess.run(
-                    ['git', 'clone', project_url, _local_git_repository_path], check=True)
-
-            git_repository = Repo(_local_git_repository_path)
-            local_issue_repository = IssueRepo(git_repository)
-            # TODO
-            # local_issue_repository.cache_issue_snapshots_from_all_commits()
-            #
             api_token = self._gitlab_token_cache.get_api_token(path_with_namespace)
 
             gitlab_issue_client = GitlabIssueClient(self.site_homepage, api_token)
@@ -398,9 +389,27 @@ class MirroredGitlabSite:
 
             self.mirrored_gitlab_sciit_projects[path_with_namespace] = \
                 MirroredGitlabSciitProject(
-                    path_with_namespace, gitlab_issue_client, local_issue_repository, gitlab_sciit_issue_id_cache)
+                    path_with_namespace, local_issue_repository, gitlab_issue_client, gitlab_sciit_issue_id_cache)
 
         return self.mirrored_gitlab_sciit_projects[path_with_namespace]
+
+    def _configure_local_issue_repository(self, path_with_namespace, local_git_repository_path):
+
+        git_url = self.make_git_url(path_with_namespace)
+
+        if not os.path.exists(local_git_repository_path):
+            subprocess.run(['git', 'clone', git_url, local_git_repository_path], check=True)
+
+        git_repository = Repo(local_git_repository_path)
+
+        local_issue_repository = IssueRepo(git_repository)
+        local_issue_repository.cache_issue_snapshots_from_unprocessed_commits()
+        return local_issue_repository
+
+    def make_git_url(self, path_with_namespace):
+        parsed_site_url = urlparse(self.site_homepage)
+        git_url = f'git@{parsed_site_url.netloc}:{path_with_namespace}.git'
+        return git_url
 
 
 class MirroredGitlabSites:
