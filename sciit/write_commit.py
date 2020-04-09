@@ -95,7 +95,7 @@ class GitCommitToIssue:
 def create_new_issue(issue_repository, title, description='', commit_message=None, issue_id=None, file_path=None):
 
     _issue_id = slugify.slugify(title) if issue_id is None else issue_id
-    _commit_message = "Creates Issue %s." % issue_id if commit_message is None else commit_message
+    _commit_message = "Creates Issue %s." % _issue_id if commit_message is None else commit_message
 
     working_dir = issue_repository.git_repository.working_dir
 
