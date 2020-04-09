@@ -84,6 +84,7 @@ def add_gitlab_set_token_parser(gitlab_subparsers):
 
     gitlab_set_token_parser.add_argument('project_url')
     gitlab_set_token_parser.add_argument('api_token')
+    gitlab_set_token_parser.add_argument('sites_local_path')
 
 
 def add_gitlab_parser(subparsers):

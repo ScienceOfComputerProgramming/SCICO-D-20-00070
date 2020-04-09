@@ -11,5 +11,5 @@ def reset(args):
 
 
 def set_token(args):
-    set_gitlab_api_token(args.project_url, args.api_token)
+    set_gitlab_api_token(args.project_url, args.api_token, args.sites_local_path)
 

@@ -17,8 +17,8 @@ def reset_gitlab_issues(project_url, local_git_repository_path=None):
     mirrored_gitlab_sciit_project.reset_gitlab_issues()
 
 
-def set_gitlab_api_token(project_url, api_token):
-    mirrored_gitlab_sites = MirroredGitlabSites('../')
+def set_gitlab_api_token(project_url, api_token, sites_local_path):
+    mirrored_gitlab_sites = MirroredGitlabSites(sites_local_path)
 
     parsed_uri = urlparse(project_url)
     site_homepage = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
