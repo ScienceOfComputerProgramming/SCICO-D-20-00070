@@ -7,7 +7,7 @@ def launch(args):
 
 
 def reset(args):
-    reset_gitlab_issues(args.project_url, args.local_git_repository_path)
+    reset_gitlab_issues(args.project_url, args.sites_local_path)
 
 
 def set_token(args):
