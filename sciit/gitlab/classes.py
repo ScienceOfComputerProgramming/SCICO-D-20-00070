@@ -184,7 +184,7 @@ class GitlabIssueClient:
 
     def clear_issues(self, project_path_with_namespace):
         with gitlab.Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
-            project = gitlab_instance.projects.get(project_path_with_namespace)
+            project = gitlab_instance.projects.get(project_path_with_namespace[1:])
             for gitlab_issue in project.issues.list(all=True):
                 gitlab_issue.delete()
                 gitlab_issue.save()
