@@ -119,6 +119,8 @@ def create_command_parser():
     init_parser.set_defaults(func=init)
     init_parser.add_argument(
         '-r', '--reset', action='store_true', help='resets the issue repo and rebuild from past commits')
+    init_parser.add_argument(
+        '-s', '--synchronize', action='store_true', help='Synchronizes repository with remotes before initialisation.')
 
     status_parser = subparsers.add_parser(
         name='status',

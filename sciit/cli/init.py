@@ -21,6 +21,9 @@ def init(args):
         args.repo.setup_file_system_resources()
         try:
             print(' ')
+            if args.synchronize:
+                print('Synchronizing with remotes ahead if repository initialisation.')
+                args.repo.synchronize_with_remotes()
             ColorPrint.bold('Building repository from commits')
             args.repo.cache_issue_snapshots_from_all_commits()
             print(' ')
