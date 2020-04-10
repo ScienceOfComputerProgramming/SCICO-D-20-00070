@@ -97,14 +97,12 @@ class GitRepositoryIssueClient:
 
         with GitCommitToIssue(self._sciit_repository, latest_branch, message) as commit_to_issue:
             new_sciit_issue_file_content = self.get_changed_file_content(sciit_issue, changes)
-
             with open(sciit_issue.working_file_path, 'w') as sciit_issue_file:
                 sciit_issue_file.write(new_sciit_issue_file_content)
 
             commit_to_issue.file_paths.append(sciit_issue.file_path)
 
     def get_changed_file_content(self, sciit_issue, changes):
-
         comment_pattern = get_file_object_pattern(sciit_issue.file_path)
 
         with open(sciit_issue.working_file_path, 'r') as sciit_issue_file:
@@ -115,9 +113,8 @@ class GitRepositoryIssueClient:
 
         for key in ['title', 'due_date', 'weight', 'labels']:
             if key in changes:
-
-                change_value = '' if bool(changes['key']) else change_value
-
+                change_value = changes[key] if bool(changes[key]) else ''
+   
                 sciit_issue_content = self._update_single_line_property_in_file_content(
                     get_issue_property_regex(key), sciit_issue_content, key, change_value)
 
@@ -134,12 +131,14 @@ class GitRepositoryIssueClient:
     @staticmethod
     def _update_single_line_property_in_file_content(pattern, file_content, label, new_value):
 
+        _new_value = ", ".join(new_value) if isinstance(new_value, list) else new_value
+
         old_match = re.search(pattern, file_content)
         if old_match:
             old_start, old_end = old_match.span(1)
-            return file_content[0:old_start] + new_value + file_content[old_end:]
+            return file_content[0:old_start] + str(_new_value) + file_content[old_end:]
         else:
-            return file_content + f'\n@{label}{new_value}'
+            return file_content + f'\n@{label} {_new_value}'
 
     @staticmethod
     def _update_description_in_file_content(file_content, new_value):
