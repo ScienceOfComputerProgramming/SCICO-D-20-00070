@@ -94,6 +94,7 @@ class IssueRepo(object):
             os.chdir(self.git_repository.working_dir)
             for branch in remote_branch_names:
                 if branch not in head_branch_names:
+                    self.git_repository.git.execute(['git', 'branch', branch])
                     self.git_repository.git.execute(['git', 'branch', '--set-upstream-to=origin/'+branch, branch])
         finally:
             os.chdir(current_working_dir)
@@ -107,7 +108,6 @@ class IssueRepo(object):
         last_issue_commit = get_last_issue_commit_sha(self.issue_dir)
         all_commits = list(self.git_repository.iter_commits('--all'))
         latest_commit = all_commits[0].hexsha
-
 
         revision = last_issue_commit + '..' + latest_commit
         str_commits = self.git_repository.git.execute(['git', 'rev-list', '--reverse', revision])
