@@ -51,7 +51,7 @@ def index():
         return Response(json.dumps({'status': 'Rejected', 'message': 'Invalid Gitlab token'}))
 
     event = request.headers.environ['HTTP_X_GITLAB_EVENT']
-    logging.info(f'received a {event} event.')
+    logging.info(f'Received a {event} event.')
 
     data = request.get_json()
 
