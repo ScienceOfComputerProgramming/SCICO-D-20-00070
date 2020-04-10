@@ -115,10 +115,11 @@ class GitRepositoryIssueClient:
             if key in changes:
                 change_value = changes[key] if bool(changes[key]) else ''
 
-                sciit_issue_content = self._update_single_line_property_in_file_content(
-                    get_issue_property_regex(key), sciit_issue_content, key, change_value)
+                if not (getattr(sciit_issue, key) is None and change_value == ''):
+                    sciit_issue_content = self._update_single_line_property_in_file_content(
+                        get_issue_property_regex(key), sciit_issue_content, key, change_value)
 
-        if 'description' in changes:
+        if 'description' in changes and not (changes['description'] == '' and sciit_issue.description is None):
             sciit_issue_content = self._update_description_in_file_content(sciit_issue_content, changes['description'])
 
         sciit_issue_content = add_comment_chars(comment_pattern, sciit_issue_content, indent)
