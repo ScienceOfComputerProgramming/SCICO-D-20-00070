@@ -60,8 +60,11 @@ class GitCommitToIssue:
         return self._issue_repository.git_repository
 
     def __enter__(self):
-        if self._target_branch not in self._git_repository.heads:
-                self._git_repository.create_head(self._target_branch)
+
+        head_branch_names = [head.name for head in self._git_repository.heads]
+
+        if self._target_branch not in head_branch_names:
+            self._git_repository.create_head(self._target_branch)
         self._git_repository.git.checkout(self._target_branch)
         return self
 
