@@ -18,6 +18,60 @@ from sciit.regex import get_file_object_pattern, IssuePropertyRegularExpressions
     strip_comment_chars, get_issue_property_regex
 
 
+class GitlabSciitIssueIDCache:
+
+    def __init__(self, local_git_repository_path):
+        self.local_git_repository_path = local_git_repository_path
+
+    @property
+    def _issue_id_cache_db_connection(self):
+        issue_id_cache_db_path = self.local_git_repository_path + os.path.sep + '.git' + os.path.sep + \
+                                 'issues' + os.path.sep + 'issue_id_cache.db'
+
+        connection = sqlite3.connect(issue_id_cache_db_path)
+        cursor = connection.cursor()
+
+        cursor.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS issue_id_cache 
+            (gitlab_issue_id INTEGER PRIMARY KEY, sciit_issue_id TEXT)
+            WITHOUT ROWID
+            '''
+        )
+
+        return connection
+
+    def get_gitlab_issue_id(self, sciit_issue_id):
+        query_string = 'SELECT gitlab_issue_id FROM issue_id_cache WHERE sciit_issue_id = ?'
+        return self._get_issue_id(query_string, sciit_issue_id)
+
+    def get_sciit_issue_id(self, gitlab_issue_id):
+        query_string = 'SELECT sciit_issue_id FROM issue_id_cache WHERE gitlab_issue_id = ?'
+        return self._get_issue_id(query_string, gitlab_issue_id)
+
+    def _get_issue_id(self, query_string, other_issue_id):
+        with self._issue_id_cache_db_connection as connection:
+            cursor = connection.cursor()
+
+            query_result = cursor.execute(query_string, (other_issue_id, )).fetchall()
+            if len(query_result) > 0:
+                return query_result[0][0]
+            else:
+                return None
+
+    def set_gitlab_issue_id(self, sciit_issue_id, gitlab_issue_id):
+        with self._issue_id_cache_db_connection as connection:
+            cursor = connection.cursor()
+
+            query_string = \
+                '''
+                INSERT INTO issue_id_cache
+                VALUES (?, ?)
+                '''
+
+            cursor.execute(query_string, (gitlab_issue_id, sciit_issue_id))
+
+
 class GitRepositoryIssueClient:
 
     def __init__(self, sciit_repository: IssueRepo):
@@ -31,6 +85,7 @@ class GitRepositoryIssueClient:
             self.update_issue(sciit_issue_id, gitlab_issue)
         else:
             self.create_new_sciit_issue(gitlab_issue)
+            gitlab_sciit_issue_id_cache.set_gitlab_issue_id()
 
     def update_issue(self, sciit_issue_id, changes):
         gitlab_issue_id = changes['iid']
@@ -111,7 +166,9 @@ class GitlabIssueClient:
         self._site_homepage = site_homepage
         self._api_token = api_token
 
-    def handle_issues(self, project_path_with_namespace, sciit_issues, gitlab_sciit_issue_id_cache):
+    def handle_issues(self, project_path_with_namespace, sciit_issues,
+                      gitlab_sciit_issue_id_cache: GitlabSciitIssueIDCache):
+
         with gitlab.Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
             project = gitlab_instance.projects.get(project_path_with_namespace[1:])
             for sciit_issue in sciit_issues:
@@ -190,60 +247,6 @@ class GitlabIssueClient:
                 gitlab_issue.save()
 
 
-class GitlabSciitIssueIDCache:
-
-    def __init__(self, local_git_repository_path):
-        self.local_git_repository_path = local_git_repository_path
-
-    @property
-    def _issue_id_cache_db_connection(self):
-        issue_id_cache_db_path = self.local_git_repository_path + os.path.sep + '.git' + os.path.sep + \
-                                 'issues' + os.path.sep + 'issue_id_cache.db'
-
-        connection = sqlite3.connect(issue_id_cache_db_path)
-        cursor = connection.cursor()
-
-        cursor.execute(
-            '''
-            CREATE TABLE IF NOT EXISTS issue_id_cache 
-            (gitlab_issue_id INTEGER PRIMARY KEY, sciit_issue_id TEXT)
-            WITHOUT ROWID
-            '''
-        )
-
-        return connection
-
-    def get_gitlab_issue_id(self, sciit_issue_id):
-        query_string = 'SELECT gitlab_issue_id FROM issue_id_cache WHERE sciit_issue_id = ?'
-        return self._get_issue_id(query_string, sciit_issue_id)
-
-    def get_sciit_issue_id(self, gitlab_issue_id):
-        query_string = 'SELECT sciit_issue_id FROM issue_id_cache WHERE gitlab_issue_id = ?'
-        return self._get_issue_id(query_string, gitlab_issue_id)
-
-    def _get_issue_id(self, query_string, other_issue_id):
-        with self._issue_id_cache_db_connection as connection:
-            cursor = connection.cursor()
-
-            query_result = cursor.execute(query_string, (other_issue_id, )).fetchall()
-            if len(query_result) > 0:
-                return query_result[0][0]
-            else:
-                return None
-
-    def set_gitlab_issue_id(self, sciit_issue_id, gitlab_issue_id):
-        with self._issue_id_cache_db_connection as connection:
-            cursor = connection.cursor()
-
-            query_string = \
-                '''
-                INSERT INTO issue_id_cache
-                VALUES (?, ?)
-                '''
-
-            cursor.execute(query_string, (gitlab_issue_id, sciit_issue_id))
-
-
 class MirroredGitlabSciitProjectException(Exception):
         pass
 
@@ -251,7 +254,10 @@ class MirroredGitlabSciitProjectException(Exception):
 class MirroredGitlabSciitProject:
 
     def __init__(self,
-                 project_path_with_namespace, local_sciit_repository, gitlab_issue_client, gitlab_sciit_issue_id_cache):
+                 project_path_with_namespace,
+                 local_sciit_repository,
+                 gitlab_issue_client,
+                 gitlab_sciit_issue_id_cache: GitlabSciitIssueIDCache):
 
         self.project_path_with_namespace = project_path_with_namespace
         self.local_sciit_repository = local_sciit_repository
