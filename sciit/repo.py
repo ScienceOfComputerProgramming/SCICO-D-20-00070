@@ -80,8 +80,8 @@ class IssueRepo(object):
             shutil.rmtree(self.issue_dir, onerror=onerror)
         else:
             raise EmptyRepositoryError
-    
-    def _locally_track_remote_branches(self):
+
+    def synchronize_with_remotes(self):
 
         remote_branch_names = \
             [remote.remote_head for remote in self.git_repository.refs
@@ -90,13 +90,21 @@ class IssueRepo(object):
         head_branch_names = [head.name for head in self.git_repository.heads]
 
         current_working_dir = os.getcwd()
+        current_head = self.git_repository.active_branch
+
         try:
             os.chdir(self.git_repository.working_dir)
             for branch in remote_branch_names:
                 if branch not in head_branch_names:
                     self.git_repository.git.execute(['git', 'branch', branch])
                     self.git_repository.git.execute(['git', 'branch', '--set-upstream-to=origin/'+branch, branch])
+
+            for head in self.git_repository.heads:
+                self.git_repository.git.checkout(head.name)
+                self.git_repository.remotes.origin.pull()
+
         finally:
+            self.git_repository.checkout(current_head.name)
             os.chdir(current_working_dir)
 
     def cache_issue_snapshots_from_unprocessed_commits(self):
@@ -124,7 +132,7 @@ class IssueRepo(object):
 
     def cache_issue_snapshots_from_all_commits(self):
 
-        self._locally_track_remote_branches()
+        # self._locally_track_remote_branches()
 
         if not self.git_repository.heads:
             raise NoCommitsError

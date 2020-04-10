@@ -63,8 +63,6 @@ class GitCommitToIssue:
 
         head_branch_names = [head.name for head in self._git_repository.heads]
 
-        print(head_branch_names, self._target_branch)
-
         if self._target_branch not in head_branch_names:
             self._git_repository.create_head(self._target_branch)
         self._git_repository.git.checkout(self._target_branch)

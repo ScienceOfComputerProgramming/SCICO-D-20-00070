@@ -260,21 +260,22 @@ class MirroredGitlabSciitProjectException(Exception):
 
 class MirroredGitlabSciitProject:
 
-    def __init__(self,
-                 project_path_with_namespace,
-                 local_sciit_repository,
-                 gitlab_issue_client,
-                 gitlab_sciit_issue_id_cache: GitlabSciitIssueIDCache):
+    def __init__(self, path_with_namespace, local_git_repository_path, git_url, gitlab_issue_client):
 
-        self.project_path_with_namespace = project_path_with_namespace
-        self.local_sciit_repository = local_sciit_repository
+        self.path_with_namespace = path_with_namespace
         self.gitlab_issue_client = gitlab_issue_client
-        self.gitlab_sciit_issue_id_cache = gitlab_sciit_issue_id_cache
+
+        self._configure_local_issue_repository(local_git_repository_path, git_url)
+
+        self.gitlab_sciit_issue_id_cache = GitlabSciitIssueIDCache(local_git_repository_path)
 
         self.git_repository_issue_client = GitRepositoryIssueClient(self.local_sciit_repository)
 
     def reset_gitlab_issues(self, revision='--all', issue_ids=None):
-        self.gitlab_issue_client.clear_issues(self.project_path_with_namespace)
+
+        self.local_sciit_repository.synchronize_with_remotes()
+
+        self.gitlab_issue_client.clear_issues(self.path_with_namespace)
 
         issue_history_iterator = self.local_sciit_repository.get_issue_history_iterator(revision, issue_ids)
 
@@ -284,7 +285,7 @@ class MirroredGitlabSciitProject:
 
             issues_to_be_updated = {issue for issue in issues.values() if issue.changed_by_commit(commit_hexsha_str)}
             self.gitlab_issue_client.handle_issues(
-                self.project_path_with_namespace, issues_to_be_updated, self.gitlab_sciit_issue_id_cache)
+                self.path_with_namespace, issues_to_be_updated, self.gitlab_sciit_issue_id_cache)
             progress_tracker.processed_object()
 
     def process_web_hook_event(self, event, data):
@@ -294,9 +295,29 @@ class MirroredGitlabSciitProject:
         elif event == 'Issue Hook':
             self.handle_issue_event(data)
 
+    @property
+    def local_git_repository(self):
+        return self.local_sciit_repository.git_repository
+
+    def _configure_local_issue_repository(self, local_git_repository_path, git_url):
+
+        if not os.path.exists(local_git_repository_path):
+            subprocess.run(['git', 'clone', git_url, local_git_repository_path], check=True)
+            git_repository = Repo(local_git_repository_path)
+            self.local_sciit_repository = IssueRepo(git_repository)
+            self.local_sciit_repository.setup_file_system_resources(install_hooks=False)
+            self.local_sciit_repository.synchronize_with_remotes()
+            self.local_sciit_repository.cache_issue_snapshots_from_all_commits()
+        else:
+            git_repository = Repo(local_git_repository_path)
+            self.local_sciit_repository = IssueRepo(git_repository)
+            self.local_sciit_repository.synchronize_with_remotes()
+            self.local_sciit_repository.cache_issue_snapshots_from_unprocessed_commits()
+
     def handle_push_event(self, data):
 
-        self.local_sciit_repository.git_repository.git.execute(['git', 'pull', '--all'])
+        self.local_sciit_repository.synchronize_with_remotes()
+
         self.local_sciit_repository.cache_issue_snapshots_from_unprocessed_commits()
 
         issue_history_iterator = self.local_sciit_repository.get_issue_history_iterator()
@@ -313,7 +334,7 @@ class MirroredGitlabSciitProject:
                     {issue for issue in issues.values() if issue.changed_by_commit(commit_hexsha_str)}
 
                 self.gitlab_issue_client.handle_issues(
-                    self.project_path_with_namespace, issues_to_be_updated, self.gitlab_sciit_issue_id_cache)
+                    self.path_with_namespace, issues_to_be_updated, self.gitlab_sciit_issue_id_cache)
 
     def handle_issue_event(self, data):
         self.git_repository_issue_client.handle_issue(data['object_attributes'], self.gitlab_sciit_issue_id_cache)
@@ -403,37 +424,17 @@ class MirroredGitlabSite:
             _local_git_repository_path = local_git_repository_path if local_git_repository_path is not None \
                 else self.site_local_mirror_path + path_with_namespace
 
-            local_issue_repository = \
-                self._configure_local_issue_repository(path_with_namespace, _local_git_repository_path)
-
             api_token = self._gitlab_token_cache.get_api_token(path_with_namespace)
 
             gitlab_issue_client = GitlabIssueClient(self.site_homepage, api_token)
 
-            gitlab_sciit_issue_id_cache = GitlabSciitIssueIDCache(_local_git_repository_path)
+            git_url = self.make_git_url(path_with_namespace)
 
             self.mirrored_gitlab_sciit_projects[path_with_namespace] = \
                 MirroredGitlabSciitProject(
-                    path_with_namespace, local_issue_repository, gitlab_issue_client, gitlab_sciit_issue_id_cache)
+                    path_with_namespace, _local_git_repository_path, git_url, gitlab_issue_client)
 
         return self.mirrored_gitlab_sciit_projects[path_with_namespace]
-
-    def _configure_local_issue_repository(self, path_with_namespace, local_git_repository_path):
-
-        git_url = self.make_git_url(path_with_namespace)
-
-        if not os.path.exists(local_git_repository_path):
-            subprocess.run(['git', 'clone', git_url, local_git_repository_path], check=True)
-            git_repository = Repo(local_git_repository_path)
-            local_issue_repository = IssueRepo(git_repository)
-            local_issue_repository.setup_file_system_resources(install_hooks=False)
-            local_issue_repository.cache_issue_snapshots_from_all_commits()
-        else:
-            git_repository = Repo(local_git_repository_path)
-            local_issue_repository = IssueRepo(git_repository)
-            local_issue_repository.cache_issue_snapshots_from_unprocessed_commits()
-
-        return local_issue_repository
 
     def make_git_url(self, path_with_namespace):
         parsed_site_url = urlparse(self.site_homepage)
