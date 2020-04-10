@@ -145,7 +145,7 @@ class GitRepositoryIssueClient:
         if isinstance(value, str):
             return value
         elif label == 'labels':
-            return ", ".join([label['title'] for label in value.values()])
+            return ", ".join([label['title'] for label in value])
         else:
             return str(value)
 
