@@ -1,8 +1,6 @@
 import gitlab
-import logging
 import os
 import re
-import slugify
 import sqlite3
 import subprocess
 
@@ -84,8 +82,8 @@ class GitRepositoryIssueClient:
         if sciit_issue_id is not None:
             self.update_issue(sciit_issue_id, gitlab_issue)
         else:
-            self.create_new_sciit_issue(gitlab_issue)
-            gitlab_sciit_issue_id_cache.set_gitlab_issue_id()
+            sciit_issue_id = self.create_new_sciit_issue(gitlab_issue)
+            gitlab_sciit_issue_id_cache.set_gitlab_issue_id(sciit_issue_id, gitlab_issue_id)
 
     def update_issue(self, sciit_issue_id, changes):
         gitlab_issue_id = changes['iid']
@@ -151,7 +149,7 @@ class GitRepositoryIssueClient:
             return file_content + f'\n@description\n{new_value}'
 
     def create_new_sciit_issue(self, gitlab_issue):
-        create_new_issue(
+        return create_new_issue(
             self._sciit_repository,
             gitlab_issue['title'],
             gitlab_issue['description'],

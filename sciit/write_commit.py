@@ -111,4 +111,5 @@ def create_new_issue(issue_repository, title, description='', commit_message=Non
             )
 
         commit_to_issue.file_paths.append(_file_path)
+        return _issue_id
 
