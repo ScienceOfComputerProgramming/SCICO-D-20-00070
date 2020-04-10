@@ -4,10 +4,14 @@ import os
 import stat
 import pkg_resources
 import shutil
+import sys
 
 from pathlib import Path
 
 from shutil import copyfile
+
+import json
+import sqlite3
 
 from git import Commit
 from gitdb.util import hex_to_bin
@@ -19,8 +23,6 @@ from sciit.functions import write_last_issue_commit_sha, get_last_issue_commit_s
 from sciit.issue import Issue, IssueSnapshot
 
 from contextlib import closing
-import json
-import sqlite3
 
 
 __all__ = ('IssueRepo', )
@@ -86,9 +88,15 @@ class IssueRepo(object):
              if 'remotes/' in remote.path and 'HEAD' not in remote.path]
 
         head_branch_names = [head.name for head in self.git_repository.heads]
-        for branch in remote_branch_names:
-            if branch not in head_branch_names:
-                self.git_repository.git.execute(['git', 'branch', '--set-upstream-to=origin/'+branch, branch])
+
+        current_working_dir = os.getcwd()
+        try:
+            os.chdir(self.git_repository.working_dir)
+            for branch in remote_branch_names:
+                if branch not in head_branch_names:
+                    self.git_repository.git.execute(['git', 'branch', '--set-upstream-to=origin/'+branch, branch])
+        finally:
+            os.chdir(current_working_dir)
 
     def cache_issue_snapshots_from_unprocessed_commits(self):
 
