@@ -129,10 +129,9 @@ class GitRepositoryIssueClient:
             sciit_issue_content + \
             file_content[sciit_issue.end_position:]
 
-    @staticmethod
-    def _update_single_line_property_in_file_content(pattern, file_content, label, new_value):
+    def _update_single_line_property_in_file_content(self, pattern, file_content, label, new_value):
 
-        _new_value = ", ".join(new_value) if isinstance(new_value, list) else new_value
+        _new_value = self._format_gitlab_property_value_for_sciit(label, new_value)
 
         old_match = re.search(pattern, file_content)
         if old_match:
@@ -140,6 +139,16 @@ class GitRepositoryIssueClient:
             return file_content[0:old_start] + str(_new_value) + file_content[old_end:]
         else:
             return file_content + f'\n@{label} {_new_value}'
+
+    @staticmethod
+    def _format_gitlab_property_value_for_sciit(label, value):
+        if isinstance(value, str):
+            return value
+        elif label == 'labels':
+            return ", ".join([label['title'] for label in value.values()])
+        else:
+            return str(value)
+
 
     @staticmethod
     def _update_description_in_file_content(file_content, new_value):
