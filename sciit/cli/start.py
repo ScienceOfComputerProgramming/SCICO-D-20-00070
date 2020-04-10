@@ -184,14 +184,18 @@ def main():
     args = parser.parse_args()
 
     try:
-        git_repository = Repo(search_parent_directories=True)
-        repo = IssueRepo(git_repository)
-        repo.cli = True
         colorama.init()
         if not hasattr(args, 'func'):
             parser.print_help()
+        elif args.func in {set_gitlab_api_token, set_gitlab_api_token}:
+            args.func(args)
+
         else:
-            args.repo = repo
+            git_repository = Repo(search_parent_directories=True)
+            issue_repository = IssueRepo(git_repository)
+            issue_repository.cli = True
+            args.repo = issue_repository
+
             if args.func == init:
                 args.func(args)
             else:
@@ -201,9 +205,9 @@ def main():
                 else:
                     args.func(args)
 
-        # Forces proper clean up of git repository resources on Windows.
-        # See https://github.com/gitpython-developers/GitPython/issues/508
-        git_repository.__del__()
+            # Forces proper clean up of git repository resources on Windows.
+            # See https://github.com/gitpython-developers/GitPython/issues/508
+            git_repository.__del__()
 
     except InvalidGitRepositoryError:
         ColorPrint.bold('fatal: not a git repository (or any parent up to mount point /)')
