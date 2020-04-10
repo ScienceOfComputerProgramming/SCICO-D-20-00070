@@ -161,6 +161,25 @@ class GitRepositoryIssueClient:
         )
 
 
+class ProjectVisibility:
+
+    def __init__(self, project, temporary_visbility):
+        self._project = project
+        self._temporary_visbility = temporary_visbility
+
+        self._original_visibility = None
+
+    def __enter__(self):
+        self._original_visibility = self._project.visibility
+        self._project.visibility = self._temporary_visbility
+        self._project.save()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._project.visibility = self._original_visibility
+        self._project.save()
+
+
 class GitlabIssueClient:
 
     def __init__(self, site_homepage, api_token):
@@ -172,21 +191,22 @@ class GitlabIssueClient:
 
         with gitlab.Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
             project = gitlab_instance.projects.get(project_path_with_namespace[1:])
-            for sciit_issue in sciit_issues:
-                sciit_issue_id = sciit_issue.issue_id
-                gitlab_issue_id = gitlab_sciit_issue_id_cache.get_gitlab_issue_id(sciit_issue_id)
+            with ProjectVisibility(project, 'private'):
+                for sciit_issue in sciit_issues:
+                    sciit_issue_id = sciit_issue.issue_id
+                    gitlab_issue_id = gitlab_sciit_issue_id_cache.get_gitlab_issue_id(sciit_issue_id)
 
-                if gitlab_issue_id is not None:
-                    try:
-                        gitlab_issue = project.issues.get(gitlab_issue_id)
-                        self._update_gitlab_issue(gitlab_issue, sciit_issue)
-                    except gitlab.GitlabGetError:
-                        self._create_gitlab_issue(project, sciit_issue, gitlab_issue_id)
+                    if gitlab_issue_id is not None:
+                        try:
+                            gitlab_issue = project.issues.get(gitlab_issue_id)
+                            self._update_gitlab_issue(gitlab_issue, sciit_issue)
+                        except gitlab.GitlabGetError:
+                            self._create_gitlab_issue(project, sciit_issue, gitlab_issue_id)
 
-                else:
-                    gitlab_issue = self._create_gitlab_issue(project, sciit_issue)
-                    gitlab_issue_id = gitlab_issue.iid
-                    gitlab_sciit_issue_id_cache.set_gitlab_issue_id(sciit_issue_id, gitlab_issue_id)
+                    else:
+                        gitlab_issue = self._create_gitlab_issue(project, sciit_issue)
+                        gitlab_issue_id = gitlab_issue.iid
+                        gitlab_sciit_issue_id_cache.set_gitlab_issue_id(sciit_issue_id, gitlab_issue_id)
 
     @staticmethod
     def _create_gitlab_issue(project, sciit_issue, gitlab_issue_id=None):
@@ -244,14 +264,10 @@ class GitlabIssueClient:
         with gitlab.Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
             project = gitlab_instance.projects.get(project_path_with_namespace[1:])
 
-            current_visibility = project.visibility
-            project.visibility = 'private'
-            project.save()
-            for gitlab_issue in project.issues.list(all=True):
-                gitlab_issue.delete()
-                gitlab_issue.save()
-            project.visibility = current_visibility
-            project.save()
+            with ProjectVisibility(project, 'private'):
+                for gitlab_issue in project.issues.list(all=True):
+                    gitlab_issue.delete()
+                    gitlab_issue.save()
 
 
 class MirroredGitlabSciitProjectException(Exception):
