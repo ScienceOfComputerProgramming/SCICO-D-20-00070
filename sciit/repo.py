@@ -104,7 +104,7 @@ class IssueRepo(object):
                 self.git_repository.remotes.origin.pull()
 
         finally:
-            self.git_repository.checkout(current_head.name)
+            self.git_repository.git.checkout(current_head.name)
             os.chdir(current_working_dir)
 
     def cache_issue_snapshots_from_unprocessed_commits(self):
