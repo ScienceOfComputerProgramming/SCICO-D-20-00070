@@ -68,7 +68,7 @@ def index():
 
         mirrored_gitlab_sciit_project = \
             mirrored_gitlab_sites.get_mirrored_gitlab_sciit_project(site_homepage, path_with_namespace)
-        logging.info(f'using local repository: {mirrored_gitlab_sciit_project.project_path_with_namespace}.')
+        logging.info(f'using local repository: {mirrored_gitlab_sciit_project.path_with_namespace}.')
         mirrored_gitlab_sciit_project.process_web_hook_event(event, data)
 
         return Response({'status': 'Accepted'})

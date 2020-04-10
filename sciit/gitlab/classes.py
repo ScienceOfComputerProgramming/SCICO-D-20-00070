@@ -186,11 +186,11 @@ class GitlabIssueClient:
         self._site_homepage = site_homepage
         self._api_token = api_token
 
-    def handle_issues(self, project_path_with_namespace, sciit_issues,
+    def handle_issues(self, path_with_namespace, sciit_issues,
                       gitlab_sciit_issue_id_cache: GitlabSciitIssueIDCache):
 
         with gitlab.Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
-            project = gitlab_instance.projects.get(project_path_with_namespace[1:])
+            project = gitlab_instance.projects.get(path_with_namespace[1:])
             with ProjectVisibility(project, 'private'):
                 for sciit_issue in sciit_issues:
                     sciit_issue_id = sciit_issue.issue_id
@@ -260,9 +260,9 @@ class GitlabIssueClient:
             gitlab_issue.updated_at = sciit_issue.last_authored_date_string
             gitlab_issue.save()
 
-    def clear_issues(self, project_path_with_namespace):
+    def clear_issues(self, path_with_namespace):
         with gitlab.Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
-            project = gitlab_instance.projects.get(project_path_with_namespace[1:])
+            project = gitlab_instance.projects.get(path_with_namespace[1:])
 
             with ProjectVisibility(project, 'private'):
                 for gitlab_issue in project.issues.list(all=True):
