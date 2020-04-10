@@ -37,6 +37,8 @@ class TestGitRepositoryIssueClient(unittest.TestCase):
 
         self.git_repository_issue_client = GitRepositoryIssueClient(self.sciit_repository)
 
+        self.sciit_repository.git_repository.heads = dict()
+
     def test_edit_issue(self):
 
         with patch('builtins.open', mock_open(read_data=issue_file_content)) as m, \
