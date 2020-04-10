@@ -115,8 +115,11 @@ class GitRepositoryIssueClient:
 
         for key in ['title', 'due_date', 'weight', 'labels']:
             if key in changes:
+
+                change_value = '' if bool(changes['key']) else change_value
+
                 sciit_issue_content = self._update_single_line_property_in_file_content(
-                    get_issue_property_regex(key), sciit_issue_content, key, changes[key])
+                    get_issue_property_regex(key), sciit_issue_content, key, change_value)
 
         if 'description' in changes:
             sciit_issue_content = self._update_description_in_file_content(sciit_issue_content, changes['description'])
