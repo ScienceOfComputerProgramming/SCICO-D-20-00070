@@ -48,6 +48,7 @@ class TestCLIStartup(TestCase):
         args.return_value = Mock()
         args.func = init
         args.reset = False
+        args.synchronize = False
         parse_args.return_value = args
 
         start.main()
