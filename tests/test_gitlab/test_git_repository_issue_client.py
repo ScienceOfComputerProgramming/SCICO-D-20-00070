@@ -66,7 +66,7 @@ class TestGitRepositoryIssueClient(unittest.TestCase):
             change_data = {
                 'title': 'A More Detailed Title for the Issue',
                 'description': 'Test Issue Description with more details.',
-                'labels': ['test_issue'],
+                'labels': [{"title": 'test_issue'}],
                 'iid': 4
             }
 
