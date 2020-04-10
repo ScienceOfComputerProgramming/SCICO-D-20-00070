@@ -187,7 +187,7 @@ def main():
         colorama.init()
         if not hasattr(args, 'func'):
             parser.print_help()
-        elif args.func in {set_gitlab_api_token, set_gitlab_api_token}:
+        elif args.func in {set_gitlab_api_token, reset_gitlab_issues}:
             args.func(args)
 
         else:
