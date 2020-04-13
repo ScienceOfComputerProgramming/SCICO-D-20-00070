@@ -239,9 +239,9 @@ class Issue:
     def file_path(self):
         return self.newest_issue_snapshot.data['file_path']
 
-    @property
-    def working_file_path(self):
-        return self.newest_issue_snapshot.commit.repo.working_dir + os.sep + self.file_path
+    def working_file_path(self, branch_name=None):
+        issue_snapshot = self.newest_issue_snapshot if not branch_name else self.latest_snapshot_in_branch(branch_name)
+        return issue_snapshot.commit.repo.working_dir + os.sep + issue_snapshot.file_path
 
     @property
     def participants(self):

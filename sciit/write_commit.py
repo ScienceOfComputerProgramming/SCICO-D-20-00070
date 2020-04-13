@@ -139,7 +139,7 @@ def close_issue(issue_repository, issue, branch_names=None, push=False):
 
         with git_commit_to_issue(issue_repository, branch_name, message, push) as commit_to_issue:
 
-            file_path = issue.file_path
+            file_path = issue.working_file_path(branch_name)
             start_position = issue.start_position
             end_position = issue.end_position
 
@@ -155,25 +155,25 @@ def close_issue(issue_repository, issue, branch_names=None, push=False):
 
 def update_issue(issue_repository, issue, changes, message=None, push=False):
 
-    latest_branch = issue.newest_issue_snapshot.in_branches[0]
-
     _message = message if message is not None else "Updates Issue %s." % issue.issue_id
 
-    with git_commit_to_issue(issue_repository, latest_branch, _message, push) as commit_to_issue:
+    for branch in issue.open_in_branches:
 
-        new_sciit_issue_file_content = _get_changed_file_content(issue, changes)
+        with git_commit_to_issue(issue_repository, branch, _message, push) as commit_to_issue:
 
-        with open(issue.working_file_path, 'w') as sciit_issue_file:
-            sciit_issue_file.write(new_sciit_issue_file_content)
+            new_sciit_issue_file_content = _get_changed_file_content(issue, changes, branch)
 
-        commit_to_issue.file_paths.append(issue.file_path)
+            with open(issue.working_file_path(branch), 'w') as sciit_issue_file:
+                sciit_issue_file.write(new_sciit_issue_file_content)
+
+            commit_to_issue.file_paths.append(issue.file_path)
 
 
-def _get_changed_file_content(sciit_issue, changes):
+def _get_changed_file_content(sciit_issue, branch, changes):
 
     comment_pattern = get_file_object_pattern(sciit_issue.file_path)
 
-    with open(sciit_issue.working_file_path, 'r') as sciit_issue_file:
+    with open(sciit_issue.working_file_path(branch), 'r') as sciit_issue_file:
 
         file_content = sciit_issue_file.read()
         sciit_issue_content_in_file = file_content[sciit_issue.start_position:sciit_issue.end_position]

@@ -1,6 +1,6 @@
 import unittest
 
-from unittest.mock import Mock, patch, mock_open
+from unittest.mock import Mock, patch
 
 from sciit.gitlab.classes import GitRepositoryIssueClient
 
@@ -41,12 +41,7 @@ class TestGitRepositoryIssueClient(unittest.TestCase):
 
     def test_edit_issue(self):
 
-        with patch('builtins.open', mock_open(read_data=issue_file_content)) as m, \
-                patch('sciit.write_commit._GitCommitToIssue.__exit__', new_callable=Mock()) as commit_to_issue:
-
-            commit_to_issue.return_value = Mock()
-
-            handle = m()
+        with patch('sciit.gitlab.classes.update_sciit_issue', new_callable=Mock()) as update_issue:
 
             commit = Mock()
             commit.repo.working_dir = "."
@@ -74,7 +69,7 @@ class TestGitRepositoryIssueClient(unittest.TestCase):
 
             self.git_repository_issue_client.update_issue(issue, change_data)
 
-            handle.write.assert_called_once_with(modified_issue_file_content)
+            update_issue.assert_called_once()
 
 
 if __name__ == '__main__':

@@ -111,7 +111,7 @@ class GitRepositoryIssueClient:
             "Updates Issue %s (Gitlab Issue %d).\n\n(sciit issue update)" % \
                 (sciit_issue.issue_id, gitlab_issue['iid'])
 
-        update_sciit_issue(self._sciit_repository, sciit_issue, _changes, git_commit_message)
+        update_sciit_issue(self._sciit_repository, sciit_issue, _changes, git_commit_message, push=True)
 
     @staticmethod
     def _format_gitlab_property_value_for_sciit(label, value):
