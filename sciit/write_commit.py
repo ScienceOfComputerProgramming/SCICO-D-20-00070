@@ -45,13 +45,11 @@ def do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit
 
 class _GitCommitToIssue:
 
-    def __init__(self, issue_repository, target_branch, message, push, origin_url):
+    def __init__(self, issue_repository, target_branch, message, push):
 
         self._issue_repository = issue_repository
         self._target_branch = target_branch
         self._commit_message = message
-
-        self._origin_url = origin_url
 
         self._push = push
 
@@ -87,11 +85,6 @@ class _GitCommitToIssue:
         if self._push:
             try:
                 origin = self._git_repository.remote('origin')
-                if origin is None:
-                    if self._origin_url is None:
-                        raise ValueError()
-                    else:
-                        origin = self._git_repository.create_remote('origin', self._origin_url)
 
                 self._git_repository.git.push("--set-upstream", origin, self._git_repository.head.ref)
             except ValueError:
@@ -103,12 +96,12 @@ class _GitCommitToIssue:
         self._git_repository.git.checkout(self._starting_branch_name)
 
 
-def git_commit_to_issue(issue_repository, target_branch, git_commit_message, push=False, origin_url=None):
-    return _GitCommitToIssue(issue_repository, target_branch, git_commit_message, push, origin_url)
+def git_commit_to_issue(issue_repository, target_branch, git_commit_message, push=False):
+    return _GitCommitToIssue(issue_repository, target_branch, git_commit_message, push)
 
 
 def create_issue(issue_repository,title, description='', git_commit_message=None, issue_id=None, file_path=None,
-                 push=False, origin_url=None):
+                 push=False):
 
     _issue_id = slugify.slugify(title) if issue_id is None else issue_id
     _commit_message = "Creates Issue %s." % _issue_id if git_commit_message is None else git_commit_message
@@ -117,7 +110,7 @@ def create_issue(issue_repository,title, description='', git_commit_message=None
 
     _file_path = f"{working_dir}{os.sep}backlog{os.sep}{_issue_id}.md" if file_path is None else file_path
 
-    with git_commit_to_issue(issue_repository, _issue_id, _commit_message, push, origin_url) as commit_to_issue:
+    with git_commit_to_issue(issue_repository, _issue_id, _commit_message, push) as commit_to_issue:
 
         backlog_directory = os.path.dirname(_file_path)
         os.makedirs(backlog_directory, exist_ok=True)
@@ -131,7 +124,7 @@ def create_issue(issue_repository,title, description='', git_commit_message=None
         return _issue_id
 
 
-def close_issue(issue_repository, issue, branch_names=None, push=False, origin_url=None):
+def close_issue(issue_repository, issue, branch_names=None, push=False):
 
     if branch_names is None:
         branch_names_with_snapshots = issue.latest_snapshots_in_open_branches
@@ -144,7 +137,7 @@ def close_issue(issue_repository, issue, branch_names=None, push=False, origin_u
 
         message = "Closes issue [%s] in branch [%s]." %(issue.issue_id, branch_name)
 
-        with git_commit_to_issue(issue_repository, branch_name, message, push, origin_url) as commit_to_issue:
+        with git_commit_to_issue(issue_repository, branch_name, message, push) as commit_to_issue:
 
             file_path = issue.file_path
             start_position = issue.start_position
@@ -160,13 +153,13 @@ def close_issue(issue_repository, issue, branch_names=None, push=False, origin_u
             commit_to_issue.file_paths.append(issue.file_path)
 
 
-def update_issue(issue_repository, issue, changes, message=None, push=False, origin_url=None):
+def update_issue(issue_repository, issue, changes, message=None, push=False):
 
     latest_branch = issue.newest_issue_snapshot.in_branches[0]
 
     _message = message if message is not None else "Updates Issue %s." % issue.issue_id
 
-    with git_commit_to_issue(issue_repository, latest_branch, _message, push, origin_url) as commit_to_issue:
+    with git_commit_to_issue(issue_repository, latest_branch, _message, push) as commit_to_issue:
 
         new_sciit_issue_file_content = _get_changed_file_content(issue, changes)
 

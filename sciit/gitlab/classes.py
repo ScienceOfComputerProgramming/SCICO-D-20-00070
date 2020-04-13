@@ -131,7 +131,7 @@ class GitRepositoryIssueClient:
             self._sciit_repository, gitlab_issue['title'], gitlab_issue['description'], git_commit_message=message)
 
     def close_issue(self, sciit_issue: Issue) -> None:
-        close_sciit_issue()
+        close_sciit_issue(self._sciit_repository, sciit_issue, push=True)
 
 
 class _TemporaryProjectVisibility:
