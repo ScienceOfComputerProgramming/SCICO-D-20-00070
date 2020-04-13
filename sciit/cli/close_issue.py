@@ -1,6 +1,6 @@
 from sciit.cli.functions import do_repository_has_no_commits_warning, build_issue_history, page
 
-from sciit.write_commit import GitCommitToIssue
+from sciit.write_commit import close_issue as _close_issue
 
 
 def _remove_issue_from_codebase(issue):
@@ -28,22 +28,10 @@ def close_issue(args):
 
     issue_id = args.issue_id
 
-    git_commit_message = "Closes Issue " + issue_id
-
-    with GitCommitToIssue(issue_repository, 'master', git_commit_message) as commit_to_issue:
-
-        issues = issue_repository.get_all_issues()
-        issue = issues[issue_id]
-
-        print('\nRemoving issue %s from file path %s in branch %s.'
-              % (issue_id, issue.file_path, git_repository.active_branch.name))
-
-        _remove_issue_from_codebase(issue)
-
-        commit_to_issue.file_paths.append(issue.file_path)
-
     issues = issue_repository.get_all_issues()
     issue = issues[issue_id]
+
+    _close_issue(issue_repository, issue, 'master')
 
     print('Done\n')
 

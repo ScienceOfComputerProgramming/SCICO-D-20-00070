@@ -42,7 +42,7 @@ class TestGitRepositoryIssueClient(unittest.TestCase):
     def test_edit_issue(self):
 
         with patch('builtins.open', mock_open(read_data=issue_file_content)) as m, \
-                patch('sciit.gitlab.classes.GitCommitToIssue.__exit__', new_callable=Mock()) as commit_to_issue:
+                patch('sciit.write_commit._GitCommitToIssue.__exit__', new_callable=Mock()) as commit_to_issue:
 
             commit_to_issue.return_value = Mock()
 
@@ -72,7 +72,7 @@ class TestGitRepositoryIssueClient(unittest.TestCase):
 
             self.sciit_repository.get_all_issues=Mock(return_value=all_issues)
 
-            self.git_repository_issue_client.update_issue(issue.issue_id, change_data)
+            self.git_repository_issue_client.update_issue(issue, change_data)
 
             handle.write.assert_called_once_with(modified_issue_file_content)
 

@@ -370,6 +370,23 @@ class Issue:
                 return issue_snapshot.commit
         return None
 
+    @property
+    def latest_snapshots_in_open_branches(self):
+
+        result = dict()
+
+        head_commit_hexsha_names = {v: k for v,k in self.head_commits.items()}
+
+        for issue_snapshot in reversed(self.issue_snapshots):
+            commit_hexsha = issue_snapshot.commit.hexsha
+            if commit_hexsha in head_commit_hexsha_names:
+                head_name = head_commit_hexsha_names[commit_hexsha]
+                result[head_name] = issue_snapshot
+                if len(result) == len(head_commit_hexsha_names):
+                    break
+
+        return result
+
     def _get_snapshot_for_commit_hexsha(self, commit_hexsha):
         for issue_snapshot in self.issue_snapshots:
             if issue_snapshot.commit.hexsha == commit_hexsha:

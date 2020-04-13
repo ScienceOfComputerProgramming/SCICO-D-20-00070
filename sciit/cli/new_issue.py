@@ -1,8 +1,9 @@
-import os
 import slugify
+
 from sciit.cli.functions import do_repository_has_no_commits_warning, build_issue_history, page
 
-from sciit.write_commit import create_new_issue
+from sciit.write_commit import create_issue
+
 
 def read_input_with_default(prompt, default):
 
@@ -32,7 +33,7 @@ def new_issue(args):
 
     git_commit_message = read_input_with_default("Enter a commit message", "Creates Issue " + issue_id)
 
-    create_new_issue(issue_repository, issue_title, issue_description, git_commit_message, issue_id, file_path)
+    create_issue(issue_repository, issue_title, issue_description, git_commit_message, issue_id, file_path)
 
     if args.accept:
         print("Performing merge to master to accept issue...")
@@ -43,6 +44,3 @@ def new_issue(args):
     issue = issues[issue_id]
 
     page(build_issue_history(issue, issues))
-
-
-

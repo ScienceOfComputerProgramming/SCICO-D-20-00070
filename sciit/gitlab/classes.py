@@ -1,6 +1,5 @@
 import gitlab
 import os
-import re
 import sqlite3
 import subprocess
 
@@ -8,12 +7,10 @@ from urllib.parse import urlparse
 
 from git import Repo
 
-from sciit import IssueRepo
+from sciit import IssueRepo, Issue
 from sciit.cli import ProgressTracker
-from sciit.write_commit import GitCommitToIssue, create_new_issue
-
-from sciit.regex import get_file_object_pattern, IssuePropertyRegularExpressions, add_comment_chars, \
-    strip_comment_chars, get_issue_property_regex
+from sciit.write_commit import create_issue as create_sciit_issue, update_issue as update_sciit_issue, \
+    close_issue as close_sciit_issue
 
 
 class GitlabSciitIssueIDCache:
@@ -76,69 +73,45 @@ class GitRepositoryIssueClient:
         self._sciit_repository = sciit_repository
 
     def handle_issue(self, gitlab_issue, gitlab_sciit_issue_id_cache):
+
         gitlab_issue_id = gitlab_issue['iid']
         sciit_issue_id = gitlab_sciit_issue_id_cache.get_sciit_issue_id(gitlab_issue_id)
+        action = gitlab_issue['action']
 
         if sciit_issue_id is not None:
-            self.update_issue(sciit_issue_id, gitlab_issue)
+            sciit_issues = self._sciit_repository.get_all_issues()
+            sciit_issue = sciit_issues[sciit_issue_id]
+
+            if action == 'close':
+                self.close_issue(sciit_issue)
+            else:
+                self.update_issue(sciit_issue, gitlab_issue)
+
         else:
             sciit_issue_id = self.create_new_sciit_issue(gitlab_issue)
             gitlab_sciit_issue_id_cache.set_gitlab_issue_id(sciit_issue_id, gitlab_issue_id)
 
-    def update_issue(self, sciit_issue_id, changes):
-        gitlab_issue_id = changes['iid']
+    def update_issue(self, sciit_issue, gitlab_issue):
 
-        sciit_issues = self._sciit_repository.get_all_issues()
-        sciit_issue = sciit_issues[sciit_issue_id]
-
-        latest_branch = sciit_issue.newest_issue_snapshot.in_branches[0]
-        message = "Updates Issue %s (Gitlab Issue %d).\n\n(sciit issue update)" % \
-                  (sciit_issue.issue_id, gitlab_issue_id)
-
-        with GitCommitToIssue(self._sciit_repository, latest_branch, message) as commit_to_issue:
-            new_sciit_issue_file_content = self.get_changed_file_content(sciit_issue, changes)
-            with open(sciit_issue.working_file_path, 'w') as sciit_issue_file:
-                sciit_issue_file.write(new_sciit_issue_file_content)
-
-            commit_to_issue.file_paths.append(sciit_issue.file_path)
-
-    def get_changed_file_content(self, sciit_issue, changes):
-        comment_pattern = get_file_object_pattern(sciit_issue.file_path)
-
-        with open(sciit_issue.working_file_path, 'r') as sciit_issue_file:
-            file_content = sciit_issue_file.read()
-            sciit_issue_content_in_file = file_content[sciit_issue.start_position:sciit_issue.end_position]
-
-        sciit_issue_content, indent = strip_comment_chars(comment_pattern, sciit_issue_content_in_file)
+        _changes = dict()
 
         for key in ['title', 'due_date', 'weight', 'labels']:
-            if key in changes:
-                change_value = changes[key] if bool(changes[key]) else ''
+            if key in gitlab_issue:
+                change_value = gitlab_issue[key] if bool(gitlab_issue[key]) else ''
 
                 if not (getattr(sciit_issue, key) is None and change_value == ''):
-                    sciit_issue_content = self._update_single_line_property_in_file_content(
-                        get_issue_property_regex(key), sciit_issue_content, key, change_value)
+                    _new_value = self._format_gitlab_property_value_for_sciit(key, change_value)
+                    _changes[key] = _new_value
 
-        if 'description' in changes and not (changes['description'] == '' and sciit_issue.description is None):
-            sciit_issue_content = self._update_description_in_file_content(sciit_issue_content, changes['description'])
+        if 'description' in gitlab_issue and not (gitlab_issue['description'] == '' and
+                                                  sciit_issue.description is None):
+            _changes['description'] = gitlab_issue['description']
 
-        sciit_issue_content = add_comment_chars(comment_pattern, sciit_issue_content, indent)
+        git_commit_message = \
+            "Updates Issue %s (Gitlab Issue %d).\n\n(sciit issue update)" % \
+                (sciit_issue.issue_id, gitlab_issue['iid'])
 
-        return \
-            file_content[0:sciit_issue.start_position] + \
-            sciit_issue_content + \
-            file_content[sciit_issue.end_position:]
-
-    def _update_single_line_property_in_file_content(self, pattern, file_content, label, new_value):
-
-        _new_value = self._format_gitlab_property_value_for_sciit(label, new_value)
-
-        old_match = re.search(pattern, file_content)
-        if old_match:
-            old_start, old_end = old_match.span(1)
-            return file_content[0:old_start] + str(_new_value) + file_content[old_end:]
-        else:
-            return file_content + f'\n@{label} {_new_value}'
+        update_sciit_issue(self._sciit_repository, sciit_issue, _changes, git_commit_message)
 
     @staticmethod
     def _format_gitlab_property_value_for_sciit(label, value):
@@ -149,25 +122,16 @@ class GitRepositoryIssueClient:
         else:
             return str(value)
 
-
-    @staticmethod
-    def _update_description_in_file_content(file_content, new_value):
-
-        old_match = re.search(IssuePropertyRegularExpressions.DESCRIPTION, file_content)
-        if old_match:
-            old_start, old_end = old_match.span(1)
-            return file_content[0:old_start] + '\n' + new_value + file_content[old_end:]
-        else:
-            return file_content + f'\n@description\n{new_value}'
-
     def create_new_sciit_issue(self, gitlab_issue):
-        return create_new_issue(
-            self._sciit_repository,
-            gitlab_issue['title'],
-            gitlab_issue['description'],
-            commit_message="Creates New Issue %s (Gitlab Issue %d).\n\n(sciit issue update)" %
-                           (gitlab_issue['title'], gitlab_issue['iid'])
-        )
+
+        message = "Creates New Issue %s (Gitlab Issue %d).\n\n(sciit issue update)" % \
+                               (gitlab_issue['title'], gitlab_issue['iid'])
+
+        return create_sciit_issue(
+            self._sciit_repository, gitlab_issue['title'], gitlab_issue['description'], git_commit_message=message)
+
+    def close_issue(self, sciit_issue: Issue) -> None:
+        close_sciit_issue()
 
 
 class _TemporaryProjectVisibility:
@@ -495,4 +459,3 @@ class MirroredGitlabSites:
     def get_mirrored_gitlab_sciit_project(self, site_homepage, path_with_namespace, local_git_repository_path=None):
         mirrored_gitlab_site = self.get_mirrored_gitlab_site(site_homepage)
         return mirrored_gitlab_site.get_mirrored_gitlab_sciit_project(path_with_namespace, local_git_repository_path)
-
