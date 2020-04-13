@@ -127,8 +127,10 @@ class GitRepositoryIssueClient:
         message = "Creates New Issue %s (Gitlab Issue %d).\n\n(sciit issue update)" % \
                                (gitlab_issue['title'], gitlab_issue['iid'])
 
-        return create_sciit_issue(
-            self._sciit_repository, gitlab_issue['title'], gitlab_issue['description'], git_commit_message=message)
+        title = gitlab_issue['title']
+        description = gitlab_issue['description']
+
+        return create_sciit_issue(self._sciit_repository, title, description, git_commit_message=message, push=True)
 
     def close_issue(self, sciit_issue: Issue) -> None:
         close_sciit_issue(self._sciit_repository, sciit_issue, push=True)
