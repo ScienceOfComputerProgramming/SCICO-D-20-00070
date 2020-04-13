@@ -13,7 +13,7 @@ from tests.external_resources import create_mock_git_repository, remove_existing
 class TestIssueRepoExistingRepository(TestCase):
 
     def setUp(self):
-        self.mock_git_repository = create_mock_git_repository('here', list(), list())
+        self.mock_git_repository = create_mock_git_repository('working_dir', list(), list())
 
     def test_issue_repo_is_init(self):
         repo = IssueRepo(self.mock_git_repository)
@@ -24,17 +24,17 @@ class TestIssueRepoExistingRepository(TestCase):
         repo = IssueRepo(self.mock_git_repository)
         repo.setup_file_system_resources()
         repo.reset()
-        self.assertFalse(os.path.exists('here/.git/issues'))
+        self.assertFalse(os.path.exists('working_dir/.git/issues'))
 
     def tearDown(self):
-        remove_existing_repo('here')
+        remove_existing_repo('working_dir')
 
 
 class TestIssueRepoNoExistingRepository(TestCase):
 
     def setUp(self):
-        remove_existing_repo('here')
-        self.mock_git_repository = create_mock_git_repository('here', list(), list())
+        remove_existing_repo('working_dir')
+        self.mock_git_repository = create_mock_git_repository('working_dir', list(), list())
 
     def test_issue_repo_is_not_init(self):
         repo = IssueRepo(self.mock_git_repository)
@@ -43,15 +43,18 @@ class TestIssueRepoNoExistingRepository(TestCase):
     def test_issue_repo_setup(self):
         repo = IssueRepo(self.mock_git_repository)
         repo.setup_file_system_resources()
-        self.assertTrue(os.path.exists('here/.git/hooks/post-commit'))
-        self.assertTrue(os.path.exists('here/.git/hooks/post-checkout'))
-        self.assertTrue(os.path.exists('here/.git/hooks/post-merge'))
+        self.assertTrue(os.path.exists('working_dir/.git/hooks/post-commit'))
+        self.assertTrue(os.path.exists('working_dir/.git/hooks/post-checkout'))
+        self.assertTrue(os.path.exists('working_dir/.git/hooks/post-merge'))
 
     def test_reset_non_init_repo(self):
         repo = IssueRepo(self.mock_git_repository)
         with self.assertRaises(EmptyRepositoryError) as context:
             repo.reset()
         self.assertTrue('The issue repository is empty.' in str(context.exception))
+
+    def tearDown(self):
+        remove_existing_repo('working_dir')
 
 
 class TestBuildIssueRepo(TestCase):
@@ -94,7 +97,7 @@ class TestBuildIssueRepo(TestCase):
                 create_mock_parents(self.first_commit))
 
         self.mock_git_repository = create_mock_git_repository(
-            'here', [('master', self.head_commit.hexsha)], [self.first_commit, self.head_commit])
+            'working_dir', [('master', self.head_commit.hexsha)], [self.first_commit, self.head_commit])
 
         self.issue_repository = IssueRepo(self.mock_git_repository)
         self.issue_repository.setup_file_system_resources()
@@ -124,7 +127,7 @@ class TestBuildIssueRepo(TestCase):
         self.assertEqual(2, len(history['1'].revisions))
 
     def tearDown(self):
-        remove_existing_repo('here')
+        remove_existing_repo('working_dir')
 
 
 class TestRepoSync(TestCase):
@@ -166,3 +169,8 @@ class TestRepoSync(TestCase):
         last = get_last_issue_commit_sha(self.repo.issue_dir)
 
         self.assertEqual(self.mock_git_repository.head.commit.hexsha, last)
+
+    def tearDown(self):
+        os.chdir('../')
+        remove_existing_repo('working_dir')
+
