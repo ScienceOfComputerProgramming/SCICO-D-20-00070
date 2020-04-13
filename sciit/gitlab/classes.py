@@ -170,23 +170,27 @@ class GitRepositoryIssueClient:
         )
 
 
-class ProjectVisibility:
+class _TemporaryProjectVisibility:
 
-    def __init__(self, project, temporary_visbility):
+    def __init__(self, project, visibility):
         self._project = project
-        self._temporary_visbility = temporary_visbility
+        self._temporary_visibility = visibility
 
         self._original_visibility = None
 
     def __enter__(self):
         self._original_visibility = self._project.visibility
-        self._project.visibility = self._temporary_visbility
+        self._project.visibility = self._temporary_visibility
         self._project.save()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._project.visibility = self._original_visibility
         self._project.save()
+
+
+def temporary_visibility(project, visibility):
+    return _TemporaryProjectVisibility(project, visibility)
 
 
 class GitlabIssueClient:
@@ -200,7 +204,7 @@ class GitlabIssueClient:
 
         with gitlab.Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
             project = gitlab_instance.projects.get(path_with_namespace[1:])
-            with ProjectVisibility(project, 'private'):
+            with temporary_visibility(project, 'private'):
                 for sciit_issue in sciit_issues:
                     sciit_issue_id = sciit_issue.issue_id
                     gitlab_issue_id = gitlab_sciit_issue_id_cache.get_gitlab_issue_id(sciit_issue_id)
@@ -273,7 +277,7 @@ class GitlabIssueClient:
         with gitlab.Gitlab(self._site_homepage, self._api_token) as gitlab_instance:
             project = gitlab_instance.projects.get(path_with_namespace[1:])
 
-            with ProjectVisibility(project, 'private'):
+            with temporary_visibility(project, 'private'):
                 for gitlab_issue in project.issues.list(all=True):
                     gitlab_issue.delete()
                     gitlab_issue.save()
