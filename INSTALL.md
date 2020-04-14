@@ -28,7 +28,7 @@ On Windows, `git-sciit.exe` is placed into a centralised `Scripts` directory whi
 
 Summary of steps
 
-1. Create a sciit user for the project.
+1. Create a sciit user for the project, for example <project-name>-sciit.
 2. Add sciit-gitlab public key to sciit user account. 
 3. Register sciit user private token with sciit-gitlab
 4. Add sciit-gitlab webhook to project.

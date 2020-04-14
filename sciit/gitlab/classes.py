@@ -426,8 +426,8 @@ class MirroredGitlabSite:
 
         self.mirrored_gitlab_sciit_projects = dict()
 
-    def set_gitlab_api_token(self, path_with_namespace, api_token):
-        self._gitlab_token_cache.set_api_token(path_with_namespace, api_token)
+    def set_credentials(self, path_with_namespace, gitlab_username, web_hook_secret_token, api_token):
+        self._gitlab_token_cache.set_credentials(path_with_namespace, gitlab_username, web_hook_secret_token, api_token)
 
     def get_mirrored_gitlab_sciit_project(self, path_with_namespace, local_git_repository_path=None):
 
