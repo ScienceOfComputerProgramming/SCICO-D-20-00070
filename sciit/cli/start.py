@@ -75,12 +75,15 @@ def add_gitlab_reset_parser(gitlab_subparsers):
     gitlab_reset_parser.add_argument('sites_local_path')
 
 
-def add_gitlab_set_token_parser(gitlab_subparsers):
+def add_gitlab_set_credentials_parser(gitlab_subparsers):
     gitlab_set_token_parser = gitlab_subparsers.add_parser(
-        'set_token', description='Sets an API token for a Gitlab project in the Sciit cache.')
+        'set_credentials', description='sets a gitlab username, web hook token and API token for a Gitlab project to be '
+                                       'used by the sciit gitlab service')
     gitlab_set_token_parser.set_defaults(func=set_gitlab_api_token)
 
     gitlab_set_token_parser.add_argument('project_url')
+    gitlab_set_token_parser.add_argument('gitlab_username')
+    gitlab_set_token_parser.add_argument('web_hook_secret_token')
     gitlab_set_token_parser.add_argument('api_token')
     gitlab_set_token_parser.add_argument('sites_local_path')
 
@@ -95,7 +98,7 @@ def add_gitlab_parser(subparsers):
     gitlab_start_parser.set_defaults(func=launch_gitlab_service)
 
     add_gitlab_reset_parser(gitlab_subparsers)
-    add_gitlab_set_token_parser(gitlab_subparsers)
+    add_gitlab_set_credentials_parser(gitlab_subparsers)
 
 
 def create_command_parser():

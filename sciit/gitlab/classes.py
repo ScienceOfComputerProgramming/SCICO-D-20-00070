@@ -259,10 +259,18 @@ class MirroredGitlabSciitProjectException(Exception):
 
 class MirroredGitlabSciitProject:
 
-    def __init__(self, path_with_namespace, local_git_repository_path, git_url, gitlab_issue_client):
+    def __init__(self,
+                 path_with_namespace,
+                 local_git_repository_path,
+                 git_url,
+                 gitlab_username,
+                 web_hook_secret_token,
+                 gitlab_issue_client):
 
         self.path_with_namespace = path_with_namespace
         self.gitlab_issue_client = gitlab_issue_client
+        self.gitlab_username = gitlab_username
+        self.webhook_secret_token = web_hook_secret_token
 
         self._configure_local_issue_repository(local_git_repository_path, git_url)
 
@@ -278,7 +286,7 @@ class MirroredGitlabSciitProject:
 
         issue_history_iterator = self.local_sciit_repository.get_issue_history_iterator(revision, issue_ids)
 
-        progress_tracker = ProgressTracker(True, len(issue_history_iterator), object_type_name='commits')
+        progress_tracker = ProgressTracker(len(issue_history_iterator), object_type_name='commits')
 
         for commit_hexsha_str, issues in issue_history_iterator:
 
@@ -352,53 +360,58 @@ class GitlabTokenCache:
         self._site_local_mirror_path = site_local_mirror_path
 
     @property
-    def _gitlab_token_cache_db_connection(self):
-        token_cache_db_path = self._site_local_mirror_path + os.sep + "gitlab_api_token_cache.db"
+    def _gitlab_credential_db_connection(self):
+        token_cache_db_path = self._site_local_mirror_path + os.sep + "gitlab_credentials.db"
 
         connection = sqlite3.connect(token_cache_db_path)
         cursor = connection.cursor()
 
         cursor.execute(
             '''
-            CREATE TABLE IF NOT EXISTS gitlab_api_token_cache 
-            (project_path_with_namespace TEXT PRIMARY KEY, api_token TEXT)
+            CREATE TABLE IF NOT EXISTS GitlabCredentials 
+            (
+             project_path_with_namespace TEXT PRIMARY KEY,
+             gitlab_username TEXT,
+             web_hook_secret_token TEXT,
+             api_token TEXT
+            )
             WITHOUT ROWID
             '''
         )
 
         return connection
 
-    def set_api_token(self, project_with_namespace, api_token):
+    def set_credentials(self, project_with_namespace, gitlab_username, web_hook_secret_token, api_token):
 
-        with self._gitlab_token_cache_db_connection as connection:
+        with self._gitlab_credential_db_connection as connection:
 
             cursor = connection.cursor()
 
             query_string = (
                 '''
-                REPLACE INTO gitlab_api_token_cache (project_path_with_namespace, api_token)
-                VALUES(?, ?);
+                REPLACE INTO GitlabCredentials (project_path_with_namespace, api_token)
+                VALUES(?, ?, ?, ?);
 
                 '''
             )
-            cursor.execute(query_string, (project_with_namespace, api_token))
+            cursor.execute(query_string, (project_with_namespace, gitlab_username, web_hook_secret_token, api_token))
 
-    def get_api_token(self, project_path_with_namespace):
+    def get_credentials(self, project_path_with_namespace):
 
-        with self._gitlab_token_cache_db_connection as connection:
+        with self._gitlab_credential_db_connection as connection:
 
             cursor = connection.cursor()
 
             query_string = (
                 '''
-                SELECT api_token FROM gitlab_api_token_cache
+                SELECT gitlab_username, web_hook_secret_token, api_token FROM GitlabCredentials
                 WHERE project_path_with_namespace = ?
                 '''
             )
 
             query_result = cursor.execute(query_string, (project_path_with_namespace,)).fetchall()
             if len(query_result) > 0:
-                return query_result[0][0]
+                return query_result[0][0], query_result[0][1], query_result[0][2]
             else:
                 return None
 
@@ -423,7 +436,8 @@ class MirroredGitlabSite:
             _local_git_repository_path = local_git_repository_path if local_git_repository_path is not None \
                 else self.site_local_mirror_path + path_with_namespace
 
-            api_token = self._gitlab_token_cache.get_api_token(path_with_namespace)
+            gitlab_username, web_hook_secret_token, api_token = \
+                self._gitlab_token_cache.get_credentials(path_with_namespace)
 
             gitlab_issue_client = GitlabIssueClient(self.site_homepage, api_token)
 
@@ -431,7 +445,8 @@ class MirroredGitlabSite:
 
             self.mirrored_gitlab_sciit_projects[path_with_namespace] = \
                 MirroredGitlabSciitProject(
-                    path_with_namespace, _local_git_repository_path, git_url, gitlab_issue_client)
+                    path_with_namespace, _local_git_repository_path, git_url, gitlab_username, web_hook_secret_token,
+                    gitlab_issue_client)
 
         return self.mirrored_gitlab_sciit_projects[path_with_namespace]
 

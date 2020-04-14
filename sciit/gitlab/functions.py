@@ -17,7 +17,7 @@ def reset_gitlab_issues(project_url, sites_local_path):
     mirrored_gitlab_sciit_project.reset_gitlab_issues()
 
 
-def set_gitlab_api_token(project_url, api_token, sites_local_path):
+def set_gitlab_api_token(project_url, gitlab_username, web_hook_secret_token, api_token, sites_local_path):
     mirrored_gitlab_sites = MirroredGitlabSites(sites_local_path)
 
     parsed_uri = urlparse(project_url)
@@ -25,4 +25,4 @@ def set_gitlab_api_token(project_url, api_token, sites_local_path):
     path_with_namespace = parsed_uri.path
 
     mirrored_gitlab_site = mirrored_gitlab_sites.get_mirrored_gitlab_site(site_homepage)
-    mirrored_gitlab_site.set_gitlab_api_token(path_with_namespace, api_token)
+    mirrored_gitlab_site.set_credentials(path_with_namespace, gitlab_username, web_hook_secret_token, api_token)
