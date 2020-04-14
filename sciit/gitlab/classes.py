@@ -88,7 +88,7 @@ class GitRepositoryIssueClient:
                 self.update_issue(sciit_issue, gitlab_issue)
 
         else:
-            sciit_issue_id = self.create_new_sciit_issue(gitlab_issue)
+            sciit_issue_id = self.create_new_issue(gitlab_issue)
             gitlab_sciit_issue_id_cache.set_gitlab_issue_id(sciit_issue_id, gitlab_issue_id)
 
     def update_issue(self, sciit_issue, gitlab_issue):
@@ -122,7 +122,7 @@ class GitRepositoryIssueClient:
         else:
             return str(value)
 
-    def create_new_sciit_issue(self, gitlab_issue):
+    def create_new_issue(self, gitlab_issue):
 
         message = "Creates New Issue %s (Gitlab Issue %d).\n\n(sciit issue update)" % \
                                (gitlab_issue['title'], gitlab_issue['iid'])
