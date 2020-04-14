@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from sciit.gitlab.classes import GitlabIssueClient, GitlabTokenCache
+from sciit.gitlab.classes import GitlabIssueClient, GitlabCredentialsCache
 from sciit import Issue, IssueSnapshot
 
 
@@ -11,7 +11,7 @@ class TestGitlabIssueClient(TestCase):
 
         self.path_with_namespace = 'twsswt/sciit-gitlab-test'
 
-        gitlab_token_cache = GitlabTokenCache('../../../')
+        gitlab_token_cache = GitlabCredentialsCache('../../../')
         api_token = gitlab_token_cache.get_api_token(self.path_with_namespace)
 
         self.gitlab_issue_client = GitlabIssueClient(

@@ -354,13 +354,13 @@ class MirroredGitlabSciitProject:
             return f'{before_commit_str}..{after_commit_str}'
 
 
-class GitlabTokenCache:
+class GitlabCredentialsCache:
 
     def __init__(self, site_local_mirror_path):
         self._site_local_mirror_path = site_local_mirror_path
 
     @property
-    def _gitlab_credential_db_connection(self):
+    def _gitlab_credentials_db_connection(self):
         token_cache_db_path = self._site_local_mirror_path + os.sep + "gitlab_credentials.db"
 
         connection = sqlite3.connect(token_cache_db_path)
@@ -383,13 +383,18 @@ class GitlabTokenCache:
 
     def set_credentials(self, project_with_namespace, gitlab_username, web_hook_secret_token, api_token):
 
-        with self._gitlab_credential_db_connection as connection:
+        with self._gitlab_credentials_db_connection as connection:
 
             cursor = connection.cursor()
 
             query_string = (
                 '''
-                REPLACE INTO GitlabCredentials (project_path_with_namespace, api_token)
+                REPLACE INTO GitlabCredentials (
+                 project_path_with_namespace,
+                 gitlab_username,
+                 web_hook_secret_token,
+                 api_token
+                )
                 VALUES(?, ?, ?, ?);
 
                 '''
@@ -398,7 +403,7 @@ class GitlabTokenCache:
 
     def get_credentials(self, project_path_with_namespace):
 
-        with self._gitlab_credential_db_connection as connection:
+        with self._gitlab_credentials_db_connection as connection:
 
             cursor = connection.cursor()
 
@@ -418,16 +423,16 @@ class GitlabTokenCache:
 
 class MirroredGitlabSite:
 
-    def __init__(self, site_homepage, site_local_mirror_path, gitlab_token_cache):
+    def __init__(self, site_homepage, site_local_mirror_path, gitlab_credentials):
         self.site_homepage = site_homepage
         self.site_local_mirror_path = site_local_mirror_path
 
-        self._gitlab_token_cache = gitlab_token_cache
+        self._gitlab_credentials = gitlab_credentials
 
         self.mirrored_gitlab_sciit_projects = dict()
 
     def set_credentials(self, path_with_namespace, gitlab_username, web_hook_secret_token, api_token):
-        self._gitlab_token_cache.set_credentials(path_with_namespace, gitlab_username, web_hook_secret_token, api_token)
+        self._gitlab_credentials.set_credentials(path_with_namespace, gitlab_username, web_hook_secret_token, api_token)
 
     def get_mirrored_gitlab_sciit_project(self, path_with_namespace, local_git_repository_path=None):
 
@@ -437,7 +442,7 @@ class MirroredGitlabSite:
                 else self.site_local_mirror_path + path_with_namespace
 
             gitlab_username, web_hook_secret_token, api_token = \
-                self._gitlab_token_cache.get_credentials(path_with_namespace)
+                self._gitlab_credentials.get_credentials(path_with_namespace)
 
             gitlab_issue_client = GitlabIssueClient(self.site_homepage, api_token)
 
@@ -470,7 +475,7 @@ class MirroredGitlabSites:
             site_directory_name = urlparse(site_homepage).netloc
             site_local_mirror_path = self.sites_path + os.path.sep + site_directory_name
 
-            gitlab_token_cache = GitlabTokenCache(site_local_mirror_path)
+            gitlab_token_cache = GitlabCredentialsCache(site_local_mirror_path)
 
             self.mirrored_gitlab_sites[site_homepage] = \
                 MirroredGitlabSite(site_homepage, site_local_mirror_path, gitlab_token_cache)
