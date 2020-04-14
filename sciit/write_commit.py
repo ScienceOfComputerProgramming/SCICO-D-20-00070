@@ -169,7 +169,7 @@ def update_issue(issue_repository, issue, changes, message=None, push=False):
             commit_to_issue.file_paths.append(issue.file_path)
 
 
-def _get_changed_file_content(sciit_issue, branch, changes):
+def _get_changed_file_content(sciit_issue, changes, branch):
 
     comment_pattern = get_file_object_pattern(sciit_issue.file_path)
 
