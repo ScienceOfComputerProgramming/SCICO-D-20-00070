@@ -41,7 +41,7 @@ def page_history_issues(history, view=None, issue_filter=None):
     current_issue = 0
     output = ''
 
-    progress_tracker = ProgressTracker(True, num_issues, object_type_name='issues')
+    progress_tracker = ProgressTracker(num_issues, object_type_name='issues')
 
     for item in filtered_history:
         if issue_filter is None or issue_filter(item):

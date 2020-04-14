@@ -58,7 +58,6 @@ class IssueRepo(object):
         if install_hooks:
             self._install_hook('post-commit')
             self._install_hook('post-merge')
-            self._install_hook('post-checkout')
 
     def _install_hook(self, hook_name):
         git_hooks_dir = self.git_repository.git_dir + '/hooks/'
@@ -99,9 +98,11 @@ class IssueRepo(object):
                     self.git_repository.git.execute(['git', 'branch', branch])
                     self.git_repository.git.execute(['git', 'branch', '--set-upstream-to=origin/'+branch, branch])
 
+            heads_progress_tracker = ProgressTracker(len(self.git_repository.heads), object_type_name='heads')
             for head in self.git_repository.heads:
                 self.git_repository.git.checkout(head.name)
                 self.git_repository.remotes.origin.pull()
+                heads_progress_tracker.processed_object()
 
         finally:
             self.git_repository.git.checkout(current_head.name)
@@ -150,7 +151,7 @@ class IssueRepo(object):
     def _extract_and_synchronise_issue_snapshots_from_commits(self, commits_for_processing):
 
         ignored_files = get_sciit_ignore_path_spec(self.git_repository)
-        progress_tracker = ProgressTracker(self.cli, len(commits_for_processing), object_type_name='commits')
+        progress_tracker = ProgressTracker(len(commits_for_processing), object_type_name='commits')
 
         for commit in commits_for_processing:
             self._cache_issue_snapshots_from_commit(commit, ignored_files, progress_tracker)

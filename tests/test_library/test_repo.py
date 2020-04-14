@@ -44,7 +44,6 @@ class TestIssueRepoNoExistingRepository(TestCase):
         repo = IssueRepo(self.mock_git_repository)
         repo.setup_file_system_resources()
         self.assertTrue(os.path.exists('working_dir/.git/hooks/post-commit'))
-        self.assertTrue(os.path.exists('working_dir/.git/hooks/post-checkout'))
         self.assertTrue(os.path.exists('working_dir/.git/hooks/post-merge'))
 
     def test_reset_non_init_repo(self):

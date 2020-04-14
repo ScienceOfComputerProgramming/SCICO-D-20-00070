@@ -58,34 +58,34 @@ class TestPrintProgressBar(TestCase):
         self.held, sys.stdout = sys.stdout, StringIO()
 
     def test_25_percent(self):
-        progress_tracker = ProgressTracker(True, 4)
+        progress_tracker = ProgressTracker(4)
         progress_tracker.processed_object(1)
         self.assertIn("25.0%", sys.stdout.getvalue())
 
 
     def test_33_percent(self):
-        progress_tracker = ProgressTracker(True, 3)
+        progress_tracker = ProgressTracker(3)
         progress_tracker.processed_object(1)
         self.assertIn("33.3%", sys.stdout.getvalue())
 
 
     def test_50_percent(self):
-        progress_tracker = ProgressTracker(True, 2)
+        progress_tracker = ProgressTracker(2)
         progress_tracker.processed_object(1)
         self.assertIn("50.0%", sys.stdout.getvalue())
 
 
     def test_66_percent(self):
-        progress_tracker = ProgressTracker(True, 3)
+        progress_tracker = ProgressTracker(3)
         progress_tracker.processed_object(2)
         self.assertIn("66.7%", sys.stdout.getvalue())
 
     def test_75_percent(self):
-        progress_tracker = ProgressTracker(True, 4)
+        progress_tracker = ProgressTracker(4)
         progress_tracker.processed_object(3)
         self.assertIn("75.0%", sys.stdout.getvalue())
 
     def test_100_percent(self):
-        progress_tracker = ProgressTracker(True, 1)
+        progress_tracker = ProgressTracker(1)
         progress_tracker.processed_object(1)
         self.assertIn("100.0%", sys.stdout.getvalue())
