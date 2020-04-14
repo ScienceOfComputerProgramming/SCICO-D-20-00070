@@ -22,7 +22,7 @@ def init(args):
         try:
             print(' ')
             if args.synchronize:
-                print('Synchronizing with remotes ahead if repository initialisation.')
+                print('Synchronising with remotes before issue repository initialisation.')
                 args.repo.synchronize_with_remotes()
             ColorPrint.bold('Building repository from commits')
             args.repo.cache_issue_snapshots_from_all_commits()
