@@ -475,10 +475,10 @@ class MirroredGitlabSites:
             site_directory_name = urlparse(site_homepage).netloc
             site_local_mirror_path = self.sites_path + os.path.sep + site_directory_name
 
-            gitlab_token_cache = GitlabCredentialsCache(site_local_mirror_path)
+            gitlab_credentials_cache = GitlabCredentialsCache(site_local_mirror_path)
 
             self.mirrored_gitlab_sites[site_homepage] = \
-                MirroredGitlabSite(site_homepage, site_local_mirror_path, gitlab_token_cache)
+                MirroredGitlabSite(site_homepage, site_local_mirror_path, gitlab_credentials_cache)
 
         return self.mirrored_gitlab_sites[site_homepage]
 
