@@ -270,7 +270,7 @@ class MirroredGitlabSciitProject:
         self.path_with_namespace = path_with_namespace
         self.gitlab_issue_client = gitlab_issue_client
         self.gitlab_username = gitlab_username
-        self.webhook_secret_token = web_hook_secret_token
+        self.web_hook_secret_token = web_hook_secret_token
 
         self._configure_local_issue_repository(local_git_repository_path, git_url)
 

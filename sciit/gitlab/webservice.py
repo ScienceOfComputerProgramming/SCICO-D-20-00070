@@ -28,11 +28,20 @@ def get_project_site_homepage_and_path_with_namespace(data):
     return site_homepage, path_with_namespace
 
 
-def no_new_commits(data):
-    for commit in data['commits']:
-        if '(sciit issue update)' not in commit['message']:
-            return False
-    return True
+def invalid_issue_hook(data, gitlab_username):
+    return 'user' not in data or \
+           'username' not in data['user'] or \
+           data['user']['username'] == gitlab_username
+
+
+def invalid_push_hook(data):
+    if 'commits' not in data:
+        return True
+    else:
+        for commit in data['commits']:
+            if '(sciit issue update)' not in commit['message']:
+                return False
+        return True
 
 
 @app.route('/', methods=['POST'])
@@ -41,12 +50,13 @@ def index():
     The single endpoint of the service handling all incoming web hooks.
     """
 
-    sciit_web_hook_username = 'sciit-sciit'  # 'sciit_web_hook'
-    sciit_web_hook_secret_token = 'SciitityMcGitty'
-
     data = request.get_json()
 
-    if not('repository' in data and 'homepage' in data['repository']):
+    if not(
+            'repository' in data and
+            'homepage' in data['repository'] and
+            'HTTP_X_GITLAB_EVENT' in request.headers.environ
+    ):
         raise BadRequest()
 
     site_homepage, path_with_namespace = get_project_site_homepage_and_path_with_namespace(data)
@@ -63,11 +73,13 @@ def index():
     event = request.headers.environ['HTTP_X_GITLAB_EVENT']
     logging.info(f'Received {event} event.')
 
-    if event == 'Push Hook' and no_new_commits(data):
+    if event == 'Push Hook' and invalid_push_hook(data):
         logging.info("Rejecting push event that originated from sciit issue change.")
         return Response(
             {'status': 'Rejected', 'message': 'Event originated from a previous sciit issue web hook action.'})
-    elif event == 'Issue Hook' and data['user']['username'] == mirrored_gitlab_sciit_project.gitlab_username:
+
+    elif event == 'Issue Hook' and invalid_issue_hook(data, mirrored_gitlab_sciit_project.gitlab_username):
+
         logging.info("Rejecting issue event that originated from sciit commit.")
         return Response(
             {'status': 'Rejected', 'message': 'Event originated from a previous sciit push web hook action.'})
