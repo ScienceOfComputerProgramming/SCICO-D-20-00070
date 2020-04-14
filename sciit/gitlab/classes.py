@@ -128,9 +128,13 @@ class GitRepositoryIssueClient:
                                (gitlab_issue['title'], gitlab_issue['iid'])
 
         title = gitlab_issue['title']
-        description = gitlab_issue['description']
 
-        return create_sciit_issue(self._sciit_repository, title, description, git_commit_message=message, push=True)
+        data = dict()
+        for key in ['due_date', 'weight', 'labels', 'description']:
+            if key in gitlab_issue and bool(gitlab_issue[key]):
+                data[key] = self._format_gitlab_property_value_for_sciit(key, gitlab_issue[key])
+
+        return create_sciit_issue(self._sciit_repository, title, data, git_commit_message=message, push=True)
 
     def close_issue(self, sciit_issue: Issue) -> None:
         close_sciit_issue(self._sciit_repository, sciit_issue, push=True)

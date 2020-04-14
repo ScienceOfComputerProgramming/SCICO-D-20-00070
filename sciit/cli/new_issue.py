@@ -21,19 +21,21 @@ def new_issue(args):
         do_repository_has_no_commits_warning()
         return
 
-    issue_title = input("Enter a title for the issue: ").rstrip()
+    title = input("Enter a title for the issue: ").rstrip()
 
-    issue_id = slugify.slugify(issue_title)
+    issue_id = slugify.slugify(title)
     issue_id = read_input_with_default("Enter the issue id", issue_id)
 
     file_path = 'backlog/' + issue_id + ".md"
     file_path = read_input_with_default("Enter a file path", file_path)
 
-    issue_description = read_input_with_default("Enter a description", "")
+    description = read_input_with_default("Enter a description", "")
 
     git_commit_message = read_input_with_default("Enter a commit message", "Creates Issue " + issue_id)
 
-    create_issue(issue_repository, issue_title, issue_description, git_commit_message, issue_id, file_path)
+    data = {'description': description}
+
+    create_issue(issue_repository, title, data, git_commit_message, issue_id, file_path)
 
     if args.accept:
         print("Performing merge to master to accept issue...")

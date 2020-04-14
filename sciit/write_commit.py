@@ -100,8 +100,7 @@ def git_commit_to_issue(issue_repository, target_branch, git_commit_message, pus
     return _GitCommitToIssue(issue_repository, target_branch, git_commit_message, push)
 
 
-def create_issue(issue_repository,title, description='', git_commit_message=None, issue_id=None, file_path=None,
-                 push=False):
+def create_issue(issue_repository, title, data, git_commit_message=None, issue_id=None, file_path=None, push=False):
 
     _issue_id = slugify.slugify(title) if issue_id is None else issue_id
     _commit_message = "Creates Issue %s." % _issue_id if git_commit_message is None else git_commit_message
@@ -116,9 +115,15 @@ def create_issue(issue_repository,title, description='', git_commit_message=None
         os.makedirs(backlog_directory, exist_ok=True)
 
         with open(_file_path, mode='w') as issue_file:
-            issue_file.write(
-                f'---\n@issue {_issue_id}\n@title {title}\n@description\n{description}\n---\n'
-            )
+            issue_file.write('---\n')
+            issue_file.write(f'@issue {_issue_id}')
+            issue_file.write(f'\n@title {title}\n')
+            for key in ['due_date', 'weight', 'labels']:
+                if key in data:
+                    issue_file.write(f'@{key} {data[key]}\n')
+            if 'description' in data:
+                issue_file.write(f'@description\n{data["description"]}\n')
+            issue_file.write('---\n')
 
         commit_to_issue.file_paths.append(_file_path)
         return _issue_id

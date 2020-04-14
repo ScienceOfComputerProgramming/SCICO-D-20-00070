@@ -32,7 +32,7 @@ class IntegrationTestWriteCommit(unittest.TestCase):
         issue_repository.setup_file_system_resources()
         issue_repository.cache_issue_snapshots_from_all_commits()
 
-        issue_id = create_issue(issue_repository, '''We're going on a bear hunt.''')
+        issue_id = create_issue(issue_repository, '''We're going on a bear hunt.''', dict())
         issues = issue_repository.get_all_issues()
         issue = issues[issue_id]
 
