@@ -14,6 +14,7 @@ def reset_gitlab_issues(project_url, sites_local_path):
         mirrored_gitlab_sites.get_mirrored_gitlab_sciit_project(
             site_homepage, path_with_namespace)
 
+    mirrored_gitlab_sciit_project.local_sciit_repository.cli = True
     mirrored_gitlab_sciit_project.reset_gitlab_issues()
 
 

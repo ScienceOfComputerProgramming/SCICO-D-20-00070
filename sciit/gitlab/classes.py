@@ -318,8 +318,8 @@ class MirroredGitlabSciitProject:
         else:
             git_repository = Repo(local_git_repository_path)
             self.local_sciit_repository = IssueRepo(git_repository)
-            self.local_sciit_repository.synchronize_with_remotes()
-            self.local_sciit_repository.cache_issue_snapshots_from_unprocessed_commits()
+            # self.local_sciit_repository.synchronize_with_remotes()
+            # self.local_sciit_repository.cache_issue_snapshots_from_unprocessed_commits()
 
     def handle_push_event(self, data):
 

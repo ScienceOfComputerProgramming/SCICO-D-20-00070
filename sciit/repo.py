@@ -102,7 +102,8 @@ class IssueRepo(object):
             for head in self.git_repository.heads:
                 self.git_repository.git.checkout(head.name)
                 self.git_repository.remotes.origin.pull()
-                heads_progress_tracker.processed_object()
+                if self.cli:
+                    heads_progress_tracker.processed_object()
 
         finally:
             self.git_repository.git.checkout(current_head.name)
@@ -171,7 +172,8 @@ class IssueRepo(object):
 
         self._serialize_issue_snapshots_to_db(commit.hexsha, all_commit_issue_snapshots)
 
-        progress_tracker.processed_object()
+        if self.cli:
+            progress_tracker.processed_object()
 
     def _find_unchanged_issue_snapshots_in_immediate_parent(self, commit, in_branches, files_changed_in_commit):
 

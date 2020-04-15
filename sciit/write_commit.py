@@ -68,6 +68,8 @@ class _GitCommitToIssue:
         if self._target_branch not in head_branch_names:
             self._git_repository.create_head(self._target_branch)
         self._git_repository.git.checkout(self._target_branch)
+        self._git_repository.remotes.origin.pull()
+
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -85,7 +87,6 @@ class _GitCommitToIssue:
         if self._push:
             try:
                 origin = self._git_repository.remote('origin')
-
                 self._git_repository.git.push("--set-upstream", origin, self._git_repository.head.ref)
             except ValueError:
                 logging.warning("Couldn't push to branch [%s]." % self._target_branch)
