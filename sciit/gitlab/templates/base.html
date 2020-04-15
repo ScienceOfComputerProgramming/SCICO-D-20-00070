@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCIIT</title>
+    <link rel="stylesheet" href="static/bootstrap-4.3.1-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/fontawesome-fre-5.11.2-web/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+    <link rel="stylesheet" href="static/sciit/css/styles.css">
+    <link rel="shortcut icon" href="static/favicon.ico">
+</head>
+
+<body>
+    <div>
+        <nav class="navbar navbar-light navbar-expand-md navigation-clean">
+            <div class="container">
+                <a class="navbar-brand" href="/">SCIIT</a>
+                <button class="navbar-toggler" data-toggle="collapse" data-target="#navcol-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navcol-1"></div>
+            </div>
+        </nav>
+    </div>
+
+    {% block main %}{% endblock %}
+
+    <div class="footer-basic">
+        <footer>
+            <div class="social">
+                <a href="https://gitlab.com/nystrome/sciit">
+                    <i class="fab fa-gitlab"></i>
+                </a>
+            </div>
+            <p class="copyright">SCIIT © 2018</p>
+        </footer>
+    </div>
+    <script src="static/jquery-3.4.1.min/js/jquery-3.4.1.min.js"></script>
+    <script src="static/bootstrap-4.3.1-dist/js/bootstrap.min.js"></script>
+</body>
+
+</html>

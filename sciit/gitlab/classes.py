@@ -474,6 +474,7 @@ class MirroredGitlabSites:
 
             site_directory_name = urlparse(site_homepage).netloc
             site_local_mirror_path = self.sites_path + os.path.sep + site_directory_name
+            os.makedirs(site_local_mirror_path, exist_ok=True)
 
             gitlab_credentials_cache = GitlabCredentialsCache(site_local_mirror_path)
 
