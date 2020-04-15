@@ -457,7 +457,7 @@ class MirroredGitlabSite:
 
     def make_git_url(self, path_with_namespace, gitlab_username, personal_access_token):
         parsed_site_url = urlparse(self.site_homepage)
-        git_url = f'https://{gitlab_username}:{personal_access_token}@{parsed_site_url}/{path_with_namespace}.git'
+        git_url = f'https://{gitlab_username}:{personal_access_token}@{parsed_site_url}{path_with_namespace}.git'
         return git_url
 
 
