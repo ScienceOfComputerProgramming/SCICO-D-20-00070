@@ -446,7 +446,7 @@ class MirroredGitlabSite:
 
             gitlab_issue_client = GitlabIssueClient(self.site_homepage, api_token)
 
-            git_url = self.make_git_url(path_with_namespace, api_token)
+            git_url = self.make_git_url(path_with_namespace, gitlab_username, api_token)
 
             self.mirrored_gitlab_sciit_projects[path_with_namespace] = \
                 MirroredGitlabSciitProject(
@@ -455,9 +455,9 @@ class MirroredGitlabSite:
 
         return self.mirrored_gitlab_sciit_projects[path_with_namespace]
 
-    def make_git_url(self, path_with_namespace, personal_access_token):
+    def make_git_url(self, path_with_namespace, gitlab_username, personal_access_token):
         parsed_site_url = urlparse(self.site_homepage)
-        git_url = f'https://gitlab-ci-token:{personal_access_token}@{parsed_site_url}/{path_with_namespace}.git'
+        git_url = f'https://{gitlab_username}:{personal_access_token}@{parsed_site_url}/{path_with_namespace}.git'
         return git_url
 
 
