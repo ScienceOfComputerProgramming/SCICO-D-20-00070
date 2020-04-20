@@ -9,7 +9,7 @@ PAPER         =
 BUILDDIR      = _build
 
 SOURCEDIR     = ../sciit
-EXCLUDEDIRS    =  $(SOURCEDIR)/man/* $(SOURCEDIR)/hooks/*
+EXCLUDEDIRS    =  $(SOURCEDIR)/man/* $(SOURCEDIR)/hooks/* $(SOURCEDIR)/gitlab/webservice.py
 APIDIR = ./api
 
 # Internal variables.
