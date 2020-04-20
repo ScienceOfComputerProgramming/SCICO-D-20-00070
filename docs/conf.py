@@ -52,9 +52,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'The SCIIT Project'
-copyright = u'2018, Nystrom Johann Edwards'
-author = u'Nystrom Johann Edwards'
+project = u'The Sciit Project'
+copyright = u'2018, The Sciit Project'
+author = u'Nystrom Johann Edwards, Dhitiwat Jongsuebchoke and Tim Storer'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
