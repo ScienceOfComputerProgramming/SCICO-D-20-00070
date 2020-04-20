@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Assists with creating a git sciit repository. It contains functions that allows the creation of an empty repository or
-to create a repository from source code comments in past commits. It is similar to the git init command but  helps build
-issues for existing repositories.
-"""
 
 from sciit.cli.color import ColorPrint
 from sciit.errors import EmptyRepositoryError, NoCommitsError

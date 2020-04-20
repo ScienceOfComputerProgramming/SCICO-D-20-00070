@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Assists with running git sciit tracker commands, and is similar to any other git command. It compares
-all tracked issues with issues open in the current repository or from the specified revision.
-
-"""
 
 import datetime
 from sciit.cli import build_issue_history, page, ProgressTracker

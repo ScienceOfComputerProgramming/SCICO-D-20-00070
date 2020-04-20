@@ -37,7 +37,7 @@ Outputs a log that is similar to the git command, but includes a summary of open
 ## Issue
 
 ```bash
-git scitt issue [-f | -n ] issueid [revision]
+git scitt <issue_id> [-f | -n ] issueid [revision]
 ```
 
 Shows information about the issue with the given id.
@@ -61,11 +61,18 @@ Prompts user for:
  * File path for markdown file or default to backlog folder
  * A description of the issue
  * A commit message for creating the issue
- 
+
 `[--push | -p]` Pushes the newly created issue branch to the origin.
 
 `[--accept | -a]` Accepts the newly created issue branch by merging it to master locally.
 
+## Close (Experimental)
+
+```git sciit close 
+git sciit close <issue_id>
+```
+
+Removes the issue from all branches it is present in within the current repository.  The effect within Sciit is to change the issue status to Closed.
 
 ## Web
 

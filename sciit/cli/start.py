@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-main() entry point of the command line interface that accepts the command line arguments and pass them to the
-appropriate module for handling.
-"""
 
 import argparse
 import sys

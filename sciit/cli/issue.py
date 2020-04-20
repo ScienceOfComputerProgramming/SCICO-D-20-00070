@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Implements the git sciit issue commands. Issue tracking information is retrieved for a particular issue.
-"""
 
 
 from sciit.cli.color import ColorPrint

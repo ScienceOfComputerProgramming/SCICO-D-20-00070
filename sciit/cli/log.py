@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Assists with running git sciit log commands, similar to the git log command but shows the open issues for each commit.
-"""
 
 from sciit.cli.color import ColorText
 from sciit.cli.functions import page

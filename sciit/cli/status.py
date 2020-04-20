@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Assists with running git sciit status commands, and is similar to the git status command but shows the status of issues
-that are currently being tracked on HEAD or revision.
-"""
 
 from sciit.cli.functions import build_status_table, build_status_summary, page
 
