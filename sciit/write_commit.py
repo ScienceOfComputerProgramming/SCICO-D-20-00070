@@ -141,7 +141,7 @@ def close_issue(issue_repository, issue, branch_names=None, push=False):
 
     for branch_name, issue_snapshot in branch_names_with_snapshots.items():
 
-        message = "Closes issue [%s] in branch [%s]." %(issue.issue_id, branch_name)
+        message = "Closes issue [%s] in branch [%s]." % (issue.issue_id, branch_name)
 
         with git_commit_to_issue(issue_repository, branch_name, message, push) as commit_to_issue:
 
@@ -202,7 +202,7 @@ def _get_changed_file_content(sciit_issue, changes, branch):
         file_content[sciit_issue.end_position:]
 
 
-def _update_single_line_property_in_file_content( pattern, file_content, label, new_value):
+def _update_single_line_property_in_file_content(pattern, file_content, label, new_value):
 
     old_match = re.search(pattern, file_content)
     if old_match:

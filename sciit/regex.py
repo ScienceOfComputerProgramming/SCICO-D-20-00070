@@ -64,6 +64,7 @@ def add_comment_chars(comment_pattern, issue_string, indent):
         return indent[0:-2] + "/**\n" + comment_string + "\n" + indent + "**/"
 
 
+# noinspection SpellCheckingInspection
 def strip_comment_chars(comment_pattern, comment_string):
 
     if comment_pattern == PLAIN:
@@ -80,7 +81,7 @@ def strip_comment_chars(comment_pattern, comment_string):
         indent = indent_match.group(1)
 
         stripped_content = comment_string
-        stripped_content = re.sub(r'^\s*/\**', '', stripped_content) # Start marker
+        stripped_content = re.sub(r'^\s*/\**', '', stripped_content)  # Start marker
         stripped_content = re.sub(r'[ \t\r\f\v]*\**/\s*$', '', stripped_content)  # End marker
         stripped_content = re.sub(r'^\s*\*[ \t\r\f\v]*', '', stripped_content, flags=re.M)
 
@@ -108,7 +109,6 @@ def strip_comment_chars(comment_pattern, comment_string):
 
         issue_string = re.search(MARKDOWN, comment_string).group(1).strip()
         return issue_string, indent
-
 
     else:
         return comment_string, ''

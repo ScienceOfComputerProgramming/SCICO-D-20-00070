@@ -4,7 +4,6 @@ import os
 import stat
 import pkg_resources
 import shutil
-import sys
 
 from pathlib import Path
 
@@ -71,7 +70,7 @@ class IssueRepo(object):
         os.chmod(destination_path, st.st_mode | stat.S_IEXEC)
 
     def reset(self):
-        def onerror(func, path, exception_info):
+        def onerror(func, path, _):
             os.chmod(path, stat.S_IWUSR)
             func(path)
 

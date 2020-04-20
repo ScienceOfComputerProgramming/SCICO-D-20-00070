@@ -1,3 +1,15 @@
+Version 2.0
+-----------
+
+Changes
+~~~~~~~
+
+ * Complete re-write of core library functinonality
+ * Implemention of issue commit write facilities 
+ * New CLI commands for creation and closure of issues
+ * Improved consistency for user interface commands 
+ * Completion of Gitlab integration with configuration feature
+
 Version 1.0
 -----------
 

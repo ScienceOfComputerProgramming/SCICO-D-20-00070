@@ -9,3 +9,5 @@ python-dateutil==2.7.3
 python-gitlab
 requests
 markdown2
+slugify
+gitdb
