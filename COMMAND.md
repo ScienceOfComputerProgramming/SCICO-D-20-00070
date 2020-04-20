@@ -16,7 +16,9 @@ Creates an empty repository or builds from past commits.
 
 ## Status
 
-`git sciit status [-f | -n] [revision]
+```bash
+git sciit status [-f | -n] [revision]
+```
 
 Shows the user how many issues are open and how many are closed on all branches.
 

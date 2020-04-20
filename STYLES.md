@@ -114,7 +114,7 @@ Supports `.hs` files
 
 Supports ``.md`` files
 
-```markdown
+```
     ---
     @issue Eg: The title of your issue
     @description:

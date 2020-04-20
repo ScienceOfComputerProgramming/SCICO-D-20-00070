@@ -1,10 +1,10 @@
 .. _styles_toplevel:
 
 Supported Files and Styles
-==========================
+--------------------------
 
 Issue Format
-------------
+============
 
 Issues can be created in any source code comment.  For example, in a
 C style language:
@@ -29,7 +29,7 @@ Since issues are embedded in block comments, there are different styles
 of block comments and files that support those types.
 
 C Style Languages
------------------
+=================
 
 Supported file extensions:
 
@@ -61,7 +61,7 @@ Supported file extensions:
        */
 
 HTML Style
-----------
+==========
 
 Supported file extensions:
 
@@ -83,7 +83,7 @@ Supported file extensions:
        -->
 
 Python
-------
+======
 
 Supports ``.py`` files
 
@@ -102,7 +102,7 @@ Supports ``.py`` files
        """
 
 MATLAB
-------
+======
 
 Supports ``.m`` files
 
@@ -121,7 +121,7 @@ Supports ``.m`` files
        %}
 
 Haskell
--------
+=======
 
 Supports ``.hs`` files
 
@@ -141,11 +141,11 @@ Supports ``.hs`` files
 
 
 Markdown
---------
+========
 
 Supports ``.md`` files
 
-.. code:: markdown
+.. code::
 
        ---
            @issue Eg: The title of your issue
@@ -162,7 +162,7 @@ Supports ``.md`` files
 
 
 Others
-------
+======
 
 Supported file extensions:
 

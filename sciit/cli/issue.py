@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 from sciit.cli.color import ColorPrint
 from sciit.cli.functions import page, build_issue_history
 

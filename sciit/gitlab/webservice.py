@@ -112,7 +112,7 @@ def status():
 @app.route("/configure", methods=['POST', 'GET'])
 def configure():
     """
-    Page for showing the content and history of an issue, derived from its repository commits.
+    Page for configuring a Gitlab project issue tracker for integration with Sciit.
     """
 
     gitlab_project_url = request.form.get('gitlab-project-url')

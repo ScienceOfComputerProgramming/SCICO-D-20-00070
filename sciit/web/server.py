@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+
 """
-Functions needed to launch the web server.
+Entry point for the web service view of a Sciit issue tracker.
 """
 
 from flask import Flask, render_template

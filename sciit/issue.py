@@ -34,6 +34,9 @@ def _make_revision_dictionary(commit, changes=None):
 
 
 class IssueSnapshot:
+    """
+    Represents the state of an issue within a commit.
+    """
 
     __slots__ = ('commit', 'data', 'in_branches',
                  'title', 'description', 'assignees', 'due_date', 'labels', 'weight', 'priority', 'title', 'file_path',
@@ -135,6 +138,9 @@ class IssueSnapshot:
 
 
 class Issue:
+    """
+    Represents the previous and current state of an issue, based on a history of issue snapshots.
+    """
 
     def __init__(self, issue_id, all_issues, head_commits):
 

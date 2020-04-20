@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from sciit.gitlab.webservice import launch_standalone
 from sciit.gitlab.functions import reset_gitlab_issues, set_gitlab_api_token
 

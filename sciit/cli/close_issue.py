@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from sciit.cli.functions import do_repository_has_no_commits_warning, build_issue_history, page
 
 from sciit.write_commit import close_issue as _close_issue

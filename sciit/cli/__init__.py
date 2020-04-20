@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 The Sciit command line user interface.  See COMMAND.md for documentation of commands, arguments and options.
 

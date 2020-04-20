@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import slugify
 
 from sciit.cli.functions import do_repository_has_no_commits_warning, build_issue_history, page

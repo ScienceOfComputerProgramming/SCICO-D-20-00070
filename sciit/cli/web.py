@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from sciit.web.server import launch as launch_web_service
 
 
