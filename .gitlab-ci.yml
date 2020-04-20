@@ -1,6 +1,7 @@
 stages:
   - tests
   - docs
+  - deploy
 
 # running all the python tests
 python_tests:
@@ -33,3 +34,13 @@ python_docs:
       - docs/_build/html/*
     expire_in: 1 week
   only: [master, tags]
+
+pages:
+  stage: deploy
+  script:
+    - mv docs/_build/html/ public/
+  artifacts:
+    paths:
+    - public
+  only:
+  - master
