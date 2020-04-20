@@ -7,10 +7,6 @@ Situation before installation:
     $ git sciit
     git: 'sciit' is not a git command. See 'git --help'.
 
-Installation via pip:
-
-    $ pip install sciit
-
 Installation right from the source tree:
 
     $ python setup.py install
