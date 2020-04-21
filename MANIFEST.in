@@ -1,6 +1,6 @@
 include sciit/hooks/*
 include sciit/man/*
-include COMMANDS.md
+include COMMAND.md
 include INSTALL.md
 include README.md
 include STYLES.md
