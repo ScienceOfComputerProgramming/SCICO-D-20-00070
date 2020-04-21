@@ -71,7 +71,11 @@ class _GitCommitToIssue:
 
         if self._target_branch not in head_branch_names:
             self._git_repository.create_head(self._target_branch)
+            self._git_repository.git.execute(
+                ['git', 'branch', '--set-upstream-to=origin/' + self._target_branch, self._target_branch])
+
         self._git_repository.git.checkout(self._target_branch)
+
         self._git_repository.remotes.origin.pull()
 
         return self
