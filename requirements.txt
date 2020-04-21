@@ -1,5 +1,5 @@
 GitPython==2.1.10
-gitdb2==2.0.6 as
+gitdb2==2.0.6
 termcolor==1.1.0
 python-slugify==1.2.5
 colorama==0.4.3
