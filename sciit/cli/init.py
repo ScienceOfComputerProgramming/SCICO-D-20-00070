@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from sciit.cli.color import ColorPrint
+from sciit.cli.color import Styling
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 
 
@@ -9,7 +9,7 @@ def init(args):
         try:
             args.repo.reset()
         except EmptyRepositoryError as error:
-            ColorPrint.bold_red(error)
+            print(Styling.error_warning(error))
             return
 
     if not args.repo.is_init():
@@ -17,24 +17,24 @@ def init(args):
         try:
             print(' ')
             if args.synchronize:
-                print('Synchronising with remotes before issue repository initialisation.')
+                print('Synchronising with remotes before issue repository initialisation')
                 args.repo.synchronize_with_remotes()
-            ColorPrint.bold('Building repository from commits')
+            print('Building repository from commits')
             args.repo.cache_issue_snapshots_from_all_commits()
             print(' ')
         except NoCommitsError as error:
-            ColorPrint.yellow(error)
-            ColorPrint.green('Empty issue repository created')
+            print(Styling.minor_warning(error))
+            print(Styling.minor_warning('Empty issue repository created'))
         except KeyboardInterrupt:
             print('\n')
-            ColorPrint.bold_red('Setup issue repository process interrupted')
-            print('Cleaning up')
+            print(Styling.error_warning('Setup issue repository process interrupted'))
+            print('Cleaning up...', end='')
             args.repo.reset()
-            ColorPrint.yellow('Done.')
-            ColorPrint.bold_yellow(' Re-run command to setup repository')
+            print('done.')
+            print(Styling.minor_warning('Re-run command to setup issue repository'))
             return
     else:
-        ColorPrint.green('Issue repository already setup')
-        print('Use -r or --reset flag to force reset and rebuild of repository')
+        print(Styling.minor_warning('Issue repository already setup'))
+        print(Styling.minor_warning('Use -r or --reset flag to force reset and rebuild of repository'))
 
     return

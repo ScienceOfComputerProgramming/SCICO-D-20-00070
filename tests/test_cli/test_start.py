@@ -10,7 +10,6 @@ from sciit.cli.tracker import tracker
 from sciit.cli import start
 from sciit.errors import RepoObjectDoesNotExistError, NoCommitsError
 from tests.test_cli.external_resources import third_commit
-from sciit.cli.color import ColorPrint, ColorText
 
 
 class TestCLIStartup(TestCase):
@@ -19,8 +18,6 @@ class TestCLIStartup(TestCase):
         self.held, sys.stdout = sys.stdout, StringIO()
 
     def test_main_entrance(self):
-        ColorPrint.bold_yellow('test')
-        ColorText.bold_green('test')
         with \
                 patch.object(start, "main", return_value=42), \
                 patch.object(start, "__name__", "__main__"),\
@@ -63,8 +60,9 @@ class TestCLIStartup(TestCase):
         is_init.return_value=False
         parse_args.return_value = args
 
-        start.main()
-        self.assertIn('Repository not initialized', sys.stdout.getvalue())
+        with self.assertRaises(SystemExit):
+            start.main()
+        self.assertIn('repository not initialized', sys.stdout.getvalue())
 
     @patch('argparse.ArgumentParser.parse_args', new_callable=Mock)
     @patch('sciit.cli.start.IssueRepo')
@@ -98,11 +96,13 @@ class TestCLIStartup(TestCase):
         head_mock.name = 'master'
         repo_mock = Mock()
         repo_mock.heads = [head_mock]
+        repo_mock.is_init = Mock(return_value=False)
         repo_mock.get_all_issues.side_effect = RepoObjectDoesNotExistError('there')
         patch_repo.return_value = repo_mock
 
-        start.main()
-        self.assertIn('Solve error by rebuilding issue repository using', sys.stdout.getvalue())
+        with self.assertRaises(SystemExit):
+            start.main()
+        self.assertIn('Solve this error by (re)building the issue repository using', sys.stdout.getvalue())
 
     @patch('argparse.ArgumentParser.parse_args', new_callable=Mock)
     @patch('sciit.cli.start.IssueRepo')

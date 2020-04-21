@@ -4,7 +4,7 @@ import pydoc
 import pkg_resources
 
 from sciit.errors import RepoObjectDoesNotExistError
-from .color import ColorPrint, ColorText
+from .color import Styling
 
 
 def page(output):
@@ -24,15 +24,15 @@ def read_sciit_version():
 
 def do_repository_is_init_check(issue_repository):
     if not issue_repository.is_init():
-        ColorPrint.bold_red('Error: Issue repository not setup.')
-        print('Solve this error by building issue repository using: git sciit init')
+        print(Styling.error_warning('git sciit error fatal: issue repository not initialized.'))
+        print(Styling.error_warning('Solve this error by (re)building the issue repository using: git sciit init [-r]'))
         exit(127)
 
 
 def do_repository_has_no_commits_warning():
     print(' ')
-    ColorPrint.bold_red('The repository has no commits.')
-    print('Create an initial commit before creating a new issue')
+    print(Styling.error_warning('git sciit error fatal: the repository has no commits.'))
+    print(Styling.error_warning('Create an initial commit before creating a new issue'))
 
 
 def make_status_summary_string(all_issues):
@@ -43,9 +43,9 @@ def make_status_summary_string(all_issues):
     padding = max(len(closed_str), len(open_str))
 
     output = ''
-    output += ColorText.bold_red(f'Open Issues:   ' + str(open_str.rjust(padding)))
+    output += Styling.open_status(f'Open Issues:   ' + str(open_str.rjust(padding)))
     output += '\n'
-    output += ColorText.bold_green(f'Closed Issues: ' + str(closed_str.rjust(padding)))
+    output += Styling.closed_status(f'Closed Issues: ' + str(closed_str.rjust(padding)))
     output += '\n\n'
 
     return output
@@ -58,8 +58,8 @@ def build_status_summary(issue_repository, revision=None):
         return make_status_summary_string(all_issues)
 
     except RepoObjectDoesNotExistError as error:
-        ColorPrint.bold_red(error)
-        print('Solve error by rebuilding issue repository using: git sciit init -r.')
+        print(Styling.error_warning(error))
+        print(Styling.error_warning('Solve this error by (re)building issue repository using: git sciit init [-r].'))
         exit(127)
 
 
@@ -79,14 +79,14 @@ def build_status_table(issue_repository, revision=None):
         issue_title = issue.title if issue.title is not None else ''
 
         if len(issue_title) > title_width - 3:
-            output += ColorText.bold_yellow(issue_title[0:title_width-5] + '...: ')
+            output += Styling.item_title(issue_title[0:title_width - 5] + '...: ')
         else:
-            output += ColorText.bold_yellow((issue_title + ': ').ljust(title_width))
+            output += Styling.item_title((issue_title + ': ').ljust(title_width))
 
         if issue.status[0] == 'Closed':
-            issue_status = ColorText.bold_green(issue.status[0].ljust(6))
+            issue_status = Styling.closed_status(issue.status[0].ljust(6))
         else:
-            issue_status = ColorText.bold_red(issue.status[0].ljust(6))
+            issue_status = Styling.open_status(issue.status[0].ljust(6))
 
         output += issue_status
         output += "\nid: " + issue.issue_id.ljust(title_width + 4) + '\n\n'
@@ -97,7 +97,7 @@ def build_status_table(issue_repository, revision=None):
 
 
 def subheading(header):
-    return ColorText.bold(f'\n{header}')
+    return Styling.item_subtitle(f'\n{header}')
 
 
 def build_issue_history(issue_item, view=None):
@@ -111,11 +111,11 @@ def build_issue_history(issue_item, view=None):
         :(str): string representation of issue history item
     """
 
-    title_str = ColorText.bold_yellow(f"{issue_item.title}")
+    title_str = Styling.item_title(f"{issue_item.title}")
 
     status, sub_status = issue_item.status
     status_str = f'{status} ({sub_status})'
-    status_str_colored = ColorText.green(status_str) if status == 'Closed' else ColorText.red(status_str)
+    status_str_colored = Styling.closed_status(status_str) if status == 'Closed' else Styling.open_status(status_str)
 
     participants = ', '.join(issue_item.participants)
 
@@ -184,7 +184,7 @@ def build_issue_history(issue_item, view=None):
                 output += f' {changed_property}: {new_value}\n'
 
             output += f'\n'
-            output += f'{ColorText.bold_yellow("--> made by: " + revision["author"])} - {revision["date"]}\n'
+            output += f'{"--> made by: " + revision["author"]} - {revision["date"]}\n'
             output += f'    {revision["summary"]}\n'
 
     if view == 'full':
@@ -193,6 +193,6 @@ def build_issue_history(issue_item, view=None):
         for commit in reversed(issue_item.activity):
             output += f'\n{commit["date"]} | {commit["hexsha"]} | {commit["author"]} | {commit["summary"]}'
 
-    output += f'\n{ColorText.yellow("*"*90)}\n'
+    output += f'\n\n{Styling.item_subtitle("*"*90)}\n'
 
     return output

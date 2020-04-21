@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from sciit.cli.color import ColorText
+from sciit.cli.color import Styling
 from sciit.cli.functions import page
 
 
@@ -34,7 +34,7 @@ def build_log_item(commit, issue_snapshot_list):
 
     time_format = '%a %b %d %H:%M:%S %Y %z'
     date = commit.authored_datetime.strftime(time_format)
-    output = ColorText.bold_yellow(f'commit {commit.hexsha}')
+    output = Styling.item_title(f'commit {commit.hexsha}')
     output += f'\nAuthor:\t {commit.author.name} <{commit.author.email}>'
     output += f'\nDate:\t {date}'
     output += f'\nOpen Issue Ids:\n {issue_snapshot_ids_str}'

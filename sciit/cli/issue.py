@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from sciit.cli.color import ColorPrint
+from sciit.cli.color import Styling
 from sciit.cli.functions import page, build_issue_history
 
 
@@ -17,11 +17,11 @@ def issue(args):
         return page_history_issue(history[args.issue_id], view)
     else:
         if history:
-            ColorPrint.bold_red(f'No issues found matching \'{args.issue_id}\' ')
+            print(Styling.error_warning(f'No issues found matching \'{args.issue_id}\' '))
             print('\nHere are issues that are in the tracker:\n')
             print("\n".join(history.keys()))
         else:
-            ColorPrint.bold_red(f'No issues in the repository')
+            print(Styling.error_warning(f'No issues in the repository'))
         return ""
 
 

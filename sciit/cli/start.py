@@ -6,12 +6,12 @@ import colorama
 
 from git import Repo
 from git.exc import InvalidGitRepositoryError, GitCommandError
-from sciit.errors import RepoObjectDoesNotExistError, NoCommitsError
+from sciit.errors import NoCommitsError
 
 from sciit import IssueRepo
-from sciit.cli.functions import read_sciit_version
+from sciit.cli.functions import read_sciit_version, do_repository_has_no_commits_warning, do_repository_is_init_check
 from sciit.cli.close_issue import close_issue
-from sciit.cli.color import ColorPrint, ColorText
+from sciit.cli.color import Styling
 from sciit.cli.gitlab import launch as launch_gitlab_service, reset as reset_gitlab_issues, \
     set_token as set_gitlab_api_token
 from sciit.cli.init import init
@@ -46,7 +46,7 @@ def add_issue_filter_options(parser):
     group.add_argument(
         '-a', '--all', help='show all the issues currently tracked and their status', action='store_true')
     group.add_argument(
-        '-o', '--open', help=ColorText.green('default:') + ' show only issues that are open', action='store_true')
+        '-o', '--open', help='default: show only issues that are open', action='store_true')
     group.add_argument('-c', '--closed', help='show only issues that are closed', action='store_true')
 
 
@@ -59,7 +59,7 @@ def add_view_options(parser):
         'issue revisions, multiple file paths, open in, and found in branches ')
     group.add_argument(
         '-n', '--normal', action='store_true',
-        help=ColorText.green('default:') + ' view tracker information normally needed.')
+        help='default: view tracker information normally needed.')
 
 
 def add_gitlab_reset_parser(gitlab_subparsers):
@@ -200,27 +200,20 @@ def main():
             if args.func == init:
                 args.func(args)
             else:
-                if not args.repo.is_init():
-                    ColorPrint.red('Repository not initialized')
-                    ColorPrint.bold_red('Run: git sciit init')
-                else:
-                    args.func(args)
+                do_repository_is_init_check(issue_repository)
+                args.func(args)
 
             # Forces proper clean up of git repository resources on Windows.
             # See https://github.com/gitpython-developers/GitPython/issues/508
             git_repository.__del__()
 
     except InvalidGitRepositoryError:
-        ColorPrint.bold('fatal: not a git repository (or any parent up to mount point /)')
-        ColorPrint.bold('Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).')
-    except NoCommitsError as error:
-        ColorPrint.bold_red(f'git sciit error fatal: {str(error)}')
+        print(Styling.error_warning('fatal: not a git repository (or any parent up to mount point /)'))
+        print(Styling.error_warning('Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).'))
+    except NoCommitsError:
+        do_repository_has_no_commits_warning()
     except GitCommandError as gce:
-        ColorPrint.bold_red(f'git sciit error fatal: bad git command executed within sciit {str(gce.command)}')
-
-    except RepoObjectDoesNotExistError as error:
-        ColorPrint.bold_red(error)
-        print('Solve error by rebuilding issue repository using: git sciit init -r')
+        print(Styling.error_warning(f'git sciit error fatal: bad git command executed within sciit {str(gce.command)}'))
 
 
 def start():

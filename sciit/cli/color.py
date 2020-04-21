@@ -3,69 +3,56 @@
 from termcolor import colored
 
 
-class ColorText:
+class Styling:
+
+    white_background = False
+
     """
-    A simple class wrapper that helps to add color to strings
+    Adds colour and highlights to .
     """
+    @classmethod
+    def error_warning(cls, string):
+        if Styling.white_background:
+            return colored(string, 'white', on_color='on_red', attrs=['bold'])
+        else:
+            return colored(string, 'red', attrs=['bold'])
 
     @classmethod
-    def red(cls, string):
-        return colored(string, 'red')
+    def minor_warning(cls, string):
+        if Styling.white_background:
+            return colored(string, 'blue', attrs=['bold', 'dark'])
+        else:
+            return colored(string, 'yellow', attrs=['bold'])
 
     @classmethod
-    def green(cls, string):
-        return colored(string, 'green')
+    def closed_status(cls, string):
+        if Styling.white_background:
+            return colored(string, 'white', on_color='on_red', attrs=['bold'])
+        else:
+            return colored(string, 'red', attrs=['bold'])
 
     @classmethod
-    def yellow(cls, string):
-        return colored(string, 'yellow')
+    def open_status(cls, string):
+        if Styling.white_background:
+            return colored(string, 'white', on_color='on_green', attrs=['bold'])
+        else:
+            return colored(string, 'green', attrs=['bold'])
 
     @classmethod
-    def bold(cls, string):
-        return colored(string, attrs=['bold'])
+    def item_title(cls, string):
+        if Styling.white_background:
+            return colored(string, 'blue', attrs=['bold', 'dark', 'underline'])
+        else:
+            return colored(string, 'yellow', attrs=['bold', 'underline'])
 
     @classmethod
-    def bold_red(cls, string):
-        return colored(string, 'red', attrs=['bold'])
-
-    @classmethod
-    def bold_green(cls, string):
-        return colored(string, 'green', attrs=['bold'])
+    def item_subtitle(cls, string):
+        if Styling.white_background:
+            return colored(string, 'blue', attrs=['bold', 'dark'])
+        else:
+            return colored(string, 'yellow', attrs=['bold'])
 
     @classmethod
     def bold_yellow(cls, string):
-        return colored(string, 'yellow', attrs=['bold'])
+        return colored(string, 'blue', attrs=['bold'])
 
-
-class ColorPrint:
-    """
-    A simple class wrapper that helps to print messages to the shell terminals
-    """
-
-    @classmethod
-    def red(cls, string):
-        print(colored(string, 'red'))
-
-    @classmethod
-    def green(cls, string):
-        print(colored(string, 'green'))
-
-    @classmethod
-    def yellow(cls, string):
-        print(colored(string, 'yellow'))
-
-    @classmethod
-    def bold(cls, string):
-        print(colored(string, attrs=['bold']))
-
-    @classmethod
-    def bold_red(cls, string):
-        print(colored(string, 'red', attrs=['bold']))
-
-    @classmethod
-    def bold_green(cls, string):
-        print(colored(string, 'green', attrs=['bold']))
-
-    @classmethod
-    def bold_yellow(cls, string):
-        print(colored(string, 'yellow', attrs=['bold']))

@@ -5,7 +5,7 @@ import slugify
 
 from sciit.functions import get_sciit_ignore_path_spec
 from sciit.read_commit import find_issue_snapshots_in_commit_paths_that_changed
-from sciit.cli.color import ColorPrint
+from sciit.cli.color import Styling
 
 from sciit.regex import get_file_object_pattern, IssuePropertyRegularExpressions, add_comment_chars, \
     strip_comment_chars, get_issue_property_regex
@@ -34,12 +34,16 @@ def do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit
             {issue_id: file_paths for issue_id, file_paths in file_paths_by_issue_id.items() if len(file_paths) > 1}
 
         for (issue_id, file_paths) in duplicates.items():
-            ColorPrint.bold_red(f'Duplicate Issue: {issue_id}')
+            print(Styling.error_warning(f'Duplicate Issue: {issue_id}'))
             for file_found in file_paths:
-                ColorPrint.red(f'\tfound in {file_found}')
+                print(Styling.error_warning(f'\tfound in {file_found}'))
 
         git_repository.git.execute(['git', 'reset', 'HEAD~1', '--soft'])
-        ColorPrint.bold_red(f'HEAD @: {git_repository.head.commit.summary} ~ {git_repository.head.commit.hexsha[:7]}')
+
+        partial_hexsha = git_repository.head.commit.hexsha[:7]
+        summary = git_repository.head.commit.summary
+
+        print(Styling.error_warning(f'HEAD @: {summary} ~ {partial_hexsha}'))
         exit()
 
 

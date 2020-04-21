@@ -2,7 +2,7 @@
 
 import datetime
 from sciit.cli import build_issue_history, page, ProgressTracker
-from sciit.cli.color import ColorPrint
+from sciit.cli.color import Styling
 
 
 def tracker(args):
@@ -24,14 +24,13 @@ def tracker(args):
         elif args.closed:
             return page_history_issues(history, view, lambda issue: issue.status[0] == 'Closed')
     else:
-        ColorPrint.bold_green('No issues found')
+        print(Styling.error_warning('No issues found'))
 
 
 def page_history_issues(history, view=None, issue_filter=None):
 
     filtered_history = list(filter(issue_filter, history.values()))
     filtered_history.sort(key=lambda issue: issue.last_authored_date, reverse=True)
-    start = datetime.datetime.now()
     num_issues = len(filtered_history)
     current_issue = 0
     output = ''
