@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from sciit.cli.color import Styling
+from sciit.cli.styling import Styling
 from sciit.cli.functions import page
 
 

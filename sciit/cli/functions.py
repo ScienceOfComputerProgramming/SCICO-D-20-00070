@@ -4,7 +4,7 @@ import pydoc
 import pkg_resources
 
 from sciit.errors import RepoObjectDoesNotExistError
-from .color import Styling
+from .styling import Styling
 
 
 def page(output):

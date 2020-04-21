@@ -5,7 +5,7 @@ import slugify
 
 from sciit.functions import get_sciit_ignore_path_spec
 from sciit.read_commit import find_issue_snapshots_in_commit_paths_that_changed
-from sciit.cli.color import Styling
+from sciit.cli.styling import Styling
 
 from sciit.regex import get_file_object_pattern, IssuePropertyRegularExpressions, add_comment_chars, \
     strip_comment_chars, get_issue_property_regex

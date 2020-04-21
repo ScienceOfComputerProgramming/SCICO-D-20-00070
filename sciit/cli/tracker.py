@@ -2,7 +2,7 @@
 
 import datetime
 from sciit.cli import build_issue_history, page, ProgressTracker
-from sciit.cli.color import Styling
+from sciit.cli.styling import Styling
 
 
 def tracker(args):

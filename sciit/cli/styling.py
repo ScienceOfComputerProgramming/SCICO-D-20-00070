@@ -4,12 +4,12 @@ from termcolor import colored
 
 
 class Styling:
+    """
+    Adds colour and highlights to CLI.
+    """
 
     white_background = False
 
-    """
-    Adds colour and highlights to .
-    """
     @classmethod
     def error_warning(cls, string):
         if Styling.white_background:

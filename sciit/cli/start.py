@@ -11,7 +11,7 @@ from sciit.errors import NoCommitsError
 from sciit import IssueRepo
 from sciit.cli.functions import read_sciit_version, do_repository_has_no_commits_warning, do_repository_is_init_check
 from sciit.cli.close_issue import close_issue
-from sciit.cli.color import Styling
+from sciit.cli.styling import Styling
 from sciit.cli.gitlab import launch as launch_gitlab_service, reset as reset_gitlab_issues, \
     set_token as set_gitlab_api_token
 from sciit.cli.init import init
