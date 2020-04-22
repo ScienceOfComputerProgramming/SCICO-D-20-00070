@@ -148,6 +148,38 @@ git checkout master
 git merge photo-upload-on-claim
 python ../runner.py tracker
 
+# Make progress on first sub-issue
+
+git checkout photo-upload-on-claim-uat
+
+cat > features/claim.feature <<-EOF
+#***
+# @issue photo-upload-on-claim-uat
+# @title Photo Upload on Claim UAT
+# @description
+#  Extend existing claim user stories
+#   with scenarios that include photo
+#   upload.
+#***
+
+Feature: Photo upload for claims
+Scenario: Small JPEG Upload with Description
+ Given a claim
+ And a small JPEG 
+ And a description
+ When I select the photograph
+ And I enter a description
+ And I click submit
+ Then the photograph is stored
+ And a database entry is created.
+
+
+EOF
+
+git add features/claim.feature
+git commit -m "Makes progress on UAT Scenario Photo upload for claims"
+python ../runner.py issue photo-upload-on-claim-uat
+
 
 # Close first sub-issue
 
