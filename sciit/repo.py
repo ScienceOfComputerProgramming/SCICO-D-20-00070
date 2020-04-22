@@ -92,18 +92,20 @@ class IssueRepo(object):
 
         try:
             os.chdir(self.git_repository.working_dir)
-            for branch in remote_branch_names:
-                if branch not in head_branch_names:
-                    self.git_repository.git.execute(['git', 'branch', branch])
-                    self.git_repository.git.execute(['git', 'branch', '--set-upstream-to=origin/'+branch, branch])
 
             heads_progress_tracker = ProgressTracker(len(self.git_repository.heads), object_type_name='heads')
-            for head in self.git_repository.heads:
-                self.git_repository.git.checkout(head.name)
+
+            for branch_name in remote_branch_names:
+                if branch_name not in head_branch_names:
+                    self.git_repository.git.execute(['git', 'branch', branch_name])
+                    self.git_repository.git.execute(
+                        ['git', 'branch', '--set-upstream-to=origin/'+branch_name, branch_name])
+
+                self.git_repository.git.checkout(branch_name)
                 try:
                     self.git_repository.remotes.origin.pull()
                 except GitCommandError:
-                    print(Styling.minor_warning("Warning: Couldn't pull [%s]" % head.name))
+                    print(Styling.minor_warning("Warning: Couldn't pull [%s]" % branch_name))
 
                 if self.cli:
                     heads_progress_tracker.processed_object()
