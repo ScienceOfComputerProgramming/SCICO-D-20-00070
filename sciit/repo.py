@@ -12,10 +12,10 @@ from shutil import copyfile
 import json
 import sqlite3
 
-from git import Commit
+from git import Commit, GitCommandError
 from gitdb.util import hex_to_bin
 
-from sciit.cli import ProgressTracker
+from sciit.cli import ProgressTracker, Styling
 from sciit.read_commit import find_issue_snapshots_in_commit_paths_that_changed
 from sciit.errors import EmptyRepositoryError, NoCommitsError
 from sciit.functions import write_last_issue_commit_sha, get_last_issue_commit_sha, get_sciit_ignore_path_spec
@@ -100,7 +100,11 @@ class IssueRepo(object):
             heads_progress_tracker = ProgressTracker(len(self.git_repository.heads), object_type_name='heads')
             for head in self.git_repository.heads:
                 self.git_repository.git.checkout(head.name)
-                self.git_repository.remotes.origin.pull()
+                try:
+                    self.git_repository.remotes.origin.pull()
+                except GitCommandError:
+                    print(Styling.minor_warning("Warning: Couldn't pull [%s]" % head.name))
+
                 if self.cli:
                     heads_progress_tracker.processed_object()
 
