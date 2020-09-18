@@ -37,11 +37,28 @@ An example of a recommended style for Java:
     */
 ```
 
-Notice that every issue must be tagged with an `@issue` followed by a *unique* (within a change set) identifier.
+The following user specified fields are currently supported for Sciit issues:
+
+ * **Issue slug (required).**  The unique ID of the issue in the repository. 
+ * **Title.**
+ * **Description.**
+ * **Assignees.** A comma separated list of usernames.
+ * **Due date.**
+ * **Labels.** (comma separated list)
+ * **Weight.**
+ * **Priority.**
+ * **Blockers.** A comma separated list of issue slugs.
+ 
+Every issue must be tagged with an `@issue` followed by a *unique* (within a change set) identifier.  Sciit will prevent
+a single commit  containing   more than one occurence of an issue slug.
+
+Title, description, assignees, due date, labels, weight and priority are synchronised with Gitlab.
 
 The command `git sciit new` can be used to generate a new issue in a markdown file and in a branch with a name that matches that of the issue, following a proposed Sciit workflow extension to git-flow.
 
 Since issues are embedded in block comments, there are different styles of block comments and files that support those types.
+
+There is a demonstration of the command line interface in a bash script [here](demonstration.sh)
 
 Installation instructions can be found [here](INSTALL.md)
 
