@@ -33,3 +33,5 @@ sciit/web/static/jquery*
 .web_resource_cache
 
 sciit/gitlab/static/*
+
+venv-x
