@@ -139,8 +139,6 @@ class IssueRepo(object):
 
     def cache_issue_snapshots_from_all_commits(self):
 
-        # self._locally_track_remote_branches()
-
         if not self.git_repository.heads:
             raise NoCommitsError
 
