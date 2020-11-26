@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import platform
 import re
 import subprocess
-import shutil
 from slugify import slugify
 
 from sciit.regex import IssuePropertyRegularExpressions, get_file_object_pattern, strip_comment_chars
@@ -158,8 +158,8 @@ def _get_commit_branches_from_bash():
         b"""
         declare -A COMMIT_BRANCHES
 
-        BRANCHES=(`git branch |tr '*' ' ' ` )
-
+        BRANCHES=(`git branch | tr '*' ' ' ` )
+        
         for BRANCH in ${BRANCHES[@]}
         do
             COMMITS=( `git log --format="%H" $BRANCH` )
@@ -182,6 +182,7 @@ def _get_commit_branches_from_bash():
 
     sub_process = subprocess.Popen(["bash"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     process_out, _ = sub_process.communicate(bash_script)
+
     return process_out
 
 
@@ -224,10 +225,12 @@ def _init_commit_branch_cache(git_working_dir):
 
     os.chdir(git_working_dir)
 
-    if shutil.which('bash') is not None:
-        sub_process_out = _get_commit_branches_from_bash()
-    else:
+    _system = platform.system()
+
+    if _system == 'Windows':
         sub_process_out = _get_commit_branches_from_powershell()
+    else:
+        sub_process_out = _get_commit_branches_from_bash()
 
     os.chdir(current_wd)
 
