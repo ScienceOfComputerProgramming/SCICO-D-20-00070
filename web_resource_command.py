@@ -2,7 +2,6 @@
 
 
 import os
-import requests
 
 from os import path
 from setuptools.command.build_py import build_py
@@ -48,6 +47,7 @@ def retrieve_resource_to_local_cache(resource_url):
     cached_web_resource_file_path = web_resource_cache_dir + path.sep + os.path.basename(parsed_resource_url.path)
 
     if not path.exists(cached_web_resource_file_path):
+        import requests
         response = requests.get(resource_url)
         with open(cached_web_resource_file_path, 'wb') as cached_web_resource_file_handle:
             cached_web_resource_file_handle.write(response.content)
