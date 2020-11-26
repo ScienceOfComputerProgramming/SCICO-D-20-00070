@@ -93,7 +93,7 @@ class IssueRepo(object):
         try:
             os.chdir(self.git_repository.working_dir)
 
-            heads_progress_tracker = ProgressTracker(len(self.git_repository.heads), object_type_name='heads')
+            heads_progress_tracker = ProgressTracker(len(remote_branch_names), object_type_name='remotes')
 
             for branch_name in remote_branch_names:
                 if branch_name not in head_branch_names:
