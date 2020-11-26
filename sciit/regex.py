@@ -130,7 +130,7 @@ def get_file_object_pattern(path, mime_type=None):
 
     _mime_type = mimetypes.guess_type(path) if mime_type is None else mime_type
 
-    if ext is not '':
+    if ext != '':
         if ext in C_STYLE_FILE_EXTENSIONS:
             pattern = C_STYLE
         elif ext in HTML_FILE_EXTENSIONS:
