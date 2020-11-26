@@ -13,7 +13,7 @@ Installation right from the source tree:
 
     $ python setup.py install
 
-Now, the `git sciit` command is available::
+Now, the `git sciit` command is available:
 
     $ git sciit
 
