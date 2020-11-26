@@ -97,9 +97,8 @@ class IssueRepo(object):
 
             for branch_name in remote_branch_names:
                 if branch_name not in head_branch_names:
-                    self.git_repository.git.execute(['git', 'branch', branch_name])
-                    self.git_repository.git.execute(
-                        ['git', 'branch', '--set-upstream-to=origin/'+branch_name, branch_name])
+                    self.git_repository.git.execute(['git', 'checkout', '--track' 'origin/' + branch_name])
+                    self.git_repository.git.execute(['git', 'checkout', 'master'])
 
                 self.git_repository.git.checkout(branch_name)
                 try:
