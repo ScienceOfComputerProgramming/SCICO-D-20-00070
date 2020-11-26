@@ -1,6 +1,6 @@
 # Installation
 
-Sciit requires Python 3.7 or later to build and install successfully.
+Sciit requires Python 3.7 or later and Git 2.26 or later to build, install and run successfully.
 
 ## Command Line
 
