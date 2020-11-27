@@ -201,13 +201,16 @@ class IssueRepo(object):
         return parent_commit_snapshots
 
     def get_all_issues(self, rev=None):
-        return self.build_history(rev)
+        return self._build_history(rev)
 
     def get_open_issues(self, rev=None):
-        history = self.build_history(rev)
+        history = self._build_history(rev)
         return {issue_id: issue for issue_id, issue in history.items() if issue.status[0] == 'Open'}
 
-    def build_history(self, revision=None, issue_ids=None):
+    def get_issue(self, revision, issue_id):
+        return self._build_history(revision, [issue_id]).get(issue_id, None)
+
+    def _build_history(self, revision=None, issue_ids=None):
 
         if not self.git_repository.heads:
             raise NoCommitsError
@@ -222,7 +225,7 @@ class IssueRepo(object):
             issue_id = issue_snapshot.issue_id
             if issue_ids is None or issue_id in issue_ids:
                 if issue_id not in history:
-                    history[issue_id] = Issue(issue_id, history, head_commits)
+                    history[issue_id] = Issue(issue_id, self, head_commits)
                 history[issue_id].add_snapshot(issue_snapshot)
 
         return history

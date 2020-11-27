@@ -34,7 +34,7 @@ class TestIssueCommand(TestCase):
         self.args.normal = self.args.detailed = self.args.full = False
         self.args.issue_id = ''
 
-        self.args.repo.build_history.return_value = {}
+        self.args.repo._build_history.return_value = {}
 
         issue(self.args)
         self.assertIn('No issues in the repository', sys.stdout.getvalue())
@@ -47,7 +47,7 @@ class TestIssueCommand(TestCase):
         self.args.normal = True
         self.args.detailed = self.args.full = False
         self.args.issue_id = '12'
-        self.args.repo.build_history.return_value = {'12': issues['12']}
+        self.args.repo._build_history.return_value = {'12': issues['12']}
 
         output = issue(self.args)
         output = ansi_escape.sub('', output)
@@ -65,7 +65,7 @@ class TestIssueCommand(TestCase):
         self.args.full = True
         self.args.normal = self.args.detailed = False
         self.args.issue_id = '12'
-        self.args.repo.build_history.return_value = {'12': issues['12']}
+        self.args.repo._build_history.return_value = {'12': issues['12']}
 
         output = issue(self.args)
 
