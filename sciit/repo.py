@@ -295,7 +295,7 @@ class IssueRepo(object):
         result = list()
 
         sql_statement_template = self._make_query_issue_snapshot_sql_statement(commit_hexshas, issue_ids)
-        print(sql_statement_template)
+
         data_values = list()
         if commit_hexshas:
             data_values.extend(commit_hexshas)
