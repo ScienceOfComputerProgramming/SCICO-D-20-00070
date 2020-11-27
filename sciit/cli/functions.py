@@ -81,7 +81,7 @@ def build_status_table(issue_repository, revision=None):
         if len(issue_title) > title_width - 3:
             output += Styling.item_title(issue_title[0:title_width - 5] + '...: ')
         else:
-            output += Styling.item_title((issue_title + ': ').ljust(title_width))
+            output += (Styling.item_title(issue_title)  + ': ').ljust(title_width)
 
         if issue.status[0] == 'Closed':
             issue_status = Styling.closed_status(issue.status[0].ljust(6))
