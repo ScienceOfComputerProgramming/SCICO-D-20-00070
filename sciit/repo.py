@@ -286,7 +286,7 @@ class IssueRepo(object):
                 question_marks = ','.join(['?'] * len(values))
                 return f'{column} IN ({question_marks})'
 
-        commit_hexsha_condition = _make_set_membership_condition(commit_hexshas, 'commit_hexsha')
+        commit_hexsha_condition = _make_set_membership_condition(commit_hexshas, 'commit_sha')
         issue_ids_condition = _make_set_membership_condition(issue_ids, 'issue_id')
 
         return f'SELECT * FROM IssueSnapshot WHERE {commit_hexsha_condition} AND {issue_ids_condition}'
