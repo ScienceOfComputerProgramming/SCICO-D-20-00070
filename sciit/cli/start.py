@@ -18,7 +18,7 @@ from sciit.cli.functions import read_sciit_version, do_repository_has_no_commits
     do_invalid_git_repository_warning_and_exit
 
 from sciit.cli.close_issue import close_issue
-from sciit.cli.gitlab import launch as launch_gitlab_service, reset as reset_gitlab_issues, \
+from sciit.cli.gitlab_webservice import launch as launch_gitlab_service, reset as reset_gitlab_issues, \
     set_token as set_gitlab_api_token
 from sciit.cli.init import init
 from sciit.cli.issue import issue
