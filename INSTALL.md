@@ -35,7 +35,7 @@ Once in the container, the user is in the sciit directory by default.  The demon
 bash demonstration.sh
 ```
 
-The demonstration is largely non-interactive, although may need to close the nano editor and paging screens as they are 
+The demonstration is largely non-interactive, although the user may need to close the nano editor and paging screens as they are 
 launched.
 
 Git and sciit sub-commands are also available as normal for cloning existing repositories and installing sciit.  See 
