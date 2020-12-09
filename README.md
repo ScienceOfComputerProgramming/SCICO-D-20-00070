@@ -1,5 +1,6 @@
 # Sciit: Source Control Integrated Issue Tracker
 
+
 ## Description
 
 Current state of the art software project issue tracking tools, such as GitHub, GitLab, JIRA and Trac store issues separately from the version control repository that contains the project's source code. This creates _friction_, because software developers must remember to keep both the issue tracker and the version control repository up to date as progress is made on completing tasks.
@@ -13,6 +14,38 @@ Sciit solves this problem by providing an interface for managing issues that are
 - Comments on issues can be automatically recovered from the version control log.
 
 SCIIT is equipped with a command line user interface for managing the SCIIT installation process for a git repository.  It also has commands for reviewing issues and for launching a demonstrator web based user interface.
+
+
+## Dockerfile and Demonstration
+
+A Dockerfile is provided that can be used to generate a docker image and container.  The container can then be used
+to execute a demonstration of the command line user interface for Sciit.
+
+Requirements: Tested with Docker version 19.03.13
+
+To build the docker image:
+
+```bash
+git clone https://gitlab.com/sciit/sciit
+cd sciit
+docker build -t sciit-image .
+```
+
+To create a container in Docker and run a bash shell
+
+```bash
+docker run -it --name sciit-container sciit-image bash
+```
+
+On windows, the docker command may need to be prefixed with `winpty`.
+
+Once in the container, the user is in the sciit directory by default.  The demonstration can be run:
+
+```bash
+bash demonstration.sh
+```
+
+Git and sciit sub-commands are also available as normal for cloning existing repositories and installing sciit.
 
 
 ## Basic Usage

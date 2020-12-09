@@ -1,3 +1,4 @@
+argcomplete==1.12.2
 GitPython==2.1.10
 gitdb2==2.0.6
 termcolor==1.1.0
@@ -6,7 +7,7 @@ colorama==0.4.3
 pathspec==0.5.6
 Flask==1.0.2
 python-dateutil==2.7.3
-python-gitlab
-requests
-markdown2
-slugify
+python-gitlab==2.5.0
+requests==2.25.0
+markdown2==2.3.10
+slugify==0.0.1
