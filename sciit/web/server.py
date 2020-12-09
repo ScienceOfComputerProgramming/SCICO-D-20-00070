@@ -21,7 +21,7 @@ def index():
     """
     The homepage of the web interface that shows all the open and closed issues stored in the tracker.
     """
-    history = global_issue_repository.build_history()
+    history = global_issue_repository.get_all_issues()
     data = dict()
 
     data['Num Open Issues'] = sum(map(lambda issue: 1 if issue.status[0] == 'Open' else 0, history.values()))
@@ -35,7 +35,7 @@ def issue(issue_id):
     """
     Page for showing the content and history of an issue, derived from its repository commits.
     """
-    history = global_issue_repository.build_history()
+    history = global_issue_repository.get_all_issues()
     return render_template('issue.html', issue=history[issue_id])
 
 
@@ -49,5 +49,5 @@ def launch(issue_repository=None):
     else:
         global_issue_repository = issue_repository
 
-    app.run(debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=True)
 

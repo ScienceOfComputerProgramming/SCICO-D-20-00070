@@ -212,8 +212,8 @@ def main():
 
         if not hasattr(args, 'func'):
             parser.print_help()
-        elif args.func in {set_gitlab_api_token, reset_gitlab_issues}:
-             args.func(args)
+        elif args.func in {set_gitlab_api_token, reset_gitlab_issues, launch_gitlab_service}:
+            args.func(args)
         elif git_repository is None:
             do_invalid_git_repository_warning()
         else:

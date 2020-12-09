@@ -48,15 +48,15 @@ An example of a recommended style for Java:
 
 The following user specified fields are currently supported for Sciit issues:
 
-- **Issue slug (required).**  The unique ID of the issue in the repository. 
-- **Title.**
-- **Description.**
-- **Assignees.** A comma separated list of usernames.
-- **Due date.**
-- **Labels.** (comma separated list)
-- **Weight.**
-- **Priority.**
-- **Blockers.** A comma separated list of issue slugs.
+- **@issue** (required)  The unique ID of the issue in the repository. 
+- **@title** A single line short description of the issue.
+- **@description** A longer multi-line issue description summarising work to be done.
+- **@assignees** A comma separated list of usernames.
+- **@due_date** The date the issue is scheduled for completion.
+- **@labels** A comma separated list of label strings.
+- **@weight** An estimate of the cost of the work to be done.
+- **@priority** The importance of the issue.
+- **@blockers** A comma separated list of issue ids.
  
 Every issue must be tagged with an `@issue` followed by a *unique* (within a change set) identifier.  Sciit will prevent
 a single commit  containing   more than one occurence of an issue slug.

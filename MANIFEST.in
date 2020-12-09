@@ -6,3 +6,4 @@ include README.md
 include STYLES.md
 recursive-include sciit/web/templates *
 recursive-include sciit/web/static *
+recursive-include sciit/gitlab/templates *
