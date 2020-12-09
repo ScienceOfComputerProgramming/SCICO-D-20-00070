@@ -3,7 +3,7 @@
 
 from git import Repo
 from sciit import IssueRepo
-from sciit.cli.functions import do_repository_is_init_check, build_status_summary
+from sciit.cli.functions import do_repository_is_init_check_and_exit_if_not, build_status_summary
 
 from sciit.write_commit import do_commit_contains_duplicate_issue_file_paths_check
 
@@ -15,7 +15,7 @@ git_repository = Repo(search_parent_directories=True)
 issue_repository = IssueRepo(git_repository)
 issue_repository.cli = True
 
-do_repository_is_init_check(issue_repository)
+do_repository_is_init_check_and_exit_if_not(issue_repository)
 
 commit = issue_repository.git_repository.head.commit
 do_commit_contains_duplicate_issue_file_paths_check(issue_repository, commit)
