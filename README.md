@@ -1,16 +1,24 @@
 # Sciit: Source Control Integrated Issue Tracker
 
 
+Sciit is released under the [MIT Licence](sciit/man/LICENSE).
+
 ## Description
 
-Current state of the art software project issue tracking tools, such as GitHub, GitLab, JIRA and Trac store issues separately from the version control repository that contains the project's source code. This creates _friction_, because software developers must remember to keep both the issue tracker and the version control repository up to date as progress is made on completing tasks.
+Current state of the art software project issue tracking tools, such as GitHub, GitLab, JIRA and Trac store issues 
+separately from the version control repository that contains the project's source code. This creates *friction*, 
+because software developers must remember to keep both the issue tracker and the version control repository up to date 
+as progress is made on completing tasks.
 
-Sciit solves this problem by providing an interface for managing issues that are stored _within_ the source code maintained in the version repository. This has a number of advantages for eliminating friction:
+Sciit solves this problem by providing an interface for managing issues that are stored *within* the source code 
+maintained in the version repository. This has a number of advantages for eliminating friction:
 
-- The package that an issue refers to can be identified implicitly, by storing the issue in the most relevant sub-directory of the code base.
-- The assignee and other contributors to an issue and its resolution can be identified based on who is making commits to a
-  repository.
-- Implicit links can be identified between source code affected by an issue, if both the issue and the source code are altered in a single change set.
+- The package that an issue refers to can be identified implicitly, by storing the issue in the most relevant 
+  sub-directory of the code base.
+- The assignee and other contributors to an issue and its resolution can be identified based on who is making commits to
+  a repository.
+- Implicit links can be identified between source code affected by an issue, if both the issue and the source code are 
+  altered in a single change set.
 - Comments on issues can be automatically recovered from the version control log.
 
 SCIIT is equipped with a command line user interface for managing the SCIIT installation process for a git repository.  It also has commands for reviewing issues and for launching a demonstrator web based user interface.
