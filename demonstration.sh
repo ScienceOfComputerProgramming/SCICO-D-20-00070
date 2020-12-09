@@ -1,6 +1,6 @@
 # Setup
 
-SCIIT=git sciit
+SCIIT='git sciit'
 
 rm -rf demo
 mkdir demo

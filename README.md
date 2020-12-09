@@ -40,47 +40,52 @@ An example of a recommended style for Java:
 
 The following user specified fields are currently supported for Sciit issues:
 
- * **Issue slug (required).**  The unique ID of the issue in the repository. 
- * **Title.**
- * **Description.**
- * **Assignees.** A comma separated list of usernames.
- * **Due date.**
- * **Labels.** (comma separated list)
- * **Weight.**
- * **Priority.**
- * **Blockers.** A comma separated list of issue slugs.
+- **Issue slug (required).**  The unique ID of the issue in the repository. 
+- **Title.**
+- **Description.**
+- **Assignees.** A comma separated list of usernames.
+- **Due date.**
+- **Labels.** (comma separated list)
+- **Weight.**
+- **Priority.**
+- **Blockers.** A comma separated list of issue slugs.
  
 Every issue must be tagged with an `@issue` followed by a *unique* (within a change set) identifier.  Sciit will prevent
 a single commit  containing   more than one occurence of an issue slug.
 
 Title, description, assignees, due date, labels, weight and priority are synchronised with Gitlab.
 
-The command `git sciit new` can be used to generate a new issue in a markdown file and in a branch with a name that matches that of the issue, following a proposed Sciit workflow extension to git-flow.
+The command `git sciit new` can be used to generate a new issue in a markdown file and in a branch with a name that 
+matches that of the issue, following a proposed Sciit workflow extension to git-flow.
 
-Since issues are embedded in block comments, there are different styles of block comments and files that support those types.
+Since issues are embedded in block comments, there are different styles of block comments and files that support those 
+types.
 
-There is a demonstration of the command line interface in a bash script [here](demonstration.sh)
+There is a demonstration of the command line interface in a bash script [here](demonstration.sh).
 
-Installation instructions can be found [here](INSTALL.md)
+Installation instructions can be found [here](INSTALL.md).
 
-More styles and supported files can be found [here](STYLES.md)
+A Dockerfile is included in the repository for exploration of the command line interface.  See 
+[INSTALL.md](INSTALL.md) for usage instructions.
 
-Command line interaction instructions can be found [here](COMMAND.md)
+More styles and supported files can be found [here](STYLES.md).
+
+Command line interaction instructions can be found [here](COMMAND.md).
 
 ## Other Distributed Issue Trackers
 
 There are a number of other tools that embed issue tracking into source control
 management. Many thanks to Jan De Muijnck-Hughes and the anonymous ICSME 2019 reviewer who added to this list.
 
- * Bug: https://github.com/driusan/bug
- * Bugs Everywhere: http://www.bugseverywhere.org/
- * Fossil: http://www.fossil-scm.org/
- * Git-bug: https://github.com/MichaelMure/git-bug
- * Git-dit: https://github.com/neithernut/git-dit
- * Git Issue: https://github.com/dspinellis/git-issue
- * Issue: https://github.com/marekjm/issue
- * Mercurial's B Extension: https://www.mercurial-scm.org/wiki/bExtension
- * Ticgit: https://github.com/jeffWelling/ticgit
- * Veracity: http://veracity-scm.com/compare/
+- Bug: https://github.com/driusan/bug
+- Bugs Everywhere: http://www.bugseverywhere.org/
+- Fossil: http://www.fossil-scm.org/
+- Git-bug: https://github.com/MichaelMure/git-bug
+- Git-dit: https://github.com/neithernut/git-dit
+- Git Issue: https://github.com/dspinellis/git-issue
+- Issue: https://github.com/marekjm/issue
+- Mercurial's B Extension: https://www.mercurial-scm.org/wiki/bExtension
+- Ticgit: https://github.com/jeffWelling/ticgit
+- Veracity: http://veracity-scm.com/compare/
    
 
