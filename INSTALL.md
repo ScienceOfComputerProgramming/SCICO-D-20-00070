@@ -51,6 +51,7 @@ Situation before installation:
 
 Installation right from the source tree:
 
+    $ python setup.py install_wr
     $ python setup.py install
 
 Now, the `git sciit` command is available:
