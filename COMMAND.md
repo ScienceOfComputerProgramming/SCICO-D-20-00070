@@ -1,12 +1,12 @@
 # Command Line Usage
 
 ```bash
-git-scitt | git sciit | git-sciit.exe <command> <options>
+git-sciit | git sciit | git-sciit.exe <command> <options>
 ```
 
 ## Common options
 
-`[--help | -h]`  show the help message and exit
+`[--help | -h]` show the help message and exit
 
 `[revision]` the revision path to use to generate the issue log e.g. 'all' for all commits or 'master' for all commit on
 master branch or 'HEAD~2' from the last two commits on current branch. See `git rev-list` options for more path options
@@ -16,6 +16,12 @@ open in, and found in branches
 
 `[--normal | -n]` default: view summary issue information
 
+`[--closed | -c]` show only issues that are closed
+
+`[--all | -a]` show all the issues currently tracked and their status
+
+`[--open | -o]` default: show only issues that are open
+
 
 ## Init
 
@@ -23,7 +29,7 @@ open in, and found in branches
 git sciit init [-r | -s]
 ```
 
-Creates an empty repository or builds from past commits.
+creates an empty repository or builds from past commits
 
 `[--reset | -r]` resets the issue repo and rebuild from past commits
 
@@ -33,10 +39,10 @@ Creates an empty repository or builds from past commits.
 ## Status
 
 ```bash
-git sciit status [-f | -n] [revision]
+git sciit status [-f | -n] [-o | -c | -o] [revision]
 ```
 
-Shows the user how many issues are open and how many are closed on all branches.
+shows how many issues are open and how many are closed on all branches
 
 
 ## Log
@@ -51,7 +57,7 @@ shows a log that is similar to the git log but shows open issues
 ## Issue
 
 ```bash
-git scitt [-f | -n ] issue_id [revision]
+git sciit [-f | -n ] issue_id [revision]
 ```
 
 shows information about the issue with the given id
@@ -84,8 +90,8 @@ Prompts user for:
 git sciit close issue_id
 ```
 
-closes an issue in the current branch
-  
+removes an issue from the master branch
+
 The effect within Sciit is to change the issue status to Closed.
 
 
@@ -101,16 +107,10 @@ launches a local web interface for the sciit issue tracker
 ## Tracker
 
 ```bash
-git scitt tracker [-a | -o | -c ] [-f | -n ]  [revision]
+git sciit tracker [-a | -o | -c ] [-f | -n ]  [revision]
 ```
 
-prints a log that shows issues and their status
-
-`[--all | -a]` show all the issues currently tracked and their status
-
-`[-o | --open]`  default: show only issues that are open
-
-`[-c | --closed]`  show only issues that are closed
+shows a summary of issues and their status
 
 
 ## Gitlab
@@ -118,7 +118,7 @@ prints a log that shows issues and their status
 ### Start
 
 ```bash
-git scitt gitlab start 
+git sciit gitlab start 
 
 ```
 
@@ -131,7 +131,7 @@ Used primarily for testing the Gitlab integration service.  The command must be 
 ### Reset
 
 ```bash
-git scitt gitlab reset project_url sites_local_path
+git sciit gitlab reset project_url sites_local_path
 ```
 
 resets the issue tracker database and rebuild from past commits
@@ -147,18 +147,19 @@ resets the issue tracker database and rebuild from past commits
 git sciit gitlab set_credentials project_url gitlab_username web_hook_secret_token api_token sites_local_path
 ```
 
-Sets a gitlab username, web hook token and API token for a Gitlab project to be  used by the sciit gitlab service
+sets a gitlab username, web hook token and API token for a Gitlab project to be  used by the sciit gitlab service
 
 Primarily used for debugging purposes by integration service Admins.  The configuration process is largely automated
 by the Gitlab integration service configure page. (see [INSTALL.md](./INSTALL.md).)
 
-`project_url` The URL of the project to be managed by Gitlab
+`project_url` the URL of the project to be managed by Gitlab
 
-`gitlab_username` The Gitlab account username that will manage the Gitlab issue tracker and repository
-  synchronisation.  The account should *not* be that of an actual developer on the project.
+`gitlab_username` the Gitlab account username that will manage the Gitlab issue tracker and repository  synchronisation
 
-`web_hook_secret_token` Token set on the Gitlab repository to authenticate incoming Webhook events.
+  The account should *not* be that of an actual developer on the project.
 
-`api_token` Token set on the Gitlab user account to provide access to the Gitlab API.
+`web_hook_secret_token` token set on the Gitlab repository to authenticate incoming Webhook events
 
-`sites_local_path` The path to the local gitlab sites mirror directory
+`api_token` token set on the Gitlab user account to provide access to the Gitlab API
+
+`sites_local_path` the path to the local gitlab sites mirror directory

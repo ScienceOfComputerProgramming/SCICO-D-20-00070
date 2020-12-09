@@ -53,7 +53,8 @@ def add_issue_filter_options(parser):
         '-a', '--all', help='show all the issues currently tracked and their status', action='store_true')
     group.add_argument(
         '-o', '--open', help='default: show only issues that are open', action='store_true')
-    group.add_argument('-c', '--closed', help='show only issues that are closed', action='store_true')
+    group.add_argument(
+        '-c', '--closed', help='show only issues that are closed', action='store_true')
 
 
 def add_view_options(parser):
@@ -130,11 +131,12 @@ def create_command_parser(issue_repository):
     status_parser = subparsers.add_parser(
         name='status',
         description=
-        'shows the user how many issues are open and how many are closed on all branches'
+        'shows how many issues are open and how many are closed on all branches'
     )
     status_parser.set_defaults(func=status)
     add_revision_option(status_parser)
     add_view_options(status_parser)
+    add_issue_filter_options(status_parser)
 
     log_parser = subparsers.add_parser(
         'log', description='shows a log that is similar to the git log but shows open issues')
@@ -142,7 +144,7 @@ def create_command_parser(issue_repository):
 
     add_revision_option(log_parser)
 
-    tracker_parser = subparsers.add_parser('tracker', description='prints a log that shows issues and their status')
+    tracker_parser = subparsers.add_parser('tracker', description='shows a summary of issues and their status')
     tracker_parser.set_defaults(func=tracker)
     add_revision_option(tracker_parser)
 

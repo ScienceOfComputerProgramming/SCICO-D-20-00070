@@ -207,6 +207,10 @@ class IssueRepo(object):
         history = self._build_history(rev)
         return {issue_id: issue for issue_id, issue in history.items() if issue.status[0] == 'Open'}
 
+    def get_closed_issues(self, rev=None):
+        history = self._build_history(rev)
+        return {issue_id: issue for issue_id, issue in history.items() if issue.status[0] == 'Closed'}
+
     def get_issue(self, issue_id, revision=None):
         return self._build_history(revision, [issue_id]).get(issue_id, None)
 

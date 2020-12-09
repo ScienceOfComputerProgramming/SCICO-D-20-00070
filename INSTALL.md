@@ -69,7 +69,7 @@ The service requires a sub-directory to exist wherever the integration service w
 read and write access to called `gitlab-sites`.  In the pythonanywhere example, the directory is assumed to be at 
 `/home/sciit/sciit/gitlab-sites`.  This directory is used to store mirrors of repositories on Gitlab that 
 are synchronised by the integration service.
- 
+
 The following steps must be following to install the service:
 
 1. Install the Sciit library as described above.
@@ -80,4 +80,4 @@ The following steps must be following to install the service:
      [here](https://modwsgi.readthedocs.io/en/develop/user-guides/quick-configuration-guide.html) and for nginx
       [here](https://uwsgi-docs.readthedocs.io/en/latest/Nginx.html).
 3. Make sure that the web server process has read/write permissions for the `~/gitlab_sites` directory.
-4. Launch the application and then go to the configuration page `https://hostname/configure.
+4. Launch the application and then go to the configuration page `https://hostname/configure` and follow the instructions there.

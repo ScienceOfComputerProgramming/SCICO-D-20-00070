@@ -75,16 +75,15 @@ def build_status_summary(issue_repository, revision=None):
 def _title_as_key(issue): return issue.title if issue.title is not None else ''
 
 
-def build_status_table(issue_repository, revision=None):
+def build_status_table(issue_repository, issues):
 
-    all_issues = issue_repository.get_all_issues(revision)
-    output = make_status_summary_string(all_issues)
+    output = make_status_summary_string(issues)
 
     title_width = 120
-    all_issues = list(all_issues.values())
-    all_issues.sort(key=_title_as_key)
+    issues = list(issues.values())
+    issues.sort(key=_title_as_key)
 
-    for issue in all_issues:
+    for issue in issues:
         issue_title = issue.title if issue.title is not None else ''
 
         if len(issue_title) > title_width - 3:
