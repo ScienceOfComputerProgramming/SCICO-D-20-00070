@@ -13,9 +13,9 @@ from git.exc import InvalidGitRepositoryError, GitCommandError
 from sciit.errors import NoCommitsError
 
 from sciit import IssueRepo
-from sciit.cli.functions import read_sciit_version, do_repository_has_no_commits_warning_and_exit, \
-    do_repository_is_init_check_and_exit_if_not, do_git_command_warning_and_exit, \
-    do_invalid_git_repository_warning_and_exit
+from sciit.cli.functions import read_sciit_version, do_repository_has_no_commits_warning, \
+    do_repository_is_init_check_and_exit_if_not, do_git_command_warning, \
+    do_invalid_git_repository_warning
 
 from sciit.cli.close_issue import close_issue
 from sciit.cli.gitlab_webservice import launch as launch_gitlab_service, reset as reset_gitlab_issues, \
@@ -213,7 +213,7 @@ def main():
         elif args.func in {set_gitlab_api_token, reset_gitlab_issues}:
              args.func(args)
         elif git_repository is None:
-            do_invalid_git_repository_warning_and_exit()
+            do_invalid_git_repository_warning()
         else:
             args.repo = issue_repository
             if args.func == init:
@@ -223,9 +223,9 @@ def main():
                 args.func(args)
 
     except NoCommitsError:
-        do_repository_has_no_commits_warning_and_exit()
+        do_repository_has_no_commits_warning()
     except GitCommandError as gce:
-        do_git_command_warning_and_exit(gce.command)
+        do_git_command_warning(gce.command)
 
     # Forces proper clean up of git repository resources on Windows.
     # See https://github.com/gitpython-developers/GitPython/issues/508

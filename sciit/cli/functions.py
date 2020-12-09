@@ -29,22 +29,19 @@ def do_repository_is_init_check_and_exit_if_not(issue_repository):
         exit(127)
 
 
-def do_invalid_git_repository_warning_and_exit():
+def do_invalid_git_repository_warning():
     print(Styling.error_warning('fatal: not a git repository (or any parent up to mount point /)'))
     print(Styling.error_warning('Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).'))
-    exit(127)
 
 
-def do_repository_has_no_commits_warning_and_exit():
+def do_repository_has_no_commits_warning():
     print(' ')
     print(Styling.error_warning('git sciit error fatal: the repository has no commits.'))
     print(Styling.error_warning('Create an initial commit before creating a new issue'))
-    exit(127)
 
 
-def do_git_command_warning_and_exit(command):
+def do_git_command_warning(command):
     print(Styling.error_warning(f'git sciit error fatal: bad git command executed within sciit {str(command)}'))
-    exit(127)
 
 
 def make_status_summary_string(all_issues):
