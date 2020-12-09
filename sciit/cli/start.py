@@ -61,11 +61,11 @@ def add_view_options(parser):
     group.add_argument(
         '-f', '--full', action='store_true',
         help=
-        'view the full tracker information for all issues including, description revisions, commit activity, '
-        'issue revisions, multiple file paths, open in, and found in branches')
+        'view the full  information for issues including, description, commit activity, multiple file paths, open in, '
+        'and found in branches')
     group.add_argument(
         '-n', '--normal', action='store_true',
-        help='default: view tracker information normally needed.')
+        help='default: view summary issue information')
 
 
 def add_gitlab_reset_parser(gitlab_subparsers):
@@ -137,7 +137,7 @@ def create_command_parser(issue_repository):
     add_view_options(status_parser)
 
     log_parser = subparsers.add_parser(
-        'log', description='prints a log that is similar to the git log but shows open issues')
+        'log', description='shows a log that is similar to the git log but shows open issues')
     log_parser.set_defaults(func=log)
 
     add_revision_option(log_parser)
@@ -149,7 +149,7 @@ def create_command_parser(issue_repository):
     add_issue_filter_options(tracker_parser)
     add_view_options(tracker_parser)
 
-    issue_parser = subparsers.add_parser('issue', description='prints an issue and it\'s status')
+    issue_parser = subparsers.add_parser('issue', description='shows information about the issue with the given id')
     issue_parser.set_defaults(func=issue)
 
     add_view_options(issue_parser)
