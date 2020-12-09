@@ -5,20 +5,6 @@ from sciit.cli.functions import do_repository_has_no_commits_warning, build_issu
 from sciit.write_commit import close_issue as _close_issue
 
 
-def _remove_issue_from_codebase(issue):
-    file_path = issue.file_path
-    start_position = issue.start_position
-    end_position = issue.end_position
-
-    with open(file_path, mode='r') as issue_file:
-        file_content = issue_file.read()
-
-    file_content_with_issue_removed = file_content[0:start_position] + file_content[end_position:]
-
-    with open(file_path, mode='w') as issue_file:
-        issue_file.write(file_content_with_issue_removed)
-
-
 def close_issue(args):
 
     issue_repository = args.repo
