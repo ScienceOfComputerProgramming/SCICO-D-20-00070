@@ -1,11 +1,13 @@
 # Setup
 
+SCIIT=git sciit
+
 rm -rf demo
 mkdir demo
 cd demo
 rm -rf .git/
 git init
-python ../runner.py init
+$SCIIT init
 touch README.md
 git add README.md
 git commit -m "Initial import."
@@ -32,15 +34,15 @@ EOF
 
 git add backlog
 git commit -m "Adds new issue Photo Upload on Claim"
-python ../runner.py status -f
-python ../runner.py issue photo-upload-on-claim
+$SCIIT status -f
+$SCIIT issue photo-upload-on-claim
 
 # Accept first issue
 
 git checkout master
 git merge photo-upload-on-claim
-python ../runner.py status -f
-python ../runner.py issue photo-upload-on-claim
+$SCIIT status -f
+$SCIIT issue photo-upload-on-claim
 
 # Add three sub-issues
 
@@ -64,7 +66,7 @@ EOF
 
 git add features/claim.feature
 git commit -m "Creates new issue to create a scenario for Small JPG Upload on Claims"
-python ../runner.py issue photo-upload-on-claim-uat
+$SCIIT issue photo-upload-on-claim-uat
 
 ## Second sub-issue
 
@@ -89,7 +91,7 @@ EOF
 
 git add insure_and_go/db.py
 git commit -m "Creates new issue to update database schema"
-python ../runner.py issue photo-upload-on-claim-db
+$SCIIT issue photo-upload-on-claim-db
 
 
 ## Third sub-issue
@@ -111,7 +113,7 @@ EOF
 
 git add insure_and_go/views.py
 git commit -m "Creates new issue to update claim view"
-python ../runner.py issue photo-upload-on-claim-view
+$SCIIT issue photo-upload-on-claim-view
 
 
 ## Add dependencies to main issue
@@ -135,7 +137,7 @@ EOF
 
 git add backlog/photo-upload-on-claim.md
 git commit -m "Begins Work on Photo Upload on Claim"
-python ../runner.py status -f
+$SCIIT status -f
 
 ## Accept sub-issues
 
@@ -146,7 +148,7 @@ git merge photo-upload-on-claim-view
 
 git checkout master
 git merge photo-upload-on-claim
-python ../runner.py tracker
+$SCIIT tracker
 
 # Make progress on first sub-issue
 
@@ -178,7 +180,7 @@ EOF
 
 git add features/claim.feature
 git commit -m "Makes progress on UAT Scenario Photo upload for claims"
-python ../runner.py issue photo-upload-on-claim-uat
+$SCIIT issue photo-upload-on-claim-uat
 
 
 # Close first sub-issue
@@ -202,7 +204,7 @@ EOF
 
 git add features/claim.feature
 git commit -m "Closes photo-upload-on-claim-uat"
-python ../runner.py issue photo-upload-on-claim-uat
+$SCIIT issue photo-upload-on-claim-uat
 
 # Close second sub-issue
 
@@ -220,7 +222,7 @@ touch insure_and_go/views.py
 git add insure_and_go/views.py
 git commit -m "Closes photo-upload-on-claim-view"
 
-python ../runner.py tracker
+$SCIIT tracker
 
 # Merge closed issues to master
 
@@ -229,11 +231,11 @@ git merge photo-upload-on-claim-uat
 git merge photo-upload-on-claim-db
 git merge photo-upload-on-claim-view
 
-python ../runner.py tracker
+$SCIIT tracker
 
 git checkout master
 git merge photo-upload-on-claim
-python ../runner.py tracker
+$SCIIT tracker
 
 # Close main issue
 
@@ -251,10 +253,10 @@ git checkout photo-upload-on-claim-view
 git merge photo-upload-on-claim
 
 git checkout photo-upload-on-claim
-python ../runner.py issue photo-upload-on-claim
+$SCIIT issue photo-upload-on-claim
 
 git checkout master
 git merge photo-upload-on-claim
-python ../runner.py issue photo-upload-on-claim
+$SCIIT issue photo-upload-on-claim
 
-python ../runner.py tracker -fa
+$SCIIT tracker -fa

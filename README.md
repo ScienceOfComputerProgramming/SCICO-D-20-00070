@@ -16,38 +16,6 @@ Sciit solves this problem by providing an interface for managing issues that are
 SCIIT is equipped with a command line user interface for managing the SCIIT installation process for a git repository.  It also has commands for reviewing issues and for launching a demonstrator web based user interface.
 
 
-## Dockerfile and Demonstration
-
-A Dockerfile is provided that can be used to generate a docker image and container.  The container can then be used
-to execute a demonstration of the command line user interface for Sciit.
-
-Requirements: Tested with Docker version 19.03.13
-
-To build the docker image:
-
-```bash
-git clone https://gitlab.com/sciit/sciit
-cd sciit
-docker build -t sciit-image .
-```
-
-To create a container in Docker and run a bash shell
-
-```bash
-docker run -it --name sciit-container sciit-image bash
-```
-
-On windows, the docker command may need to be prefixed with `winpty`.
-
-Once in the container, the user is in the sciit directory by default.  The demonstration can be run:
-
-```bash
-bash demonstration.sh
-```
-
-Git and sciit sub-commands are also available as normal for cloning existing repositories and installing sciit.
-
-
 ## Basic Usage
 
 Issues can be created anywhere in your source code as block comments in the underlying programming language format. The comment then becomes part of a trackable versioned object within your git repository. Commit, merge and checkout operations done by git will run git hooks installed by Sciit in the background in order to automate issue tracking.

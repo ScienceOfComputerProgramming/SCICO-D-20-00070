@@ -5,7 +5,41 @@
 Sciit requires Python 3.7 or later and Git 2.26 or later to build, install and run successfully.
 python3 (not python) and git must be in executable from be locatable by env.
 
-## Command Line
+
+## Docker Demonstration
+
+A Dockerfile is provided that can be used to generate a docker image and container.  The container can then be used
+to execute a demonstration of the command line user interface for sciit.
+
+Requirements: Tested with Docker version 19.03.13
+
+To build the docker image:
+
+```bash
+git clone https://gitlab.com/sciit/sciit
+cd sciit
+docker build -t sciit-image .
+```
+
+To create a container in Docker and run a bash shell
+
+```bash
+docker run -it --name sciit-container sciit-image bash
+```
+
+On windows, the docker command may need to be prefixed with `winpty`.
+
+Once in the container, the user is in the sciit directory by default.  The demonstration can be run:
+
+```bash
+bash demonstration.sh
+```
+
+Git and sciit sub-commands are also available as normal for cloning existing repositories and installing sciit.  See 
+[COMMAND.md](./COMMAND.md) for more details on the command line interface.
+
+
+## Command Line Installation
 
 Situation before installation:
 
