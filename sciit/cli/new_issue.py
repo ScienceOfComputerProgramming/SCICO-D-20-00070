@@ -2,7 +2,7 @@
 
 import slugify
 
-from sciit.cli.functions import do_repository_has_no_commits_warning, build_issue_history, page
+from sciit.cli.functions import do_repository_has_no_commits_warning_and_exit, build_issue_history, page
 
 from sciit.write_commit import create_issue
 
@@ -20,7 +20,7 @@ def new_issue(args):
     git_repository = issue_repository.git_repository
 
     if not git_repository.heads:
-        do_repository_has_no_commits_warning()
+        do_repository_has_no_commits_warning_and_exit()
         return
 
     title = input("Enter a title for the issue: ").rstrip()

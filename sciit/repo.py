@@ -210,13 +210,12 @@ class IssueRepo(object):
     def get_issue(self, issue_id, revision=None):
         return self._build_history(revision, [issue_id]).get(issue_id, None)
 
-    def get_issue_keys(self):
+    def issue_keys(self):
         with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
             cursor = connection.cursor()
             self._create_issue_snapshot_table(cursor)
 
             return [row[0] for row in cursor.execute('SELECT DISTINCT issue_id FROM IssueSnapshot').fetchall()]
-
 
     def _build_history(self, revision=None, issue_ids=None):
 
