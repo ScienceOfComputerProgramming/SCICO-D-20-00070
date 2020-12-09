@@ -35,6 +35,9 @@ Once in the container, the user is in the sciit directory by default.  The demon
 bash demonstration.sh
 ```
 
+The demonstration is largely non-interactive, although may need to close the nano editor and paging screens as they are 
+launched.
+
 Git and sciit sub-commands are also available as normal for cloning existing repositories and installing sciit.  See 
 [COMMAND.md](./COMMAND.md) for more details on the command line interface.
 
@@ -75,9 +78,9 @@ The following steps must be following to install the service:
 1. Install the Sciit library as described above.
 2. Configure your web server to serve the Gitlab integration Flask app.  An example 
    [pythonanywhere](sciit/gitlab/sciit_pythonanywhere_com.py) WSGI configuration script is included in the repository.
-    The service can also be launched for *testing* purposes using the command `git sciit gitlab start` from the 
+    The service can also be launched for *testing* purposes using the command `git sciit gitlab start` from the 
     parent directory of `gitlab-sites`.  More information on configuring WSGI for Apache is available
      [here](https://modwsgi.readthedocs.io/en/develop/user-guides/quick-configuration-guide.html) and for nginx
       [here](https://uwsgi-docs.readthedocs.io/en/latest/Nginx.html).
-3. Make sure that the web server process has read/write permissions for the `~/gitlab_sites` directory.
+3. Make sure that the web server process has read/write permissions for the `~/gitlab-sites` directory.
 4. Launch the application and then go to the configuration page `https://hostname/configure` and follow the instructions there.
