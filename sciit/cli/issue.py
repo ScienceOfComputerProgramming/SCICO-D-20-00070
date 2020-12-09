@@ -6,22 +6,19 @@ from sciit.cli.functions import page, build_issue_history
 
 def issue(args):
 
-    if args.full:
-        view = 'full'
-    else:
-        view = 'normal'
+    issue = args.repo.get_issue(args.issue_id, args.revision)
 
-    history = args.repo.build_history(args.revision)
-
-    if args.issue_id in history:
-        return page_history_issue(history[args.issue_id], view)
+    if issue is not None:
+        view = 'full' if args.full else 'normal'
+        return page_history_issue(issue, view)
     else:
-        if history:
+        issue_keys = args.repo.get_issue_keys()
+        if len(issue_keys) > 0:
             print(Styling.error_warning(f'No issues found matching \'{args.issue_id}\' '))
             print('\nHere are issues that are in the tracker:\n')
-            print("\n".join(history.keys()))
+            print("\n".join(issue_keys))
         else:
-            print(Styling.error_warning(f'No issues in the repository'))
+            print(Styling.error_warning(f'No issues in the repository.'))
         return ""
 
 

@@ -142,10 +142,10 @@ class Issue:
     Represents the previous and current state of an issue, based on a history of issue snapshots.
     """
 
-    def __init__(self, issue_id, all_issues, head_commits):
+    def __init__(self, issue_id, issue_repo, head_commits):
 
         self.issue_id = issue_id
-        self.all_issues = all_issues
+        self.issue_repo = issue_repo
         self.head_commits = head_commits
 
         self.issue_snapshots = list()
@@ -517,7 +517,7 @@ class Issue:
             blocker_issue_ids = [s.strip() for s in latest_blockers_str.split(',')]
 
             for blocker_issue_id in blocker_issue_ids:
-                result[blocker_issue_id] = self.all_issues.get(blocker_issue_id, None)
+                result[blocker_issue_id] = self.issue_repo.get_issue(blocker_issue_id)
 
         return result
 

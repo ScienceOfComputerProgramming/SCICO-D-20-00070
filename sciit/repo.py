@@ -201,20 +201,30 @@ class IssueRepo(object):
         return parent_commit_snapshots
 
     def get_all_issues(self, rev=None):
-        return self.build_history(rev)
+        return self._build_history(rev)
 
     def get_open_issues(self, rev=None):
-        history = self.build_history(rev)
+        history = self._build_history(rev)
         return {issue_id: issue for issue_id, issue in history.items() if issue.status[0] == 'Open'}
 
-    def build_history(self, revision=None, issue_ids=None):
+    def get_issue(self, issue_id, revision=None):
+        return self._build_history(revision, [issue_id]).get(issue_id, None)
+
+    def issue_keys(self):
+        with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
+            cursor = connection.cursor()
+            self._create_issue_snapshot_table(cursor)
+
+            return [row[0] for row in cursor.execute('SELECT DISTINCT issue_id FROM IssueSnapshot').fetchall()]
+
+    def _build_history(self, revision=None, issue_ids=None):
 
         if not self.git_repository.heads:
             raise NoCommitsError
 
         history = dict()
 
-        issue_snapshots = self.find_issue_snapshots(revision)
+        issue_snapshots = self.find_issue_snapshots(revision, issue_ids)
         head_commits = {head.name: head.commit.hexsha for head in self.git_repository.heads}
 
         for issue_snapshot in issue_snapshots:
@@ -222,7 +232,7 @@ class IssueRepo(object):
             issue_id = issue_snapshot.issue_id
             if issue_ids is None or issue_id in issue_ids:
                 if issue_id not in history:
-                    history[issue_id] = Issue(issue_id, history, head_commits)
+                    history[issue_id] = Issue(issue_id, self, head_commits)
                 history[issue_id].add_snapshot(issue_snapshot)
 
         return history
@@ -231,14 +241,17 @@ class IssueRepo(object):
         commit_hexshas_str = self.git_repository.git.execute(['git', 'rev-list', '--reverse', revision])
         return IssueHistoryIterator(self, commit_hexshas_str.split('\n'), issue_ids)
 
-    def find_issue_snapshots(self, revision=None):
+    def _get_commit_hexshas(self, revision):
         if revision is not None:
             commit_hexshas_str = self.git_repository.git.execute(['git', 'rev-list', '--reverse', revision])
             if commit_hexshas_str != '':
-                commit_hexshas = commit_hexshas_str.split('\n')
-                return self._deserialize_issue_snapshots_from_db(commit_hexshas)
+                return commit_hexshas_str.split('\n')
         else:
-            return self._deserialize_issue_snapshots_from_db()
+            return None
+
+    def find_issue_snapshots(self, revision=None, issue_ids=None):
+        commit_hexshas = self._get_commit_hexshas(revision)
+        return self._deserialize_issue_snapshots_from_db(commit_hexshas, issue_ids)
 
     def find_issue_snapshots_by_commit(self, commit_hexsha):
         if commit_hexsha not in self.issue_snapshot_cache:
@@ -262,8 +275,31 @@ class IssueRepo(object):
             connection.commit()
         self.issue_snapshot_cache[commit_hexsha] = issue_snapshots
 
-    def _deserialize_issue_snapshots_from_db(self, commit_hexshas=None):
+    @staticmethod
+    def _make_query_issue_snapshot_sql_statement(commit_hexshas, issue_ids):
+
+        def _make_set_membership_condition(values, column):
+            if not values:
+                return '1'
+            else:
+                question_marks = ','.join(['?'] * len(values))
+                return f'{column} IN ({question_marks})'
+
+        commit_hexsha_condition = _make_set_membership_condition(commit_hexshas, 'commit_sha')
+        issue_ids_condition = _make_set_membership_condition(issue_ids, 'issue_id')
+
+        return f'SELECT * FROM IssueSnapshot WHERE {commit_hexsha_condition} AND {issue_ids_condition}'
+
+    def _deserialize_issue_snapshots_from_db(self, commit_hexshas=None, issue_ids=None):
         result = list()
+
+        sql_statement_template = self._make_query_issue_snapshot_sql_statement(commit_hexshas, issue_ids)
+
+        data_values = list()
+        if commit_hexshas:
+            data_values.extend(commit_hexshas)
+        if issue_ids:
+            data_values.extend(issue_ids)
 
         with closing(sqlite3.connect(self.issue_dir + '/issues.db')) as connection:
 
@@ -271,15 +307,7 @@ class IssueRepo(object):
             cursor.row_factory = dict_factory
             self._create_issue_snapshot_table(cursor)
 
-            if commit_hexshas is None:
-                row_values = cursor.execute("SELECT * FROM IssueSnapshot").fetchall()
-            else:
-                question_marks = ','.join(['?'] * len(commit_hexshas))
-                row_values = cursor.execute(
-                    f"""
-                    SELECT * FROM IssueSnapshot WHERE commit_sha in({question_marks})
-                    """,
-                    commit_hexshas).fetchall()
+            row_values = cursor.execute(sql_statement_template, data_values).fetchall()
 
             for row_value in row_values:
                 commit = Commit(self.git_repository, hex_to_bin(row_value['commit_sha']))

@@ -15,15 +15,8 @@ class TestIssueCommand(TestCase):
         self.args.repo = MagicMock()
 
     def test_command_fails_if_no_issues_matched(self):
-        self.args.revision = second_commit.hexsha
-        self.args.normal = self.args.detailed = self.args.full = False
-        self.args.issue_id = ''
-
-        mock_head = Mock()
-        mock_head.commit = second_commit
-        mock_head.name = 'master'
-        self.args.repo.heads = [mock_head]
-
+        self.args.repo.get_issue=Mock(return_value=None)
+        self.args.repo.get_issue_keys=Mock(return_value=['1]'])
         issue(self.args)
 
         self.assertIn('No issues found matching', sys.stdout.getvalue())
@@ -34,7 +27,7 @@ class TestIssueCommand(TestCase):
         self.args.normal = self.args.detailed = self.args.full = False
         self.args.issue_id = ''
 
-        self.args.repo.build_history.return_value = {}
+        self.args.repo.get_issue = Mock(return_value=None)
 
         issue(self.args)
         self.assertIn('No issues in the repository', sys.stdout.getvalue())
@@ -47,7 +40,7 @@ class TestIssueCommand(TestCase):
         self.args.normal = True
         self.args.detailed = self.args.full = False
         self.args.issue_id = '12'
-        self.args.repo.build_history.return_value = {'12': issues['12']}
+        self.args.repo.get_issue.return_value = issues['12']
 
         output = issue(self.args)
         output = ansi_escape.sub('', output)
@@ -65,7 +58,7 @@ class TestIssueCommand(TestCase):
         self.args.full = True
         self.args.normal = self.args.detailed = False
         self.args.issue_id = '12'
-        self.args.repo.build_history.return_value = {'12': issues['12']}
+        self.args.repo.get_issue.return_value = issues['12']
 
         output = issue(self.args)
 

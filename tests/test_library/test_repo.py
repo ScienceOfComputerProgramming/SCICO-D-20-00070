@@ -121,7 +121,7 @@ class TestBuildIssueRepo(TestCase):
         commit_constructor.side_effect = [self.first_commit] * 6 + [self.head_commit] * 5
 
         self.issue_repository.cache_issue_snapshots_from_all_commits()
-        history = self.issue_repository.build_history()
+        history = self.issue_repository.get_all_issues()
         self.assertEqual(8, len(history))
         self.assertEqual(2, len(history['1'].revisions))
 

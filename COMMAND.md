@@ -4,15 +4,31 @@
 git-scitt | git sciit | git-sciit.exe <command> <options>
 ```
 
+## Common options
+
+`[--help | -h]`  show the help message and exit
+
+`[revision]` the revision path to use to generate the issue log e.g. 'all' for all commits or 'master' for all commit on
+master branch or 'HEAD~2' from the last two commits on current branch. See `git rev-list` options for more path options
+
+`[--full | -f]` view the full  information for issues including, description, commit activity, multiple file paths, 
+open in, and found in branches
+
+`[--normal | -n]` default: view summary issue information
+
+
 ## Init
 
 ```bash
-git sciit init [-r | --reset]
+git sciit init [-r | -s]
 ```
 
 Creates an empty repository or builds from past commits.
 
-`[--reset | -r]` Removes all existing issue repository artifacts, including git hooks and cached issue snapshot database before rebulding.
+`[--reset | -r]` resets the issue repo and rebuild from past commits
+
+`[--synchronize | -s]` synchronizes repository with remotes before initialisation
+
 
 ## Status
 
@@ -22,9 +38,6 @@ git sciit status [-f | -n] [revision]
 
 Shows the user how many issues are open and how many are closed on all branches.
 
-`[--full | -f]` Shows a table of open and closed issues.
-
-`[--normal | -n]` Shows a count of open and closed issues.
 
 ## Log
 
@@ -32,21 +45,17 @@ Shows the user how many issues are open and how many are closed on all branches.
 git sciit log [revision]
 ```
 
-Outputs a log that is similar to the git command, but includes a summary of open issues for each commit.
+shows a log that is similar to the git log but shows open issues
 
-`[revision]` The git revision path to use to control logging.
 
 ## Issue
 
 ```bash
-git scitt issue <issue_id> [-f | -n ] issueid [revision]
+git scitt [-f | -n ] issue_id [revision]
 ```
 
-Shows information about the issue with the given id.
+shows information about the issue with the given id
 
-`[--full | -f]` Shows the full history of changes to the issue.
-
-`[--normal | -n]` Shows the normal summary of the current state of the issue.
 
 ## New
 
@@ -54,7 +63,7 @@ Shows information about the issue with the given id.
 git sciit new [-p | -a]
 ```
 
-Creates a new issue in the project backlog on a branch specified by the issue id.
+creates a new issue in the project backlog on a branch specified by the issue id
 
 Prompts user for:
 
@@ -64,17 +73,21 @@ Prompts user for:
  * A description of the issue
  * A commit message for creating the issue
 
-`[--push | -p]` Pushes the newly created issue branch to the origin.
+`[--push | -p]` pushes the newly created issue branch to the origin
 
-`[--accept | -a]` Accepts the newly created issue branch by merging it to master locally.
+`[--accept | -a]` accepts the newly created issue branch by merging it to master locally
+
 
 ## Close (Experimental)
 
 ```git sciit close 
-git sciit close <issue_id>
+git sciit close issue_id
 ```
 
-Removes the issue from all branches it is present in within the current repository.  The effect within Sciit is to change the issue status to Closed.
+closes an issue in the current branch
+  
+The effect within Sciit is to change the issue status to Closed.
+
 
 ## Web
 
@@ -82,7 +95,8 @@ Removes the issue from all branches it is present in within the current reposito
 git sciit web
 ```
 
-Launches the web interface for viewing issue information.
+launches a local web interface for the sciit issue tracker
+
 
 ## Tracker
 
@@ -90,13 +104,14 @@ Launches the web interface for viewing issue information.
 git scitt tracker [-a | -o | -c ] [-f | -n ]  [revision]
 ```
 
-Prints a log that shows issues and their status.
+prints a log that shows issues and their status
 
-`[--full | -f]` Shows the full history of changes to the issues.
+`[--all | -a]` show all the issues currently tracked and their status
 
-`[--normal | -n]` Shows the normal summary of the current state of the issues.
+`[-o | --open]`  default: show only issues that are open
 
-`[revision]` The git revision path to use to control the view of the issues.
+`[-c | --closed]`  show only issues that are closed
+
 
 ## Gitlab
 
@@ -107,8 +122,11 @@ git scitt gitlab start
 
 ```
 
-Launches the gitlab webservice that integrates Gitlab issues with sciit.  Used primarily for testing the Gitlab 
-integration service.  The command must be run in the parent directory of `gitlab-sites`. 
+launches the gitlab webservice that integrates Gitlab issues with sciit
+
+Used primarily for testing the Gitlab integration service.  The command must be run in the parent directory of 
+`gitlab-sites`. 
+
 
 ### Reset
 
@@ -116,7 +134,7 @@ integration service.  The command must be run in the parent directory of `gitlab
 git scitt gitlab reset project_url sites_local_path
 ```
 
-Resets the issue tracker database and rebuild from past commits.
+resets the issue tracker database and rebuild from past commits
 
 `project_url` The URL of the project to be managed by Gitlab
 
@@ -129,7 +147,8 @@ Resets the issue tracker database and rebuild from past commits.
 git sciit gitlab set_credentials project_url gitlab_username web_hook_secret_token api_token sites_local_path
 ```
 
-Sets a gitlab username, web hook token and API token for a Gitlab project to be  used by the sciit gitlab service.
+Sets a gitlab username, web hook token and API token for a Gitlab project to be  used by the sciit gitlab service
+
 Primarily used for debugging purposes by integration service Admins.  The configuration process is largely automated
 by the Gitlab integration service configure page. (see [INSTALL.md](./INSTALL.md).)
 

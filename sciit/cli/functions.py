@@ -22,17 +22,29 @@ def read_sciit_version():
         return version_file_handle.read().decode('utf-8')
 
 
-def do_repository_is_init_check(issue_repository):
+def do_repository_is_init_check_and_exit_if_not(issue_repository):
     if not issue_repository.is_init():
         print(Styling.error_warning('git sciit error fatal: issue repository not initialized.'))
         print(Styling.error_warning('Solve this error by (re)building the issue repository using: git sciit init [-r]'))
         exit(127)
 
 
-def do_repository_has_no_commits_warning():
+def do_invalid_git_repository_warning_and_exit():
+    print(Styling.error_warning('fatal: not a git repository (or any parent up to mount point /)'))
+    print(Styling.error_warning('Stopping at filesystem boundary(GIT_DISCOVERY_ACROSS_FILESYSTEM not set).'))
+    exit(127)
+
+
+def do_repository_has_no_commits_warning_and_exit():
     print(' ')
     print(Styling.error_warning('git sciit error fatal: the repository has no commits.'))
     print(Styling.error_warning('Create an initial commit before creating a new issue'))
+    exit(127)
+
+
+def do_git_command_warning_and_exit(command):
+    print(Styling.error_warning(f'git sciit error fatal: bad git command executed within sciit {str(command)}'))
+    exit(127)
 
 
 def make_status_summary_string(all_issues):
@@ -81,7 +93,7 @@ def build_status_table(issue_repository, revision=None):
         if len(issue_title) > title_width - 3:
             output += Styling.item_title(issue_title[0:title_width - 5] + '...: ')
         else:
-            output += Styling.item_title((issue_title + ': ').ljust(title_width))
+            output += (Styling.item_title(issue_title) + ': ').ljust(title_width)
 
         if issue.status[0] == 'Closed':
             issue_status = Styling.closed_status(issue.status[0].ljust(6))
