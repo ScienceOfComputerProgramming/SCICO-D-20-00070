@@ -40,7 +40,7 @@ $SCIIT issue photo-upload-on-claim
 # Accept first issue
 
 git checkout master
-git merge photo-upload-on-claim
+git merge -m "Accepts issue photo-upload-on-claim" photo-upload-on-claim
 $SCIIT status -f
 $SCIIT issue photo-upload-on-claim
 
@@ -142,12 +142,12 @@ $SCIIT status -f
 ## Accept sub-issues
 
 git checkout photo-upload-on-claim
-git merge photo-upload-on-claim-uat
-git merge photo-upload-on-claim-db
-git merge photo-upload-on-claim-view
+git merge -m "Accepts photo-upload-on-claim-uat" photo-upload-on-claim-uat
+git merge -m "Accepts photo-upload-on-claim-db" photo-upload-on-claim-db
+git merge -m "Accepts photo-upload-on-claim-view" photo-upload-on-claim-view
 
 git checkout master
-git merge photo-upload-on-claim
+git merge -m "Accepts photo-upload-on-claim sub-issues" photo-upload-on-claim
 $SCIIT tracker
 
 # Make progress on first sub-issue
@@ -227,14 +227,14 @@ $SCIIT tracker
 # Merge closed issues to master
 
 git checkout photo-upload-on-claim
-git merge photo-upload-on-claim-uat
-git merge photo-upload-on-claim-db
-git merge photo-upload-on-claim-view
+git merge -m "Merges closed photo-upload-on-claim-uat" photo-upload-on-claim-uat
+git merge -m "Merges closed photo-upload-on-claim-db" photo-upload-on-claim-db
+git merge -m "Merges closed photo-upload-on-claim-view" photo-upload-on-claim-view
 
 $SCIIT tracker
 
 git checkout master
-git merge photo-upload-on-claim
+git merge -m "Closes photo-upload-on-claim sub-issues" photo-upload-on-claim
 $SCIIT tracker
 
 # Close main issue
@@ -244,19 +244,19 @@ git rm backlog/photo-upload-on-claim.md
 git commit -m "Closes photo-upload-on-claim"
 
 git checkout photo-upload-on-claim-uat
-git merge photo-upload-on-claim
+git merge -m "Updates feature branch photo-upload-on-claim-uat" photo-upload-on-claim
 
 git checkout photo-upload-on-claim-db
-git merge photo-upload-on-claim
+git merge -m "Updates feature branch photo-upload-on-claim-db" photo-upload-on-claim
 
 git checkout photo-upload-on-claim-view
-git merge photo-upload-on-claim
+git merge -m "Updates feature branch photo-upload-on-claim-view" photo-upload-on-claim
 
 git checkout photo-upload-on-claim
 $SCIIT issue photo-upload-on-claim
 
 git checkout master
-git merge photo-upload-on-claim
+git merge -m "Merges closed photo-upload-on-claim" photo-upload-on-claim
 $SCIIT issue photo-upload-on-claim
 
 $SCIIT tracker -fa
