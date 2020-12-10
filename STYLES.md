@@ -20,18 +20,18 @@ Supported file extensions:
 
 
 ```c
-    /*
-    *   @issue Eg: The title of your issue
-    *   @description:
-    *     A description of an issue as you
-    *     want it to be even with ``markdown`` supported
-    *   @issue_assigned to nystrome, kevin, daniels
-    *   @due date 12 oct 2018
-    *   @label in-development
-    *   @weight 4
-    *   @priority high
-    *
-    */
+/*
+ *  @issue Eg: The title of your issue
+ *  @description:
+ *    A description of an issue as you
+ *    want it to be even with ``markdown`` supported
+ *  @assignees to nystrome, kevin, daniels
+ *  @due_date 12 oct 2018
+ *  @label in-development
+ *  @weight 4
+ *  @priority high
+ *
+ */
 ```
 
 ## HTML Style
@@ -39,20 +39,19 @@ Supported file extensions:
 Supported file extensions:
 
 * HTML files `.htm`, `.html`, `.xhtml`
-* Markdown files `.md`
 
 ```html
-    <!--
-        @issue Eg: The title of your issue
-        @description:
-            A description of an issue as you
-            want it to be even with ``markdown`` supported
-        @issue_assigned to nystrome, kevin, daniels
-        @due date 12 oct 2018
-        @label in-development
-        @weight 4
-        @priority high
-    -->
+<!--
+    @issue Eg: The title of your issue
+    @description:
+        A description of an issue as you
+        want it to be even with ``markdown`` supported
+    @assignees nystrome, kevin, daniels
+    @due_date 12 oct 2018
+    @label in-development
+    @weight 4
+    @priority high
+-->
 ```
 
 ## Python
@@ -60,17 +59,17 @@ Supported file extensions:
 Supports `.py` files
 
 ```python
-    """
-        @issue Eg: The title of your issue
-        @description:
-            A description of an issue as you
-            want it to be even with ``markdown`` supported
-        @issue_assigned to nystrome, kevin, daniels
-        @due date 12 oct 2018
-        @label in-development
-        @weight 4
-        @priority high
-    """
+"""
+    @issue Eg: The title of your issue
+    @description:
+        A description of an issue as you
+        want it to be even with ``markdown`` supported
+    @assignees nystrome, kevin, daniels
+    @due_date 12 oct 2018
+    @label in-development
+    @weight 4
+    @priority high
+"""
 ```
 
 ## MATLAB
@@ -78,17 +77,17 @@ Supports `.py` files
 Supports `.m` files
 
 ```matlab
-    %{
-        @issue Eg: The title of your issue
-        @description:
-            A description of an issue as you
-            want it to be even with ``markdown`` supported
-        @issue_assigned to nystrome, kevin, daniels
-        @due date 12 oct 2018
-        @label in-development
-        @weight 4
-        @priority high
-    %}
+%{
+    @issue Eg: The title of your issue
+    @description:
+        A description of an issue as you
+        want it to be even with ``markdown`` supported
+    @assignees nystrome, kevin, daniels
+    @due_date 12 oct 2018
+    @label in-development
+    @weight 4
+    @priority high
+%}
 ```
 
 
@@ -97,17 +96,17 @@ Supports `.m` files
 Supports `.hs` files
 
 ```haskell
-    {-
-        @issue Eg: The title of your issue
-        @description:
-            A description of an issue as you
-            want it to be even with ``markdown`` supported
-        @issue_assigned to nystrome, kevin, daniels
-        @due date 12 oct 2018
-        @label in-development
-        @weight 4
-        @priority high
-    -}
+{-
+    @issue Eg: The title of your issue
+    @description:
+        A description of an issue as you
+        want it to be even with ``markdown`` supported
+    @assignees nystrome, kevin, daniels
+    @due_date 12 oct 2018
+    @label in-development
+    @weight 4
+    @priority high
+-}
 ```
 
 ## Markdown
@@ -115,17 +114,17 @@ Supports `.hs` files
 Supports ``.md`` files
 
 ```
-    ---
-    @issue Eg: The title of your issue
-    @description:
-       A description of an issue as you
-       want it to be even with ``markdown`` supported
-    @issue_assigned to nystrome, kevin, daniels
-    @due date 12 oct 2018
-    @label in-development
-    @weight 4
-    @priority high
-    ---
+---
+@issue Eg: The title of your issue
+@description:
+   A description of an issue as you
+   want it to be even with ``markdown`` supported
+@issue_assigned to nystrome, kevin, daniels
+@due date 12 oct 2018
+@label in-development
+@weight 4
+@priority high
+---
 ```
 
 ## Others
@@ -137,18 +136,18 @@ Supported file extensions:
 * YAML files `.yml`, `.yaml`
 * Plain text files
 
-```
-    #*** (or more *)
-    #   @issue Eg: The title of your issue
-    #   @description:
-    #       A description of an issue as you
-    #       want it to be even with ``markdown`` supported
-    #   @issue_assigned to nystrome, kevin, daniels
-    #   @due date 12 oct 2018
-    #   @label in-development
-    #   @weight 4
-    #   @priority high
-    #*** (or more *)
+```ruby
+#***
+#   @issue Eg: The title of your issue
+#   @description:
+#       A description of an issue as you
+#       want it to be even with ``markdown`` supported
+#   @issue_assigned to nystrome, kevin, daniels
+#   @due date 12 oct 2018
+#   @label in-development
+#   @weight 4
+#   @priority high
+#***
 ```
 
 For more information on how this is captured see [here](sciit/regex.py)
