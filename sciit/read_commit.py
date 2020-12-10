@@ -235,7 +235,7 @@ def _init_commit_branch_cache(git_working_dir):
     os.chdir(current_wd)
 
     for line in sub_process_out.decode("utf-8").strip().split('\n'):
-        commit_str, branches_str = line.split(':')
+        commit_str, branches_str = line.strip().split(':')
         branches = branches_str.split(',')
         _COMMIT_BRANCHES_CACHE[commit_str] = branches
 
