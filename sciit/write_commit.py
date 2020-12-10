@@ -66,7 +66,7 @@ class _GitCommitToIssue:
         return self._issue_repository.git_repository
 
     def __enter__(self):
-
+        
         head_branch_names = [head.name for head in self._git_repository.heads]
 
         if self._target_branch not in head_branch_names:
@@ -74,7 +74,8 @@ class _GitCommitToIssue:
             self._git_repository.git.checkout(self._target_branch)
         else:
             self._git_repository.git.checkout(self._target_branch)
-            self._git_repository.remotes.origin.pull()
+            if hasattr(self._git_repository.remotes, 'origin'):
+                self._git_repository.remotes.origin.pull()
 
         return self
 
