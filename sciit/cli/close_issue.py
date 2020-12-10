@@ -16,11 +16,10 @@ def close_issue(args):
 
     issue_id = args.issue_id
 
-    issues = issue_repository.get_all_issues()
-    issue = issues[issue_id]
+    issue = issue_repository.get_issue(issue_id)
 
-    _close_issue(issue_repository, issue, 'master')
+    _close_issue(issue_repository, issue, branch_names=[issue_id])
 
     print('Done\n')
-
-    page(build_issue_history(issue, issues))
+    issue = issue_repository.get_issue(issue_id)
+    page(build_issue_history(issue))

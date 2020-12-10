@@ -181,7 +181,7 @@ def create_command_parser(issue_repository):
 
     close_parser = subparsers.add_parser(
         'close',
-        description='closes an issue in the current branch')
+        description="removes an issue's content from it's feature branch")
     close_parser.set_defaults(func=close_issue)
 
     close_parser.add_argument(

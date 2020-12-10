@@ -90,10 +90,13 @@ Prompts user for:
 git sciit close issue_id
 ```
 
-removes an issue from the master branch
+removes an issue from its feature branch
 
-The effect within Sciit is to change the issue status to Closed.
+The effect within Sciit is to change the issue status to either Open (In review) or Closed (Rejected), depending on 
+whether the issue currently exists in master.
 
+The close command is still experimental.  Further work is required to develop the workflow for fully closing an issue,
+by, for example, creating a pull or merge request, or merging to master locally.
 
 ## Web
 

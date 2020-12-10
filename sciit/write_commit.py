@@ -66,7 +66,7 @@ class _GitCommitToIssue:
         return self._issue_repository.git_repository
 
     def __enter__(self):
-        
+
         head_branch_names = [head.name for head in self._git_repository.heads]
 
         if self._target_branch not in head_branch_names:
