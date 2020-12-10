@@ -10,6 +10,6 @@ RUN git config --global user.email "sciit@sciit.com"
 RUN git config --global user.name "sciit"
 RUN git config --global core.editor nano
 RUN ln -s /usr/bin/python3 /usr/bin/python
-RUN mkdir -p /home/sciit
+RUN mkdir -p /home/sciit/gitlab-sites
 RUN cp /sciit/demonstration.sh /home/sciit/demonstration.sh
 WORKDIR /home/sciit

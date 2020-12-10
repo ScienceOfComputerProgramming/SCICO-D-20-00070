@@ -9,7 +9,8 @@ python3 (not python) and git must be in executable from be locatable by env.
 ## Docker Demonstration
 
 A Dockerfile is provided that can be used to generate a docker image and container.  The container can then be used
-to execute a demonstration of the command line user interface for sciit.
+to execute a demonstration of the command line user interface for sciit, as well as test the web user interface and 
+Gitlab integration service.
 
 Requirements: Tested with Docker version 19.03.13
 
@@ -21,10 +22,10 @@ cd sciit
 docker build -t sciit-image .
 ```
 
-To create a container in Docker and run a bash shell
+To create a container in Docker and run a bash shell:
 
 ```bash
-docker run -it --name sciit-container sciit-image bash
+docker run -p 5000:5000 -it --name sciit-container sciit-image bash
 ```
 
 On windows, the docker command may need to be prefixed with `winpty`.
@@ -35,8 +36,29 @@ Once in the container, the user is in the sciit directory by default.  The demon
 bash demonstration.sh
 ```
 
-The demonstration is largely non-interactive, although the user may need to close the nano editor and paging screens as they are 
-launched.
+The demonstration is largely non-interactive, although the user may need to close paged screens of output from the 
+tracker by pressing 'q'.
+
+Once the command line demonstration is complete the web application user interface can be tested.
+
+```bash
+cd demo
+git sciit web
+```
+
+Visit http://localhost:5000 to see this feature and press control-C in the terminal when finished.
+
+The gitlab web service can also be tested:
+
+```bash
+cd /home/sciit
+git sciit gitlab start
+```
+
+Visit http://localhost:5000/configure to see this feature and press control-C in the terminal when finished.
+
+Note this runs the service using Flask directly.  The service should be installed using a full web server as described 
+below.
 
 Git and sciit sub-commands are also available as normal for cloning existing repositories and installing sciit.  See 
 [COMMAND.md](./COMMAND.md) for more details on the command line interface.
