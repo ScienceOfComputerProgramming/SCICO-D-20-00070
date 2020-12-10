@@ -1,3 +1,14 @@
+Version 2.1
+-----------
+
+Changes
+~~~~~~~
+
+ * Fixes documentation bugs in response to SCP reviewers
+ * Improves the behaviour of the close command
+ * Adds autocomplete for issue command options (experimental)
+ * Adds Dockerfile for demonstration of features
+
 Version 2.0
 -----------
 
