@@ -2,12 +2,16 @@
 
 
 import os
+import logging
 
 from os import path
 from setuptools.command.build_py import build_py
 from shutil import copyfile
 from urllib.parse import urlparse
 from zipfile import ZipFile
+
+
+logger = logging.getLogger(__name__)
 
 
 class WebResourceCommand(build_py):
@@ -24,7 +28,7 @@ class WebResourceCommand(build_py):
 
 def ensure_directory(dir_path):
     if not path.exists(dir_path):
-        os.mkdir(dir_path)
+        os.makedirs(dir_path)
 
     return dir_path
 
@@ -51,13 +55,13 @@ def retrieve_resource_to_local_cache(resource_url):
         response = requests.get(resource_url)
         with open(cached_web_resource_file_path, 'wb') as cached_web_resource_file_handle:
             cached_web_resource_file_handle.write(response.content)
+            logger.info("Cached [%s]", cached_web_resource_file_path)
 
     return cached_web_resource_file_path
 
 
 def satisfy_resource_requirement(resource_url):
     cached_web_resource_file_path = retrieve_resource_to_local_cache(resource_url)
-    print(cached_web_resource_file_path)
     resource_dir_path = ensure_web_resource_directory()
 
     target_resource_filename = path.basename(cached_web_resource_file_path)
@@ -83,6 +87,6 @@ def install_single_file(
     target_resource_file_path = target_resource_dir_path + path.sep + target_resource_filename
 
     if not path.exists(target_resource_dir_path):
-        os.mkdir(target_resource_dir_path)
+        os.makedirs(target_resource_dir_path)
 
     copyfile(cached_web_resource_file_path, target_resource_file_path)
