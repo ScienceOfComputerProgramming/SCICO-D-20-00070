@@ -2,8 +2,8 @@
 
 ## Requirements
 
-Sciit requires Python 3.7 or later and Git 2.26 or later to build, install and run successfully.
-python3 (not python) and git must be in executable from be locatable by env.
+Sciit requires Python 3.7 or later, sqlite 3.8.2 or later and Git 2.26 or later to build, install and run successfully.
+python3 (not python) and git must be in executable and be locatable by env.
 
 
 ## Docker Demonstration
